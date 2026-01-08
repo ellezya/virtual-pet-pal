@@ -21,30 +21,32 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   const ambientNodesRef = useRef<{
     wind: AudioBufferSourceNode | null;
     windGain: GainNode | null;
-    birdInterval: NodeJS.Timeout | null;
-    childrenInterval: NodeJS.Timeout | null;
+    birdInterval: ReturnType<typeof setInterval> | null;
+    childrenInterval: ReturnType<typeof setInterval> | null;
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
-    musicInterval: NodeJS.Timeout | null;
+    musicInterval: ReturnType<typeof setInterval> | null;
   }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null, musicOscillators: [], musicGain: null, musicInterval: null });
 
-  // Default ON so “music and sounds are back” after the first user interaction unlocks audio.
+  // Track if audio has been unlocked by user gesture
+  const hasUnlockedRef = useRef(false);
+  // Track if ambient should start once unlocked
+  const shouldStartAmbientRef = useRef(true);
+
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(true);
 
   const musicVolume = 0.12;
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
-  // Initialize audio context and attempt resume (resume may be ignored until a real user gesture).
+  // Initialize audio context and attempt resume
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
     const ctx = audioContextRef.current;
     if (ctx.state === 'suspended') {
-      void ctx.resume().catch(() => {
-        // Autoplay policy: resume can fail until a user gesture.
-      });
+      void ctx.resume().catch(() => {});
     }
     return ctx;
   }, []);
@@ -52,9 +54,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   const unlockAudio = useCallback(() => {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') {
-      void ctx.resume().catch(() => {
-        // ignore
-      });
+      void ctx.resume().catch(() => {});
     }
   }, [getAudioContext]);
 
@@ -63,7 +63,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Soft air puff using filtered noise
     const bufferSize = ctx.sampleRate * 0.08;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -326,7 +325,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Random bird frequencies for variety
     const baseFreq = 1800 + Math.random() * 800;
     const chirpCount = 2 + Math.floor(Math.random() * 3);
     
@@ -357,7 +355,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Filtered noise to simulate distant voices
     const bufferSize = ctx.sampleRate * 0.4;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -407,7 +404,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, time);
       
-      // Warm lowpass filter
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(800, time);
       filter.Q.setValueAtTime(1, time);
@@ -425,9 +421,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
   // Start lofi background music
   const startLofiMusic = useCallback(() => {
-    console.log('Starting lofi music...');
-    
-    // Lofi chord progression (Cmaj7 - Am7 - Fmaj7 - G7)
     const chords = [
       [261.63, 329.63, 392.00, 493.88], // Cmaj7
       [220.00, 261.63, 329.63, 392.00], // Am7
@@ -437,11 +430,9 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     
     let chordIndex = 0;
     
-    // Play first chord immediately
     playLofiChord(chords[chordIndex], 3.5);
     chordIndex = 1;
     
-    // Play chords in sequence
     const musicInterval = setInterval(() => {
       playLofiChord(chords[chordIndex], 3.5);
       chordIndex = (chordIndex + 1) % chords.length;
@@ -453,9 +444,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
     const ctx = getAudioContext();
-    console.log('Starting wind sound...');
     
-    // Create wind using filtered noise
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -472,7 +461,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(400, ctx.currentTime);
     
-    // LFO for wind variation
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
@@ -491,20 +479,15 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     lfo.start();
     noise.start();
     
-    // Store the noise source for later cleanup
     ambientNodesRef.current.wind = noise as any;
     ambientNodesRef.current.windGain = gain;
-    
-    console.log('Wind sound started');
   }, [getAudioContext, ambientVolume]);
 
   const stopAmbient = useCallback(() => {
     if (ambientNodesRef.current.wind) {
       try {
         (ambientNodesRef.current.wind as any).stop();
-      } catch {
-        // ignore
-      }
+      } catch {}
       ambientNodesRef.current.wind = null;
     }
     if (ambientNodesRef.current.birdInterval) {
@@ -522,7 +505,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   }, []);
 
   const startAmbient = useCallback(() => {
-    // Guard: don't double-start intervals/sources
+    // Guard: don't double-start
     if (
       ambientNodesRef.current.wind ||
       ambientNodesRef.current.birdInterval ||
@@ -532,24 +515,18 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       return;
     }
 
-    // Must be called after a user gesture (or after audio has been unlocked)
     unlockAudio();
-
-    // Start ambient layers
     startWindSound();
     startLofiMusic();
 
-    // Random bird chirps every ~2s
     ambientNodesRef.current.birdInterval = setInterval(() => {
       if (Math.random() < 0.6) playBirdChirp();
     }, 2000);
 
-    // Random children sounds every ~4s
     ambientNodesRef.current.childrenInterval = setInterval(() => {
       if (Math.random() < 0.4) playChildrenSound();
     }, 4000);
 
-    // Kick off a bit of life immediately
     playBirdChirp();
     setTimeout(() => playChildrenSound(), 900);
   }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound]);
@@ -558,18 +535,35 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   const toggleAmbient = useCallback(() => {
     setIsAmbientPlaying((prev) => {
       const next = !prev;
-      if (next) startAmbient();
-      else stopAmbient();
+      shouldStartAmbientRef.current = next;
+      if (next) {
+        if (hasUnlockedRef.current) {
+          startAmbient();
+        }
+      } else {
+        stopAmbient();
+      }
       return next;
     });
   }, [startAmbient, stopAmbient]);
 
-  // IMPORTANT: reliably unlock audio on *any* first interaction.
-  // This makes SFX work even if the first “sound” is triggered by a timer.
+  // Unlock audio on first user interaction and start ambient if enabled
   useEffect(() => {
     const onFirstInteraction = () => {
+      if (hasUnlockedRef.current) return;
+      hasUnlockedRef.current = true;
       unlockAudio();
-      if (isAmbientPlaying) startAmbient();
+      // Start ambient if it should be playing
+      if (shouldStartAmbientRef.current) {
+        // Defer to next tick to avoid React queue issues
+        setTimeout(() => {
+          startAmbient();
+        }, 0);
+      }
+      // Remove listeners after unlock
+      window.removeEventListener('pointerdown', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+      window.removeEventListener('keydown', onFirstInteraction);
     };
 
     window.addEventListener('pointerdown', onFirstInteraction, { passive: true });
@@ -581,7 +575,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       window.removeEventListener('touchstart', onFirstInteraction);
       window.removeEventListener('keydown', onFirstInteraction);
     };
-  }, [unlockAudio, isAmbientPlaying, startAmbient]);
+  }, [unlockAudio, startAmbient]);
 
   // Cleanup on unmount
   useEffect(() => {
