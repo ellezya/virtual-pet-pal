@@ -29,7 +29,7 @@ const ClassroomPets = () => {
   const [currentScene, setCurrentScene] = useState('habitat');
   
   // Sound effects
-  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, toggleMusic, isMusicPlaying } = useSoundEffects();
+  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, toggleAmbient, isAmbientPlaying } = useSoundEffects();
   const prevHoppingRef = useRef(false);
   
   const [bunnyState, setBunnyState] = useState({
@@ -467,11 +467,11 @@ const ClassroomPets = () => {
             <RotateCcw size={20} />
           </button>
           <button 
-            onClick={toggleMusic} 
-            className={`control-button ${isMusicPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
-            title={isMusicPlaying ? 'Mute music' : 'Play music'}
+            onClick={toggleAmbient} 
+            className={`control-button ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
           >
-            {isMusicPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            {isAmbientPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
         </div>
         <div className="flex items-center gap-3">
