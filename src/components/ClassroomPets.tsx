@@ -596,32 +596,32 @@ const ClassroomPets = () => {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-contain object-bottom"
+              className="absolute inset-0 w-full h-full object-cover"
             >
               <source src={lofiRoomVideo} type="video/mp4" />
             </video>
           </div>
         )}
 
-        {/* Room scene - pulled back to show floor */}
+        {/* Room scene */}
         {currentPet !== 'fish' && currentScene === 'room' && (
           <div className="absolute inset-0 z-0 bg-room-floor">
             <img 
               src={habitatRoom} 
               alt="Room" 
-              className="w-full h-full object-contain object-bottom"
+              className="w-full h-full object-cover"
               loading="eager"
             />
           </div>
         )}
 
-        {/* Park scene - pulled back to show grass */}
+        {/* Park scene */}
         {currentPet !== 'fish' && currentScene === 'park' && (
           <div className="absolute inset-0 z-0 bg-park-grass">
             <img 
               src={habitatPark} 
               alt="Park" 
-              className="w-full h-full object-contain object-bottom"
+              className="w-full h-full object-cover"
               loading="eager"
             />
           </div>
