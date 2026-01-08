@@ -19,9 +19,7 @@ import habitatIndoor from '@/assets/habitat-indoor.png';
 import habitatTank from '@/assets/habitat-tank.png';
 import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
-
-// Video backgrounds
-import lofiRoomVideo from '@/assets/lofi-room-bg.mp4';
+import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -740,7 +738,7 @@ const ClassroomPets = () => {
 
 
   return (
-    <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
+    <div className="w-full min-h-[100dvh] h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header - Same size as toy menu */}
       <header className="bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1 items-center">
@@ -831,37 +829,12 @@ const ClassroomPets = () => {
         {/* Background based on pet/scene */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 z-0 bg-room-wall">
-            <video
-              key="lofi-video-bg"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            >
-              <source src={lofiRoomVideo} type="video/mp4" />
-            </video>
-            {/* Couch on right side (replacing bed) */}
-            <div className="absolute bottom-[18%] right-[5%] z-[2]">
-              <svg width="140" height="70" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Couch base */}
-                <rect x="10" y="40" width="160" height="40" rx="8" fill="hsl(25 35% 35%)" />
-                {/* Couch seat cushions */}
-                <rect x="15" y="35" width="70" height="30" rx="6" fill="hsl(25 40% 45%)" />
-                <rect x="95" y="35" width="70" height="30" rx="6" fill="hsl(25 40% 45%)" />
-                {/* Couch back */}
-                <rect x="5" y="10" width="170" height="30" rx="6" fill="hsl(25 30% 30%)" />
-                {/* Armrests */}
-                <rect x="0" y="20" width="18" height="55" rx="5" fill="hsl(25 35% 38%)" />
-                <rect x="162" y="20" width="18" height="55" rx="5" fill="hsl(25 35% 38%)" />
-                {/* Legs */}
-                <rect x="20" y="78" width="8" height="12" rx="2" fill="hsl(25 20% 20%)" />
-                <rect x="152" y="78" width="8" height="12" rx="2" fill="hsl(25 20% 20%)" />
-                {/* Decorative pillows */}
-                <ellipse cx="35" cy="28" rx="15" ry="12" fill="hsl(200 50% 60%)" opacity="0.9" />
-                <ellipse cx="145" cy="28" rx="15" ry="12" fill="hsl(350 50% 60%)" opacity="0.9" />
-              </svg>
-            </div>
+            <img
+              src={habitatLofiCouch}
+              alt="Habitat"
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
           </div>
         )}
 
@@ -1127,13 +1100,25 @@ const ClassroomPets = () => {
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
               className={`object-contain drop-shadow-2xl transition-all duration-500 ${
-                currentScene === 'room' ? 'w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16' : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
+                currentScene === 'room'
+                  ? 'w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16'
+                  : currentScene === 'habitat'
+                  ? 'w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24'
+                  : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
               } ${
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
                 filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
-                transform: `${currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'} ${bunnyState.isNapping ? 'rotate(80deg) scaleY(0.85) translateX(-25%) translateY(10%)' : ''}`
+                transform: `${
+                  currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
+                } ${
+                  bunnyState.isNapping
+                    ? 'rotate(80deg) scaleY(0.85) translateX(-25%) translateY(10%)'
+                    : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
+                    ? 'translateY(18%)'
+                    : ''
+                }`,
               }}
             />
             
@@ -1259,7 +1244,7 @@ const ClassroomPets = () => {
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm">😴</span>
                 <div className="status-bar w-full h-1.5 mt-0.5">
-                  <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest)%` }} />
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest}%` }} />
                 </div>
               </div>
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">

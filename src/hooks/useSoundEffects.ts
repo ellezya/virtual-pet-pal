@@ -34,7 +34,15 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   // Track if ambient should start once unlocked
   const shouldStartAmbientRef = useRef(true);
 
-  const [isAmbientPlaying, setIsAmbientPlaying] = useState(true);
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem('lola_ambient_on');
+      if (raw === null) return true;
+      return raw === '1';
+    } catch {
+      return true;
+    }
+  });
 
   const musicVolume = 0.12;
   const sfxVolume = 0.8;
@@ -592,7 +600,12 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     setIsAmbientPlaying((prev) => {
       const next = !prev;
       shouldStartAmbientRef.current = next;
+      try {
+        window.localStorage.setItem('lola_ambient_on', next ? '1' : '0');
+      } catch {}
       if (next) {
+        // Ensure the context is resumed and ambient nodes exist
+        unlockAudio();
         if (hasUnlockedRef.current) {
           startAmbient();
         }
@@ -601,7 +614,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       }
       return next;
     });
-  }, [startAmbient, stopAmbient]);
+  }, [startAmbient, stopAmbient, unlockAudio]);
 
   // Unlock audio on first user interaction and start ambient if enabled
   useEffect(() => {
@@ -609,27 +622,45 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       if (hasUnlockedRef.current) return;
       hasUnlockedRef.current = true;
       unlockAudio();
-      // Start ambient if it should be playing
       if (shouldStartAmbientRef.current) {
-        // Defer to next tick to avoid React queue issues
         setTimeout(() => {
           startAmbient();
         }, 0);
       }
-      // Remove listeners after unlock
-      window.removeEventListener('pointerdown', onFirstInteraction);
-      window.removeEventListener('touchstart', onFirstInteraction);
-      window.removeEventListener('keydown', onFirstInteraction);
+    };
+
+    const onAnyPointerDown = () => {
+      // Helps when mobile browsers suspend audio after being backgrounded
+      if (!shouldStartAmbientRef.current) return;
+      unlockAudio();
+      startAmbient();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!shouldStartAmbientRef.current) return;
+      // If audio was previously unlocked, try to resume + ensure ambient is running
+      if (hasUnlockedRef.current) {
+        setTimeout(() => {
+          unlockAudio();
+          startAmbient();
+        }, 0);
+      }
     };
 
     window.addEventListener('pointerdown', onFirstInteraction, { passive: true });
     window.addEventListener('touchstart', onFirstInteraction, { passive: true });
     window.addEventListener('keydown', onFirstInteraction);
 
+    window.addEventListener('pointerdown', onAnyPointerDown, { passive: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     return () => {
       window.removeEventListener('pointerdown', onFirstInteraction);
       window.removeEventListener('touchstart', onFirstInteraction);
       window.removeEventListener('keydown', onFirstInteraction);
+      window.removeEventListener('pointerdown', onAnyPointerDown);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [unlockAudio, startAmbient]);
 
