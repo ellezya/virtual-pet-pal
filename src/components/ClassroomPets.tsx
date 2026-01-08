@@ -399,14 +399,8 @@ const ClassroomPets = () => {
             }}
           />
 
-          {/* On-screen debug so we don't rely on DevTools */}
-          <div className="absolute left-3 top-3 z-20 max-w-[85%] rounded-md border border-border bg-card/80 px-3 py-2 text-xs text-foreground backdrop-blur">
-            <div className="font-semibold">Background: {bgImgStatus}{bgImgMeta ? ` • ${bgImgMeta.w}×${bgImgMeta.h}` : ''}</div>
-            <div className="truncate text-muted-foreground">{habitatSrc}</div>
-          </div>
-
           {/* Overlay for better pet visibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent" />
         </div>
 
         {/* Animated Bubbles for Fish Tank */}
