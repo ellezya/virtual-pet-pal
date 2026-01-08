@@ -5,7 +5,7 @@ interface BowlStationProps {
   foodLevel: number;
   waterLevel: number;
   scene: 'habitat' | 'room' | 'park';
-  targetObject: 'food-bowl' | 'water-bowl' | 'toy-ball' | null;
+  targetObject: 'food-bowl' | 'water-bowl' | 'toy-area' | null;
 }
 
 const BowlStation: React.FC<BowlStationProps> = ({ 

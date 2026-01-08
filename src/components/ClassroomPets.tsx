@@ -50,7 +50,7 @@ const ClassroomPets = () => {
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'napping' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
     position: { x: 50, y: 88 },
-    targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-ball',
+    targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-area',
     isHopping: false,
     facingRight: true,
     isNapping: false
@@ -69,6 +69,23 @@ const ClassroomPets = () => {
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
+  // Toys configuration
+  const toys = [
+    { id: 'trampoline', emoji: '🎪', name: 'Trampoline', energyCost: 25, happinessBoost: 30, lowEnergy: false },
+    { id: 'tunnel', emoji: '🪵', name: 'Tunnel', energyCost: 15, happinessBoost: 20, lowEnergy: false },
+    { id: 'hayPile', emoji: '🪺', name: 'Hay Pile', energyCost: 8, happinessBoost: 15, lowEnergy: true },
+    { id: 'balloon', emoji: '🎈', name: 'Balloon', energyCost: 5, happinessBoost: 12, lowEnergy: true },
+    { id: 'cardboard', emoji: '📦', name: 'Box', energyCost: 10, happinessBoost: 18, lowEnergy: true },
+    { id: 'yarn', emoji: '🧶', name: 'Yarn', energyCost: 6, happinessBoost: 14, lowEnergy: true },
+  ];
+  
+  const [selectedToy, setSelectedToy] = useState(toys[0]);
+  
+  // Get available toys based on scene (room = low energy only)
+  const availableToys = currentScene === 'room' 
+    ? toys.filter(t => t.lowEnergy) 
+    : toys;
+
   // Bowl fill levels (0-100)
   const [bowlLevels, setBowlLevels] = useState({
     food: 0,
@@ -80,7 +97,7 @@ const ClassroomPets = () => {
   const envObjects = {
     'food-bowl': { x: 18, y: 94 },
     'water-bowl': { x: 24, y: 94 },
-    'toy-ball': { x: 70, y: 94 },
+    'toy-area': { x: 65, y: 94 },
   };
   const [fishState, setFishState] = useState({
     hunger: 70,
@@ -329,7 +346,7 @@ const ClassroomPets = () => {
     return () => clearInterval(checkNeeds);
   }, [currentPet, bunnyState, fishState]);
 
-  const doAction = (actionType: 'eating' | 'drinking' | 'playing', targetObj: 'food-bowl' | 'water-bowl' | 'toy-ball' | null, duration = 3000) => {
+  const doAction = (actionType: 'eating' | 'drinking' | 'playing', targetObj: 'food-bowl' | 'water-bowl' | 'toy-area' | null, duration = 3000) => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
       // Set target and start hopping towards it
@@ -395,15 +412,16 @@ const ClassroomPets = () => {
     }, 800);
   };
 
-  const playWithPet = () => {
+  const playWithToy = (toy: typeof toys[0]) => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
-      doAction('playing', 'toy-ball', 5000);
+      doAction('playing', 'toy-area' as any, 5000);
       setTimeout(() => {
         playPlay();
         // Happiness boost is higher at the park
-        const happinessBoost = currentScene === 'park' ? 35 : 20;
-        const energyDrain = currentScene === 'park' ? 20 : 12;
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        const energyDrain = toy.energyCost;
         setBunnyState(prev => ({ 
           ...prev, 
           happiness: Math.min(100, prev.happiness + happinessBoost), 
@@ -745,14 +763,14 @@ const ClassroomPets = () => {
               />
             </div>
             
-            {/* Toy Ball */}
+            {/* Selected Toy Display */}
             <div 
               className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'toy-ball' ? 'scale-110' : ''
+                bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
               } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
-              style={{ left: `${envObjects['toy-ball'].x}%`, top: `${envObjects['toy-ball'].y}%`, transform: 'translate(-50%, -100%)' }}
+              style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              <div className="text-xl sm:text-2xl md:text-3xl drop-shadow-lg">🎾</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
             </div>
             
             {/* Poops */}
@@ -828,7 +846,7 @@ const ClassroomPets = () => {
                 <span className="text-sm font-bold">
                   {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
                   {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
-                  {currentPet === 'bunny' && bunnyState.action === 'playing' && '🎾 Wheee!'}
+                  {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy.emoji} Wheee!`}
                   {currentPet === 'bunny' && bunnyState.action === 'napping' && '💤 Zzz...'}
                   {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
                   {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
@@ -850,6 +868,30 @@ const ClassroomPets = () => {
             </div>
           </div>
         </div>
+
+        {/* Toy Selection Menu - Right Side */}
+        {currentPet === 'bunny' && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-primary/30">
+            <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
+            {availableToys.map((toy) => (
+              <button
+                key={toy.id}
+                onClick={() => setSelectedToy(toy)}
+                disabled={gameState.locked || bunnyState.action !== 'idle'}
+                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                  selectedToy.id === toy.id 
+                    ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
+                    : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
+              >
+                <span className="text-xl">{toy.emoji}</span>
+                <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
+                <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Foreground matte so the bunny feels "in" the scene */}
         {currentPet === 'bunny' && (
@@ -1018,11 +1060,11 @@ const ClassroomPets = () => {
             </button>
           )}
           <button 
-            onClick={playWithPet} 
+            onClick={() => playWithToy(selectedToy)} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
             className="pet-button-play"
           >
-            🎾 Play
+            {selectedToy.emoji} Play
           </button>
           {currentPet === 'bunny' && (
             <button 
