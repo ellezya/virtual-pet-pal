@@ -461,8 +461,8 @@ const ClassroomPets = () => {
 
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Video Background for non-fish (full-room framing) */}
-        {currentPet !== 'fish' && (
+        {/* Background based on pet/scene */}
+        {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 z-0 bg-room-wall">
             <video
               key="lofi-video-bg"
@@ -474,6 +474,30 @@ const ClassroomPets = () => {
             >
               <source src={lofiRoomVideo} type="video/mp4" />
             </video>
+          </div>
+        )}
+
+        {/* Room scene - uses room image */}
+        {currentPet !== 'fish' && currentScene === 'room' && (
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={habitatRoom} 
+              alt="Room" 
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
+          </div>
+        )}
+
+        {/* Park scene - uses park image */}
+        {currentPet !== 'fish' && currentScene === 'park' && (
+          <div className="absolute inset-0 z-0">
+            <img 
+              src={habitatPark} 
+              alt="Park" 
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
           </div>
         )}
 
