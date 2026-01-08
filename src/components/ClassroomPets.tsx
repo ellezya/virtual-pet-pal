@@ -95,33 +95,48 @@ const ClassroomPets = () => {
     </svg>
   );
 
-  // Hollow tree trunk SVG component
+  // Hollow tree trunk SVG component - horizontal with transparent front
   const HollowTreeTrunkSVG = ({ large = false }: { large?: boolean }) => (
     <svg 
-      width={large ? "100" : "48"} 
-      height={large ? "50" : "28"} 
-      viewBox="0 0 100 50" 
+      width={large ? "120" : "60"} 
+      height={large ? "50" : "25"} 
+      viewBox="0 0 120 50" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg" 
       className="drop-shadow-lg"
     >
-      {/* Outer bark - back side */}
-      <ellipse cx="85" cy="25" rx="12" ry="20" fill="hsl(25 40% 25%)" />
-      {/* Main trunk body */}
-      <path d="M15 5 L85 5 L85 45 L15 45 Z" fill="hsl(25 45% 30%)" />
-      {/* Bark texture lines */}
-      <path d="M25 5 L23 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
-      <path d="M45 5 L48 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
-      <path d="M65 5 L62 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
-      {/* Hollow opening - front */}
-      <ellipse cx="15" cy="25" rx="14" ry="22" fill="hsl(25 40% 25%)" />
-      <ellipse cx="15" cy="25" rx="10" ry="16" fill="hsl(25 30% 12%)" />
-      {/* Inner darkness gradient */}
-      <ellipse cx="30" cy="25" rx="8" ry="12" fill="hsl(25 25% 8%)" opacity="0.8"/>
-      {/* Moss/lichen accents */}
-      <circle cx="20" cy="8" r="3" fill="hsl(85 35% 35%)" opacity="0.6"/>
-      <circle cx="70" cy="42" r="4" fill="hsl(85 35% 35%)" opacity="0.5"/>
-      <circle cx="50" cy="6" r="2" fill="hsl(85 40% 40%)" opacity="0.4"/>
+      {/* Back wall of hollow (visible through cutaway) */}
+      <path d="M15 8 L105 8 L105 42 L15 42 Z" fill="hsl(25 30% 15%)" />
+      
+      {/* Left opening - bark ring */}
+      <ellipse cx="15" cy="25" rx="14" ry="22" fill="hsl(25 40% 28%)" />
+      <ellipse cx="15" cy="25" rx="10" ry="17" fill="hsl(25 30% 12%)" />
+      
+      {/* Right opening - bark ring */}
+      <ellipse cx="105" cy="25" rx="14" ry="22" fill="hsl(25 40% 28%)" />
+      <ellipse cx="105" cy="25" rx="10" ry="17" fill="hsl(25 30% 12%)" />
+      
+      {/* Top bark (curved log top) */}
+      <path d="M15 3 Q60 0 105 3 L105 8 Q60 5 15 8 Z" fill="hsl(25 45% 32%)" />
+      <path d="M20 4 Q60 2 100 4" stroke="hsl(25 35% 22%)" strokeWidth="1.5" opacity="0.6"/>
+      
+      {/* Bottom bark (curved log bottom) */}
+      <path d="M15 47 Q60 50 105 47 L105 42 Q60 45 15 42 Z" fill="hsl(25 45% 32%)" />
+      <path d="M20 46 Q60 48 100 46" stroke="hsl(25 35% 22%)" strokeWidth="1.5" opacity="0.6"/>
+      
+      {/* Wood grain lines on back wall */}
+      <line x1="30" y1="12" x2="30" y2="38" stroke="hsl(25 25% 12%)" strokeWidth="1" opacity="0.4"/>
+      <line x1="55" y1="10" x2="55" y2="40" stroke="hsl(25 25% 12%)" strokeWidth="1" opacity="0.3"/>
+      <line x1="80" y1="12" x2="80" y2="38" stroke="hsl(25 25% 12%)" strokeWidth="1" opacity="0.4"/>
+      
+      {/* Moss accents on top */}
+      <circle cx="35" cy="5" r="3" fill="hsl(85 40% 35%)" opacity="0.7"/>
+      <circle cx="70" cy="3" r="2.5" fill="hsl(85 35% 38%)" opacity="0.6"/>
+      <circle cx="90" cy="5" r="2" fill="hsl(85 45% 40%)" opacity="0.5"/>
+      
+      {/* Small mushroom on log */}
+      <ellipse cx="45" cy="4" rx="2" ry="1" fill="hsl(15 60% 45%)" opacity="0.8"/>
+      <rect x="44.5" y="4" width="1" height="2" fill="hsl(30 30% 80%)" opacity="0.7"/>
     </svg>
   );
 
