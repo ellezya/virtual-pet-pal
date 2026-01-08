@@ -332,8 +332,25 @@
   }
 
   @keyframes sway {
-    0%, 100% { transform: rotate(-1deg); }
-    50% { transform: rotate(1deg); }
+    0%, 100% { transform: rotate(-1deg) translateX(0); }
+    50% { transform: rotate(1deg) translateX(2px); }
+  }
+
+  @keyframes breeze {
+    0% { 
+      transform: translateX(0) scaleX(0.5); 
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.6;
+    }
+    90% {
+      opacity: 0.6;
+    }
+    100% { 
+      transform: translateX(120vw) scaleX(1.5); 
+      opacity: 0;
+    }
   }
 
   @keyframes bubble-rise {
