@@ -44,11 +44,12 @@ const ClassroomPets = () => {
   const prevHoppingRef = useRef(false);
 
   // Curtains react to wind audio (0..1) with a gentle baseline.
-  const curtainStrength = Math.min(1, (isAmbientPlaying ? 0.25 : 0.08) + windIntensity * 0.9);
-  const curtainSwayX = 6 + curtainStrength * 12; // px
-  const curtainSkew = 0.6 + curtainStrength * 1.2; // deg
-  const curtainScaleX = 1.02 + curtainStrength * 0.06; // unitless
-  const curtainDuration = 6.4 - curtainStrength * 2.6; // seconds
+  // (Made intentionally more noticeable so changes are obvious.)
+  const curtainStrength = Math.min(1, (isAmbientPlaying ? 0.35 : 0.12) + windIntensity * 1.0);
+  const curtainSwayX = 14 + curtainStrength * 22; // px
+  const curtainSkew = 0.8 + curtainStrength * 1.6; // deg
+  const curtainScaleX = 1.03 + curtainStrength * 0.07; // unitless
+  const curtainDuration = 6.0 - curtainStrength * 2.4; // seconds
 
   // Get ground Y position based on current scene
   const getGroundY = (scene: string) => {
@@ -867,7 +868,7 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[6]"
-            style={{ right: '8%', top: '5%', width: '28%', height: '52%' }}
+            style={{ left: '52%', top: '2%', width: '46%', height: '68%', mixBlendMode: 'soft-light' }}
             aria-hidden="true"
           >
             {/* Left curtain - cream/yellow sheer */}
@@ -883,8 +884,8 @@ const ClassroomPets = () => {
                 ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
                 ['--curtain-scale-x' as any]: `${curtainScaleX}`,
                 ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.5 + curtainStrength * 0.15}`,
-                ['--curtain-opacity-max' as any]: `${0.7 + curtainStrength * 0.15}`,
+                ['--curtain-opacity-min' as any]: `${0.62 + curtainStrength * 0.12}`,
+                ['--curtain-opacity-max' as any]: `${0.84 + curtainStrength * 0.12}`,
               }}
             >
               <defs>
@@ -920,13 +921,14 @@ const ClassroomPets = () => {
                 transformOrigin: 'top right',
                 animationDelay: '0.6s',
                 filter: 'drop-shadow(-2px 8px 12px hsla(40, 30%, 20%, 0.15))',
-                ['--curtain-sway-x' as any]: `${curtainSwayX}px`,
+                // move opposite direction for a more obvious sway
+                ['--curtain-sway-x' as any]: `${-curtainSwayX}px`,
                 ['--curtain-skew-start' as any]: `${-curtainSkew}deg`,
                 ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
                 ['--curtain-scale-x' as any]: `${curtainScaleX}`,
                 ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.45 + curtainStrength * 0.15}`,
-                ['--curtain-opacity-max' as any]: `${0.7 + curtainStrength * 0.15}`,
+                ['--curtain-opacity-min' as any]: `${0.58 + curtainStrength * 0.12}`,
+                ['--curtain-opacity-max' as any]: `${0.84 + curtainStrength * 0.12}`,
               }}
             >
               <defs>
