@@ -30,7 +30,9 @@ const ClassroomPets = () => {
     energy: 70,
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing',
-    position: { x: 50, y: 50 }
+    position: { x: 50, y: 50 },
+    isHopping: false,
+    facingRight: true
   });
 
   const [fishState, setFishState] = useState({
@@ -92,20 +94,29 @@ const ClassroomPets = () => {
     return () => clearInterval(interval);
   }, [currentPet]);
 
-  // Auto-move bunny
+  // Auto-move bunny with hopping animation
   useEffect(() => {
     if (currentPet !== 'bunny' || bunnyState.action !== 'idle') return;
     const moveInterval = setInterval(() => {
-      setBunnyState(prev => ({
-        ...prev,
-        position: {
-          x: Math.max(25, Math.min(75, prev.position.x + (Math.random() - 0.5) * 15)),
-          y: Math.max(35, Math.min(65, prev.position.y + (Math.random() - 0.5) * 10))
-        }
-      }));
-    }, 3000);
+      const deltaX = (Math.random() - 0.5) * 20;
+      const newX = Math.max(20, Math.min(80, bunnyState.position.x + deltaX));
+      const newY = Math.max(40, Math.min(65, bunnyState.position.y + (Math.random() - 0.5) * 8));
+      const movingRight = deltaX > 0;
+      
+      // Start hop animation
+      setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+      
+      // After hop animation (600ms), update position and end hop
+      setTimeout(() => {
+        setBunnyState(prev => ({
+          ...prev,
+          isHopping: false,
+          position: { x: newX, y: newY }
+        }));
+      }, 600);
+    }, 2500);
     return () => clearInterval(moveInterval);
-  }, [currentPet, bunnyState.action]);
+  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y]);
 
   // Auto-move fish
   useEffect(() => {
@@ -219,7 +230,9 @@ const ClassroomPets = () => {
         energy: 70,
         mood: 'happy',
         action: 'idle',
-        position: { x: 50, y: 50 }
+        position: { x: 50, y: 50 },
+        isHopping: false,
+        facingRight: true
       });
     } else {
       setFishState({
@@ -418,7 +431,9 @@ const ClassroomPets = () => {
 
         {/* Pet */}
         <div 
-          className="absolute z-10 transition-all duration-1000 ease-in-out"
+          className={`absolute z-10 transition-all ease-out ${
+            currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
+          }`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? bunnyState.position.y : fishState.position.y}%`,
@@ -427,6 +442,8 @@ const ClassroomPets = () => {
         >
           <div className={`relative ${
             currentPet === 'fish' ? 'animate-swim' : ''
+          } ${
+            currentPet === 'bunny' && bunnyState.isHopping ? 'animate-hop' : ''
           } ${
             (currentPet === 'bunny' && bunnyState.action === 'playing') ||
             (currentPet === 'fish' && fishState.action === 'playing')
@@ -440,9 +457,19 @@ const ClassroomPets = () => {
                 bunnyState.action === 'eating' || fishState.action === 'eating' ? 'scale-110' : ''
               }`}
               style={{
-                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))'
+                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))',
+                transform: currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
               }}
             />
+            
+            {/* Ground shadow that grows/shrinks with hop */}
+            {currentPet === 'bunny' && (
+              <div 
+                className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/20 blur-sm transition-all duration-300 ${
+                  bunnyState.isHopping ? 'w-12 h-2 opacity-30' : 'w-16 h-3 opacity-50'
+                }`}
+              />
+            )}
             
             {/* Speech Bubbles */}
             {(bunnyState.action !== 'idle' || fishState.action !== 'idle') && (
