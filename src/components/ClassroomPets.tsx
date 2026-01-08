@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RotateCcw, Lock, Unlock, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
+import BowlStation from '@/components/BowlStation';
 
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
@@ -47,13 +48,13 @@ const ClassroomPets = () => {
     water: 0
   });
 
-  // Stationary environment objects - positioned on the floor
+  // Bowl station position (centered at bottom) and toy position
+  const bowlStationPosition = { x: 20, y: 96 };
   const envObjects = {
-    'food-bowl': { x: 25, y: 92 },
-    'water-bowl': { x: 75, y: 92 },
-    'toy-ball': { x: 50, y: 94 },
+    'food-bowl': { x: 18, y: 94 },
+    'water-bowl': { x: 24, y: 94 },
+    'toy-ball': { x: 70, y: 94 },
   };
-
   const [fishState, setFishState] = useState({
     hunger: 70,
     happiness: 80,
@@ -590,56 +591,22 @@ const ClassroomPets = () => {
         {/* Interactive Environment Objects for Bunny */}
         {currentPet === 'bunny' && (
           <div className="absolute inset-0 z-[5] pointer-events-none">
-            {/* Food Bowl - stationary with fill level */}
+            {/* Bowl Station with mat and named bowls */}
             <div 
-              className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'food-bowl' ? 'scale-105' : ''
-              }`}
-              style={{ left: `${envObjects['food-bowl'].x}%`, top: `${envObjects['food-bowl'].y}%`, transform: 'translate(-50%, -100%)' }}
+              className="absolute transition-transform duration-200"
+              style={{ 
+                left: `${bowlStationPosition.x}%`, 
+                top: `${bowlStationPosition.y}%`, 
+                transform: 'translate(-50%, -100%)' 
+              }}
             >
-              {/* Bowl container */}
-              <div className="relative w-10 h-6 sm:w-12 sm:h-7">
-                {/* Bowl shape */}
-                <div className="absolute inset-0 bg-gradient-to-b from-amber-600 to-amber-800 rounded-b-full rounded-t-lg border-2 border-amber-900 overflow-hidden">
-                  {/* Food fill */}
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500 to-orange-400 transition-all duration-500"
-                    style={{ height: `${bowlLevels.food}%` }}
-                  />
-                  {/* Carrots on top when filled */}
-                  {bowlLevels.food > 50 && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 text-xs">🥕</div>
-                  )}
-                </div>
-              </div>
-              {/* Label */}
-              <div className="text-[10px] text-center text-foreground/60 font-bold mt-0.5">Food</div>
-            </div>
-            
-            {/* Water Bowl - stationary with fill level */}
-            <div 
-              className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'water-bowl' ? 'scale-105' : ''
-              }`}
-              style={{ left: `${envObjects['water-bowl'].x}%`, top: `${envObjects['water-bowl'].y}%`, transform: 'translate(-50%, -100%)' }}
-            >
-              {/* Bowl container */}
-              <div className="relative w-10 h-6 sm:w-12 sm:h-7">
-                {/* Bowl shape */}
-                <div className="absolute inset-0 bg-gradient-to-b from-sky-600 to-sky-800 rounded-b-full rounded-t-lg border-2 border-sky-900 overflow-hidden">
-                  {/* Water fill */}
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-cyan-400 to-cyan-300 transition-all duration-500"
-                    style={{ height: `${bowlLevels.water}%` }}
-                  />
-                  {/* Ripple effect when filled */}
-                  {bowlLevels.water > 30 && (
-                    <div className="absolute top-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-white/30 rounded-full animate-pulse" />
-                  )}
-                </div>
-              </div>
-              {/* Label */}
-              <div className="text-[10px] text-center text-foreground/60 font-bold mt-0.5">Water</div>
+              <BowlStation
+                petName="Lola"
+                foodLevel={bowlLevels.food}
+                waterLevel={bowlLevels.water}
+                scene={currentScene as 'habitat' | 'room' | 'park'}
+                targetObject={bunnyState.targetObject}
+              />
             </div>
             
             {/* Toy Ball */}
@@ -649,7 +616,7 @@ const ClassroomPets = () => {
               } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
               style={{ left: `${envObjects['toy-ball'].x}%`, top: `${envObjects['toy-ball'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              <div className="text-xl sm:text-2xl drop-shadow-lg">🎾</div>
+              <div className="text-xl sm:text-2xl md:text-3xl drop-shadow-lg">🎾</div>
             </div>
           </div>
         )}
