@@ -18,6 +18,9 @@ import habitatTank from '@/assets/habitat-tank.png';
 import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
 
+// Video backgrounds
+import lofiRoomVideo from '@/assets/lofi-room-bg.mp4';
+
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
@@ -48,10 +51,6 @@ const ClassroomPets = () => {
     locked: false,
     notifications: [] as string[]
   });
-
-  const [bgImgFailed, setBgImgFailed] = useState(false);
-  const [bgImgStatus, setBgImgStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
-  const [bgImgMeta, setBgImgMeta] = useState<{ w: number; h: number } | null>(null);
 
   // Bunny decay
   useEffect(() => {
@@ -275,13 +274,6 @@ const ClassroomPets = () => {
       ? habitatRoom
       : habitatIndoor;
 
-  useEffect(() => {
-    setBgImgFailed(false);
-    setBgImgStatus('loading');
-    setBgImgMeta(null);
-    // Debug: helps confirm which asset URL Vite is using
-    console.log('[habitat] src', habitatSrc);
-  }, [habitatSrc]);
 
   return (
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
@@ -370,61 +362,66 @@ const ClassroomPets = () => {
 
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Background Habitat with Fallback */}
-        <div className={`absolute inset-0 z-0 ${
-          currentPet === 'fish' 
-            ? 'bg-gradient-to-b from-tank-water via-tank-water to-tank-deep' 
-            : currentScene === 'park'
-            ? 'bg-gradient-to-b from-habitat-sky to-habitat-grass'
-            : currentScene === 'room'
-            ? 'bg-gradient-to-b from-room-wall to-room-floor'
-            : 'bg-gradient-to-b from-primary/20 to-primary/40'
-        }`}>
-          <img 
-            key={habitatSrc}
-            src={habitatSrc} 
-            alt="Pet habitat" 
-            className={`w-full h-full object-cover transition-opacity duration-500 ${bgImgFailed ? 'opacity-0' : 'opacity-100'}`}
-            loading="eager"
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              setBgImgStatus('loaded');
-              setBgImgMeta({ w: img.naturalWidth, h: img.naturalHeight });
-              console.log('[habitat] loaded', habitatSrc, img.naturalWidth, img.naturalHeight);
-            }}
-            onError={() => {
-              setBgImgFailed(true);
-              setBgImgStatus('error');
-              console.log('[habitat] failed to load', habitatSrc);
-            }}
-          />
+        {/* Video Background for non-fish */}
+        {currentPet !== 'fish' && (
+          <video
+            key="lofi-video-bg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          >
+            <source src={lofiRoomVideo} type="video/mp4" />
+          </video>
+        )}
 
-          {/* Lofi overlays */}
-          <div className="lofi-overlay" />
-          <div className="lofi-vignette" />
-          <div className="lofi-grain" />
-          
-          {/* Warm sunlight rays */}
-          <div className="absolute inset-0 pointer-events-none opacity-40">
-            <div 
-              className="absolute top-0 right-[20%] w-[200px] h-[120%] bg-gradient-to-b from-primary/30 via-primary/10 to-transparent rotate-[15deg] blur-xl"
-            />
-            <div 
-              className="absolute top-0 right-[35%] w-[100px] h-[100%] bg-gradient-to-b from-warning/20 via-warning/5 to-transparent rotate-[20deg] blur-lg"
+        {/* Fish tank static background */}
+        {currentPet === 'fish' && (
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-tank-water via-tank-water to-tank-deep">
+            <img 
+              key={habitatSrc}
+              src={habitatSrc} 
+              alt="Fish tank" 
+              className="w-full h-full object-cover"
+              loading="eager"
             />
           </div>
+        )}
+
+        {/* Lofi overlays */}
+        <div className="lofi-overlay z-[1]" />
+        <div className="lofi-vignette z-[1]" />
+        <div className="lofi-grain z-[1]" />
+        
+        {/* Animated warm sunlight rays */}
+        <div className="absolute inset-0 pointer-events-none opacity-50 z-[2]">
+          <div 
+            className="absolute top-0 right-[15%] w-[250px] h-[130%] bg-gradient-to-b from-primary/40 via-primary/15 to-transparent rotate-[12deg] blur-2xl animate-pulse-soft"
+            style={{ animationDuration: '6s' }}
+          />
+          <div 
+            className="absolute top-0 right-[30%] w-[120px] h-[110%] bg-gradient-to-b from-warning/30 via-warning/10 to-transparent rotate-[18deg] blur-xl animate-pulse-soft"
+            style={{ animationDuration: '8s', animationDelay: '2s' }}
+          />
+          <div 
+            className="absolute top-0 right-[45%] w-[80px] h-[90%] bg-gradient-to-b from-primary/20 via-transparent to-transparent rotate-[22deg] blur-lg animate-pulse-soft"
+            style={{ animationDuration: '5s', animationDelay: '1s' }}
+          />
         </div>
 
         {/* Floating dust particles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
-          {[...Array(12)].map((_, i) => (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
+          {[...Array(20)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 rounded-full bg-primary/40 animate-float-dust"
+              className="absolute rounded-full bg-primary/50 animate-float-dust"
               style={{
-                left: `${5 + i * 8}%`,
-                animationDelay: `${i * 0.7}s`,
-                animationDuration: `${6 + Math.random() * 4}s`,
+                width: `${2 + Math.random() * 3}px`,
+                height: `${2 + Math.random() * 3}px`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${i * 0.5}s`,
+                animationDuration: `${8 + Math.random() * 6}s`,
               }}
             />
           ))}
@@ -432,18 +429,18 @@ const ClassroomPets = () => {
 
         {/* Animated Bubbles for Fish Tank */}
         {currentPet === 'fish' && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {[...Array(8)].map((_, i) => (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-[4]">
+            {[...Array(12)].map((_, i) => (
               <div
                 key={i}
-                className="absolute bg-secondary/30 rounded-full animate-bounce"
+                className="absolute bg-secondary/40 rounded-full animate-bubble"
                 style={{
-                  width: `${8 + Math.random() * 12}px`,
-                  height: `${8 + Math.random() * 12}px`,
+                  width: `${6 + Math.random() * 10}px`,
+                  height: `${6 + Math.random() * 10}px`,
                   left: `${10 + Math.random() * 80}%`,
-                  bottom: `${Math.random() * 30}%`,
-                  animationDelay: `${i * 0.3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
+                  bottom: `-5%`,
+                  animationDelay: `${i * 0.4}s`,
+                  animationDuration: `${3 + Math.random() * 2}s`
                 }}
               />
             ))}
