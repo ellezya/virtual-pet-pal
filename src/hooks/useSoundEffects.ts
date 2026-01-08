@@ -34,32 +34,46 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     return audioContextRef.current;
   }, []);
 
-  // Soft thump for hopping - deeper and more noticeable
+  // Soft scratchy hop sound - like landing on hay/straw barn floor
   const playHop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Create a soft thump using a low-frequency oscillator
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // Create scratchy noise for hay/straw texture
+    const bufferSize = ctx.sampleRate * 0.15;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.6;
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    // Bandpass filter for scratchy texture
     const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, time);
+    filter.Q.setValueAtTime(1.5, time);
     
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(100, time);
-    osc.frequency.exponentialRampToValueAtTime(50, time + 0.12);
+    // Highpass to remove low rumble
+    const highpass = ctx.createBiquadFilter();
+    highpass.type = 'highpass';
+    highpass.frequency.setValueAtTime(200, time);
     
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(300, time);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(sfxVolume * 0.25, time + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
     
-    gain.gain.setValueAtTime(sfxVolume * 0.8, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
-    
-    osc.connect(filter);
-    filter.connect(gain);
+    noise.connect(filter);
+    filter.connect(highpass);
+    highpass.connect(gain);
     gain.connect(ctx.destination);
     
-    osc.start(time);
-    osc.stop(time + 0.2);
+    noise.start(time);
+    noise.stop(time + 0.15);
   }, [getAudioContext]);
 
   // Crunchy eating sound
