@@ -37,14 +37,16 @@ const ClassroomPets = () => {
     happiness: 85,
     hydration: 75,
     energy: 70,
+    rest: 80,
     cleanliness: 90,
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
-    action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'asking-food' | 'asking-water',
+    action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'napping' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
     position: { x: 50, y: 88 },
     targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-ball',
     isHopping: false,
-    facingRight: true
+    facingRight: true,
+    isNapping: false
   });
 
   // Poop positions in the habitat
@@ -112,27 +114,50 @@ const ClassroomPets = () => {
     };
   }, []);
 
-  // Bunny decay
+  // Bunny decay and scene-based effects
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const interval = setInterval(() => {
       setBunnyState(prev => {
+        // Base decay rates
+        let energyChange = -0.2;
+        let happinessChange = -0.3;
+        let restChange = -0.15;
+        
+        // Scene-based effects
+        if (currentScene === 'room') {
+          // Room restores energy and rest
+          energyChange = 0.5;
+          restChange = 0.3;
+        } else if (currentScene === 'park') {
+          // Park drains energy faster but boosts happiness
+          energyChange = -0.5;
+          happinessChange = 0.2;
+        }
+        
+        // Napping boosts rest and energy even more
+        if (prev.isNapping) {
+          energyChange = 1.0;
+          restChange = 0.8;
+        }
+        
         const newState = {
           ...prev,
           hunger: Math.max(0, prev.hunger - 0.5),
           hydration: Math.max(0, prev.hydration - 0.4),
-          energy: Math.min(100, prev.energy - 0.2),
-          happiness: Math.max(0, prev.happiness - 0.3),
+          energy: Math.max(0, Math.min(100, prev.energy + energyChange)),
+          happiness: Math.max(0, Math.min(100, prev.happiness + happinessChange)),
+          rest: Math.max(0, Math.min(100, prev.rest + restChange)),
           cleanliness: Math.max(0, prev.cleanliness - 0.15)
         };
-        if (newState.hunger < 30 || newState.hydration < 30 || newState.cleanliness < 30) newState.mood = 'sad';
+        if (newState.hunger < 30 || newState.hydration < 30 || newState.cleanliness < 30 || newState.rest < 20) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'neutral';
         return newState;
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, [currentPet]);
+  }, [currentPet, currentScene]);
 
   // Play hop sound when bunny starts hopping
   useEffect(() => {
@@ -268,6 +293,7 @@ const ClassroomPets = () => {
         if (bunnyState.hydration < 30) notifications.push('💧 Water low!');
         if (bunnyState.cleanliness < 40) notifications.push('💩 Habitat needs cleaning!');
         if (bunnyState.happiness < 30) notifications.push('😢 Bunny is sad!');
+        if (bunnyState.rest < 30 && bunnyState.energy < 40) notifications.push('😴 Lola needs rest!');
       } else if (currentPet === 'fish') {
         if (fishState.hunger < 30) notifications.push('🐠 Fish hungry!');
         if (fishState.tankCleanliness < 40) notifications.push('🧽 Tank dirty!');
@@ -349,10 +375,13 @@ const ClassroomPets = () => {
       doAction('playing', 'toy-ball', 5000);
       setTimeout(() => {
         playPlay();
+        // Happiness boost is higher at the park
+        const happinessBoost = currentScene === 'park' ? 35 : 20;
+        const energyDrain = currentScene === 'park' ? 20 : 12;
         setBunnyState(prev => ({ 
           ...prev, 
-          happiness: Math.min(100, prev.happiness + 25), 
-          energy: Math.max(0, prev.energy - 15) 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - energyDrain) 
         }));
       }, 800);
     } else {
@@ -362,6 +391,22 @@ const ClassroomPets = () => {
         happiness: Math.min(100, prev.happiness + 20) 
       }));
     }
+  };
+
+  const takeNap = () => {
+    if (gameState.locked || currentPet !== 'bunny' || currentScene !== 'room') return;
+    setBunnyState(prev => ({ ...prev, action: 'napping', isNapping: true, idleBehavior: 'none' }));
+    
+    // Nap for 6 seconds
+    setTimeout(() => {
+      setBunnyState(prev => ({ 
+        ...prev, 
+        action: 'idle', 
+        isNapping: false,
+        rest: Math.min(100, prev.rest + 30),
+        energy: Math.min(100, prev.energy + 20)
+      }));
+    }, 6000);
   };
 
   const cleanHabitat = () => {
@@ -391,6 +436,7 @@ const ClassroomPets = () => {
         happiness: 85,
         hydration: 75,
         energy: 70,
+        rest: 80,
         cleanliness: 90,
         mood: 'happy',
         action: 'idle',
@@ -398,7 +444,8 @@ const ClassroomPets = () => {
         position: { x: 50, y: 88 },
         targetObject: null,
         isHopping: false,
-        facingRight: true
+        facingRight: true,
+        isNapping: false
       });
       setBowlLevels({ food: 0, water: 0 });
       setPoops([]);
@@ -756,6 +803,7 @@ const ClassroomPets = () => {
                   {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
                   {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
                   {currentPet === 'bunny' && bunnyState.action === 'playing' && '🎾 Wheee!'}
+                  {currentPet === 'bunny' && bunnyState.action === 'napping' && '💤 Zzz...'}
                   {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
                   {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
                 </span>
@@ -794,7 +842,7 @@ const ClassroomPets = () => {
       {/* Controls Panel */}
       <footer className="bg-card border-t-4 border-primary p-4 shadow-strong">
         {/* Status Bars */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
           {currentPet === 'bunny' ? (
             <>
               <div>
@@ -842,6 +890,18 @@ const ClassroomPets = () => {
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} 
                     style={{ width: `${bunnyState.energy}%` }} 
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">😴</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Rest</span>
+                </div>
+                <div className="status-bar">
+                  <div 
+                    className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} 
+                    style={{ width: `${bunnyState.rest}%` }} 
                   />
                 </div>
               </div>
@@ -906,7 +966,7 @@ const ClassroomPets = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <button 
             onClick={feedPet} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
@@ -940,6 +1000,16 @@ const ClassroomPets = () => {
           </button>
           {currentPet === 'bunny' && (
             <button 
+              onClick={takeNap} 
+              disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping} 
+              className={`pet-button-play ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
+            >
+              😴 Nap {currentScene !== 'room' && '🔒'}
+            </button>
+          )}
+          {currentPet === 'bunny' && (
+            <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked || poops.length === 0} 
               className="pet-button-clean"
@@ -949,7 +1019,7 @@ const ClassroomPets = () => {
           )}
           <div className="flex items-center justify-center text-3xl font-bold">
             {currentPet === 'bunny' 
-              ? (bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰')
+              ? (bunnyState.isNapping ? '🐰💤' : bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰')
               : (fishState.mood === 'happy' ? '🐠💕' : fishState.mood === 'sad' ? '🐠😢' : '🐠')
             }
           </div>
