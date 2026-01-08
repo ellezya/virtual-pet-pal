@@ -29,7 +29,7 @@ const ClassroomPets = () => {
   const [currentScene, setCurrentScene] = useState('habitat');
   
   // Sound effects
-  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, toggleAmbient, isAmbientPlaying } = useSoundEffects();
+  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, playHay, toggleAmbient, isAmbientPlaying } = useSoundEffects();
   const prevHoppingRef = useRef(false);
   
   // Get ground Y position based on current scene
@@ -99,6 +99,10 @@ const ClassroomPets = () => {
   ];
   
   const [selectedToy, setSelectedToy] = useState(toys[0]);
+  
+  // Flying baby birds state (for hay pile nest)
+  const [flyingBirds, setFlyingBirds] = useState<Array<{ id: number; startX: number; startY: number }>>([]);
+  const [eggsRemaining, setEggsRemaining] = useState(3);
   
   // Get available toys based on scene (room = low energy only)
   const availableToys = currentScene === 'room' 
@@ -436,7 +440,26 @@ const ClassroomPets = () => {
     if (currentPet === 'bunny') {
       doAction('playing', 'toy-area' as any, 5000);
       setTimeout(() => {
-        playPlay();
+        // Play hay sound for hay pile, otherwise normal play sound
+        if (toy.id === 'hayPile') {
+          playHay();
+          // Hatch a baby bird and fly away
+          if (eggsRemaining > 0) {
+            const birdId = Date.now();
+            setFlyingBirds(prev => [...prev, { id: birdId, startX: 65, startY: 85 }]);
+            setEggsRemaining(prev => prev - 1);
+            // Remove bird after animation
+            setTimeout(() => {
+              setFlyingBirds(prev => prev.filter(b => b.id !== birdId));
+            }, 3000);
+            // Reset eggs after all have flown
+            if (eggsRemaining === 1) {
+              setTimeout(() => setEggsRemaining(3), 5000);
+            }
+          }
+        } else {
+          playPlay();
+        }
         // Happiness boost is higher at the park
         const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
         const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
@@ -804,12 +827,37 @@ const ClassroomPets = () => {
                     />
                   </svg>
                 </div>
+              ) : selectedToy.id === 'hayPile' ? (
+                // Nest with eggs
+                <div className="relative">
+                  <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🪺</div>
+                  {/* Show remaining eggs */}
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                    {[...Array(eggsRemaining)].map((_, i) => (
+                      <span key={i} className="text-xs">🥚</span>
+                    ))}
+                  </div>
+                </div>
               ) : selectedToy.component ? (
                 <selectedToy.component />
               ) : (
                 <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
               )}
             </div>
+            
+            {/* Flying baby birds */}
+            {flyingBirds.map((bird) => (
+              <div
+                key={bird.id}
+                className="absolute animate-bird-fly pointer-events-none z-40"
+                style={{ 
+                  left: `${bird.startX}%`, 
+                  top: `${bird.startY}%`,
+                }}
+              >
+                <span className="text-xl">🐣</span>
+              </div>
+            ))}
             
             {/* Poops */}
             {poops.map((poop) => (
@@ -908,36 +956,39 @@ const ClassroomPets = () => {
           </div>
         </div>
 
-        {/* Toy Selection Menu - Right Side */}
+        {/* Toy Selection Menu - Right Side - Scrollable Loop */}
         {currentPet === 'bunny' && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-primary/30">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-primary/30 max-h-[60vh]">
             <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
-            {availableToys.map((toy) => (
-              <button
-                key={toy.id}
-                onClick={() => setSelectedToy(toy)}
-                disabled={gameState.locked || bunnyState.action !== 'idle'}
-                className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
-                  selectedToy.id === toy.id 
-                    ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
-                    : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
-              >
-                {toy.component ? (
-                  <div className="w-6 h-4 flex items-center justify-center">
-                    <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
-                      <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                ) : (
-                  <span className="text-xl">{toy.emoji}</span>
-                )}
-                <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
-                <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
-              </button>
-            ))}
+            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
+              {/* Triple the toys for infinite scroll illusion */}
+              {[...availableToys, ...availableToys, ...availableToys].map((toy, idx) => (
+                <button
+                  key={`${toy.id}-${idx}`}
+                  onClick={() => setSelectedToy(toy)}
+                  disabled={gameState.locked || bunnyState.action !== 'idle'}
+                  className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                    selectedToy.id === toy.id 
+                      ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
+                      : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
+                >
+                  {toy.component ? (
+                    <div className="w-6 h-4 flex items-center justify-center">
+                      <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
+                        <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                  ) : (
+                    <span className="text-xl">{toy.emoji}</span>
+                  )}
+                  <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
+                  <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
