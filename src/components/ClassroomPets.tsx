@@ -29,7 +29,7 @@ const ClassroomPets = () => {
   const [currentScene, setCurrentScene] = useState('habitat');
   
   // Sound effects
-  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, playHay, toggleAmbient, isAmbientPlaying } = useSoundEffects();
+  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, playHay, playFlutter, toggleAmbient, isAmbientPlaying } = useSoundEffects();
   const prevHoppingRef = useRef(false);
   
   // Get ground Y position based on current scene
@@ -544,6 +544,8 @@ const ClassroomPets = () => {
               const birdId = Date.now() + i;
               setFlyingBirds((prev) => [...prev, { id: birdId, startX: 65, startY: 85 }]);
               setEggsRemaining((prev) => Math.max(0, prev - 1));
+              // Play flutter sound when each bird hatches and flies away
+              playFlutter();
 
               // Remove bird after animation
               setTimeout(() => {
@@ -929,15 +931,9 @@ const ClassroomPets = () => {
                     </svg>
                   </div>
                 ) : selectedToy.id === 'hayPile' ? (
-                  // Nest with eggs
+                  // Nest - eggs are already visible in the nest emoji
                   <div className="relative">
                     <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🪺</div>
-                    {/* Show remaining eggs */}
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                      {[...Array(eggsRemaining)].map((_, i) => (
-                        <span key={i} className="text-xs">🥚</span>
-                      ))}
-                    </div>
                   </div>
                 ) : selectedToy.id === 'tunnel' && selectedToy.component ? (
                   // Hollow tree trunk - larger display

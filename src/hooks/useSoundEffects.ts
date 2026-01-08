@@ -8,6 +8,7 @@ interface SoundEffectsReturn {
   playPlay: () => void;
   playPoop: () => void;
   playHay: () => void;
+  playFlutter: () => void;
   toggleAmbient: () => void;
   isAmbientPlaying: boolean;
 }
@@ -320,6 +321,61 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     }
   }, [getAudioContext]);
 
+  // Flutter/wing flapping sound for baby birds
+  const playFlutter = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Quick flapping bursts (6-8 rapid flaps)
+    const flapCount = 6 + Math.floor(Math.random() * 3);
+    for (let flap = 0; flap < flapCount; flap++) {
+      const bufferSize = ctx.sampleRate * 0.04;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.4;
+      }
+      
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1500 + Math.random() * 500, time + flap * 0.05);
+      
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, time + flap * 0.05);
+      gain.gain.linearRampToValueAtTime(sfxVolume * 0.2, time + flap * 0.05 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + flap * 0.05 + 0.04);
+      
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      noise.start(time + flap * 0.05);
+      noise.stop(time + flap * 0.05 + 0.05);
+    }
+    
+    // Add a little chirp with the flutter
+    const chirpOsc = ctx.createOscillator();
+    const chirpGain = ctx.createGain();
+    
+    chirpOsc.type = 'sine';
+    chirpOsc.frequency.setValueAtTime(2200 + Math.random() * 400, time + 0.1);
+    chirpOsc.frequency.exponentialRampToValueAtTime(1800, time + 0.18);
+    
+    chirpGain.gain.setValueAtTime(0, time + 0.1);
+    chirpGain.gain.linearRampToValueAtTime(sfxVolume * 0.15, time + 0.12);
+    chirpGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+    
+    chirpOsc.connect(chirpGain);
+    chirpGain.connect(ctx.destination);
+    
+    chirpOsc.start(time + 0.1);
+    chirpOsc.stop(time + 0.25);
+  }, [getAudioContext]);
+
   // Play a single bird chirp
   const playBirdChirp = useCallback(() => {
     const ctx = getAudioContext();
@@ -608,6 +664,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     playPlay,
     playPoop,
     playHay,
+    playFlutter,
     toggleAmbient,
     isAmbientPlaying,
   };
