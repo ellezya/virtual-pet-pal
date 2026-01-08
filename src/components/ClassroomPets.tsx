@@ -786,7 +786,7 @@ const ClassroomPets = () => {
       </header>
 
       {/* Pet/Scene Selector - Same size as toy menu */}
-      <nav className="flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl mt-1">
+      <nav className="flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
         <button 
           onClick={() => setCurrentPet('bunny')} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
@@ -1227,9 +1227,9 @@ const ClassroomPets = () => {
       </main>
 
       {/* Controls Panel - Same size as toy menu */}
-      <footer className="bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 mb-1 px-2 py-2 shadow-strong rounded-xl">
-        {/* Status Bars - 2 rows of 3 */}
-        <div className="grid grid-cols-6 gap-1">
+      <footer className="bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-strong rounded-xl">
+        {/* Status Bars - 2 rows of 3 on mobile */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
           {currentPet === 'bunny' ? (
             <>
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
@@ -1259,7 +1259,7 @@ const ClassroomPets = () => {
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm">😴</span>
                 <div className="status-bar w-full h-1.5 mt-0.5">
-                  <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest}%` }} />
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest)%` }} />
                 </div>
               </div>
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
@@ -1271,19 +1271,19 @@ const ClassroomPets = () => {
             </>
           ) : (
             <>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1 col-span-2">
+              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm">🍽️</span>
                 <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.hunger)}`} style={{ width: `${fishState.hunger}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1 col-span-2">
+              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm">😊</span>
                 <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.happiness)}`} style={{ width: `${fishState.happiness}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1 col-span-2">
+              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm">🧽</span>
                 <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} style={{ width: `${fishState.tankCleanliness}%` }} />
@@ -1294,11 +1294,11 @@ const ClassroomPets = () => {
         </div>
 
         {/* Action Buttons - Compact */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="mt-2 flex flex-nowrap gap-1 overflow-x-auto pb-0.5">
           <button 
             onClick={feedPet} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-feed text-xs px-2 py-1"
+            className="pet-button-feed text-xs px-2 py-1 shrink-0"
           >
             🥕
           </button>
@@ -1306,7 +1306,7 @@ const ClassroomPets = () => {
             <button 
               onClick={waterBunny} 
               disabled={gameState.locked || bunnyState.action !== 'idle'} 
-              className="pet-button-water text-xs px-2 py-1"
+              className="pet-button-water text-xs px-2 py-1 shrink-0"
             >
               💧
             </button>
@@ -1314,7 +1314,7 @@ const ClassroomPets = () => {
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked} 
-              className="pet-button-clean text-xs px-2 py-1"
+              className="pet-button-clean text-xs px-2 py-1 shrink-0"
             >
               🧽
             </button>
@@ -1322,7 +1322,7 @@ const ClassroomPets = () => {
           <button 
             onClick={() => playWithToy(selectedToy)} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-play text-xs px-2 py-1"
+            className="pet-button-play text-xs px-2 py-1 shrink-0"
           >
             {selectedToy.emoji || '🎪'}
           </button>
@@ -1330,7 +1330,7 @@ const ClassroomPets = () => {
             <button 
               onClick={takeNap} 
               disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping} 
-              className={`pet-button-play text-xs px-2 py-1 ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              className={`pet-button-play text-xs px-2 py-1 shrink-0 ${currentScene !== 'room' ? 'opacity-50' : ''}`}
               title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
             >
               😴
@@ -1340,7 +1340,7 @@ const ClassroomPets = () => {
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked || poops.length === 0} 
-              className="pet-button-clean text-xs px-2 py-1"
+              className="pet-button-clean text-xs px-2 py-1 shrink-0"
             >
               🧹{poops.length > 0 && <span className="ml-0.5">{poops.length}</span>}
             </button>
