@@ -69,11 +69,23 @@ const ClassroomPets = () => {
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
+  // Get toy scale based on scene
+  const getToyScale = () => {
+    if (currentScene === 'room') return 0.5;
+    if (currentScene === 'park') return 0.7;
+    return 1; // habitat
+  };
+  
+  const toyScale = getToyScale();
+
   // Modern trampoline SVG component
-  const TrampolineSVG = ({ large = false }: { large?: boolean }) => (
+  const TrampolineSVG = ({ large = false }: { large?: boolean }) => {
+    const baseW = large ? 80 : 48;
+    const baseH = large ? 40 : 24;
+    return (
     <svg 
-      width={large ? "80" : "48"} 
-      height={large ? "40" : "24"} 
+      width={baseW * toyScale} 
+      height={baseH * toyScale} 
       viewBox="0 0 48 24" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg" 
@@ -93,13 +105,16 @@ const ClassroomPets = () => {
       <line x1="16" y1="10" x2="16" y2="14" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.3"/>
       <line x1="32" y1="10" x2="32" y2="14" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.3"/>
     </svg>
-  );
+  )};
 
   // Hollow tree trunk SVG component - horizontal with transparent front
-  const HollowTreeTrunkSVG = ({ large = false }: { large?: boolean }) => (
+  const HollowTreeTrunkSVG = ({ large = false }: { large?: boolean }) => {
+    const baseW = large ? 120 : 60;
+    const baseH = large ? 50 : 25;
+    return (
     <svg 
-      width={large ? "120" : "60"} 
-      height={large ? "50" : "25"} 
+      width={baseW * toyScale} 
+      height={baseH * toyScale} 
       viewBox="0 0 120 50" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg" 
@@ -138,7 +153,7 @@ const ClassroomPets = () => {
       <ellipse cx="45" cy="4" rx="2" ry="1" fill="hsl(15 60% 45%)" opacity="0.8"/>
       <rect x="44.5" y="4" width="1" height="2" fill="hsl(30 30% 80%)" opacity="0.7"/>
     </svg>
-  );
+  )};
 
   // Trampoline bounce state
   const [trampolineBounceCount, setTrampolineBounceCount] = useState(0);
@@ -826,9 +841,9 @@ const ClassroomPets = () => {
             >
               <source src={lofiRoomVideo} type="video/mp4" />
             </video>
-            {/* Couch overlay */}
-            <div className="absolute bottom-[12%] left-[8%] z-[2]">
-              <svg width="180" height="90" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Couch on right side (replacing bed) */}
+            <div className="absolute bottom-[18%] right-[5%] z-[2]">
+              <svg width="140" height="70" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Couch base */}
                 <rect x="10" y="40" width="160" height="40" rx="8" fill="hsl(25 35% 35%)" />
                 {/* Couch seat cushions */}
