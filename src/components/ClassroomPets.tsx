@@ -53,11 +53,11 @@ const ClassroomPets = () => {
 
 
   // Couch zones for the habitat scene (couch on right side of screen)
-  // X range: roughly 50-85% of screen where couch is visible
+  // Based on screenshot: couch spans roughly 55-92% horizontally
   // Two Y levels: seat cushions (lower) and back cushions (upper)
   const couchZones = {
-    seat: { xMin: 50, xMax: 85, y: 88 },    // Lower seat cushions
-    back: { xMin: 50, xMax: 85, y: 72 },    // Upper back cushions
+    seat: { xMin: 58, xMax: 88, y: 82 },    // Lower seat cushions
+    back: { xMin: 58, xMax: 88, y: 62 },    // Upper back cushions
   };
   
   // Track which couch zone Lola is on
