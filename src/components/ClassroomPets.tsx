@@ -52,11 +52,22 @@ const ClassroomPets = () => {
   const plantDuration = 5.5 - plantStrength * 2.0; // seconds
 
 
+  // Couch zones for the habitat scene (couch on right side of screen)
+  // X range: roughly 50-85% of screen where couch is visible
+  // Two Y levels: seat cushions (lower) and back cushions (upper)
+  const couchZones = {
+    seat: { xMin: 50, xMax: 85, y: 88 },    // Lower seat cushions
+    back: { xMin: 50, xMax: 85, y: 72 },    // Upper back cushions
+  };
+  
+  // Track which couch zone Lola is on
+  const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
+
   // Get ground Y position based on current scene
   const getGroundY = (scene: string) => {
     if (scene === 'park') return 78;
-    if (scene === 'room') return 84;
-    return 88; // habitat
+    if (scene === 'room') return couchZones[currentCouchZone].y;
+    return couchZones[currentCouchZone].y; // habitat uses couch zones
   };
   
   const [bunnyState, setBunnyState] = useState({
@@ -69,22 +80,34 @@ const ClassroomPets = () => {
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'napping' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
-    position: { x: 50, y: 88 },
+    position: { x: 65, y: 88 },  // Start on couch seat cushion
     targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-area',
     isHopping: false,
     facingRight: true,
     isNapping: false
   });
   
-  // Update bunny position when scene changes
+  // Update bunny position when scene or couch zone changes
   useEffect(() => {
     if (currentPet === 'bunny') {
-      setBunnyState(prev => ({
-        ...prev,
-        position: { x: prev.position.x, y: getGroundY(currentScene) }
-      }));
+      const isOnCouch = currentScene === 'habitat' || currentScene === 'room';
+      if (isOnCouch) {
+        const zone = couchZones[currentCouchZone];
+        setBunnyState(prev => ({
+          ...prev,
+          position: { 
+            x: Math.max(zone.xMin, Math.min(zone.xMax, prev.position.x)), 
+            y: zone.y 
+          }
+        }));
+      } else {
+        setBunnyState(prev => ({
+          ...prev,
+          position: { x: prev.position.x, y: getGroundY(currentScene) }
+        }));
+      }
     }
-  }, [currentScene, currentPet]);
+  }, [currentScene, currentPet, currentCouchZone]);
 
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
@@ -209,12 +232,19 @@ const ClassroomPets = () => {
     water: 0
   });
 
-  // Bowl station position (centered at bottom) and toy position
-  const bowlStationPosition = { x: 20, y: 96 };
+  // Bowl station position and toy position - toys now placed on couch
+  const bowlStationPosition = { x: 15, y: 96 };
+  
+  // Get toy area position based on current couch zone
+  const getToyAreaPosition = () => {
+    const zone = couchZones[currentCouchZone];
+    return { x: zone.xMin + 15, y: zone.y + 2 };
+  };
+  
   const envObjects = {
-    'food-bowl': { x: 18, y: 94 },
-    'water-bowl': { x: 24, y: 94 },
-    'toy-area': { x: 65, y: 94 },
+    'food-bowl': { x: 13, y: 94 },
+    'water-bowl': { x: 19, y: 94 },
+    'toy-area': getToyAreaPosition(),
   };
   const [fishState, setFishState] = useState({
     hunger: 70,
@@ -318,16 +348,18 @@ const ClassroomPets = () => {
     prevHoppingRef.current = bunnyState.isHopping;
   }, [bunnyState.isHopping, playHop]);
 
-  // Bunny occasionally poops
+  // Bunny occasionally poops - constrained to couch zones
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const poopInterval = setInterval(() => {
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
+        // Poop appears on the couch near where Lola is
+        const zone = couchZones[currentCouchZone];
         const newPoop = {
           id: Date.now(),
-          x: 25 + Math.random() * 50, // Random position in habitat
-          y: 90 + Math.random() * 6
+          x: zone.xMin + Math.random() * (zone.xMax - zone.xMin),
+          y: zone.y + 2 + Math.random() * 4 // Slightly below bunny position
         };
         setPoops(prev => [...prev, newPoop]);
         setBunnyState(prev => ({
@@ -338,7 +370,7 @@ const ClassroomPets = () => {
       }
     }, 8000);
     return () => clearInterval(poopInterval);
-  }, [currentPet, poops.length, playPoop]);
+  }, [currentPet, poops.length, playPoop, currentCouchZone]);
 
   // Fish decay
   useEffect(() => {
@@ -360,18 +392,12 @@ const ClassroomPets = () => {
     return () => clearInterval(interval);
   }, [currentPet]);
 
-  // Auto-move bunny with hopping to objects or idle wandering
+  // Auto-move bunny with hopping to objects or idle wandering on couch
   useEffect(() => {
     if (currentPet !== 'bunny' || bunnyState.action !== 'idle') return;
     
-    // Different Y positions based on scene (where the ground is visible)
-    const getGroundY = () => {
-      if (currentScene === 'park') return { min: 75, max: 82 };
-      if (currentScene === 'room') return { min: 80, max: 88 };
-      return { min: 86, max: 92 }; // habitat
-    };
-    
-    const ground = getGroundY();
+    // For habitat/room scenes, use couch zones
+    const isOnCouch = currentScene === 'habitat' || currentScene === 'room';
     
     const moveInterval = setInterval(() => {
       // If bunny has a target object, hop towards it
@@ -385,30 +411,73 @@ const ClassroomPets = () => {
           setBunnyState(prev => ({
             ...prev,
             isHopping: false,
-            position: { x: target.x, y: ground.max }
+            position: { x: target.x, y: couchZones[currentCouchZone].y }
           }));
         }, 600);
         return;
       }
       
-      // Random idle wandering
-      const deltaX = (Math.random() - 0.5) * 12;
-      const newX = Math.max(30, Math.min(70, bunnyState.position.x + deltaX));
-      const newY = Math.max(ground.min, Math.min(ground.max, bunnyState.position.y + (Math.random() - 0.5) * 3));
-      const movingRight = deltaX > 0;
-      
-      setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
-      
-      setTimeout(() => {
-        setBunnyState(prev => ({
-          ...prev,
-          isHopping: false,
-          position: { x: newX, y: newY }
-        }));
-      }, 600);
+      if (isOnCouch) {
+        // 20% chance to hop between seat and back cushions
+        if (Math.random() < 0.2) {
+          const newZone = currentCouchZone === 'seat' ? 'back' : 'seat';
+          const targetY = couchZones[newZone].y;
+          const currentZoneData = couchZones[currentCouchZone];
+          
+          // Small horizontal movement while changing zones
+          const deltaX = (Math.random() - 0.5) * 8;
+          const newX = Math.max(currentZoneData.xMin, Math.min(currentZoneData.xMax, bunnyState.position.x + deltaX));
+          const movingRight = deltaX > 0;
+          
+          setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+          setCurrentCouchZone(newZone);
+          
+          setTimeout(() => {
+            setBunnyState(prev => ({
+              ...prev,
+              isHopping: false,
+              position: { x: newX, y: targetY }
+            }));
+          }, 600);
+          return;
+        }
+        
+        // Regular horizontal movement within current zone
+        const zone = couchZones[currentCouchZone];
+        const deltaX = (Math.random() - 0.5) * 10;
+        const newX = Math.max(zone.xMin, Math.min(zone.xMax, bunnyState.position.x + deltaX));
+        const movingRight = deltaX > 0;
+        
+        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+        
+        setTimeout(() => {
+          setBunnyState(prev => ({
+            ...prev,
+            isHopping: false,
+            position: { x: newX, y: zone.y }
+          }));
+        }, 600);
+      } else {
+        // Park scene - original behavior
+        const ground = { min: 75, max: 82 };
+        const deltaX = (Math.random() - 0.5) * 12;
+        const newX = Math.max(30, Math.min(70, bunnyState.position.x + deltaX));
+        const newY = Math.max(ground.min, Math.min(ground.max, bunnyState.position.y + (Math.random() - 0.5) * 3));
+        const movingRight = deltaX > 0;
+        
+        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+        
+        setTimeout(() => {
+          setBunnyState(prev => ({
+            ...prev,
+            isHopping: false,
+            position: { x: newX, y: newY }
+          }));
+        }, 600);
+      }
     }, 2500);
     return () => clearInterval(moveInterval);
-  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject]);
+  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject, currentScene, currentCouchZone]);
 
   // Idle behaviors (sniffing, scratching, looking around)
   useEffect(() => {
