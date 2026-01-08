@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { RotateCcw, Lock, Unlock, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+// Pet images
+import bunnyHappy from '@/assets/bunny-happy.png';
+import bunnySad from '@/assets/bunny-sad.png';
+import bunnyEating from '@/assets/bunny-eating.png';
+import bunnyDrinking from '@/assets/bunny-drinking.png';
+import bunnyPlaying from '@/assets/bunny-playing.png';
+import fishHappy from '@/assets/fish-happy.png';
+import fishSad from '@/assets/fish-sad.png';
+import fishEating from '@/assets/fish-eating.png';
+
+// Habitat images
+import habitatIndoor from '@/assets/habitat-indoor.png';
+import habitatTank from '@/assets/habitat-tank.png';
+import habitatPark from '@/assets/habitat-park.png';
+import habitatRoom from '@/assets/habitat-room.png';
+
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
@@ -12,16 +28,17 @@ const ClassroomPets = () => {
     happiness: 85,
     hydration: 75,
     energy: 70,
-    mood: 'happy',
-    action: 'idle',
-    position: { x: 50, y: 60 }
+    mood: 'happy' as 'happy' | 'sad' | 'neutral',
+    action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing',
+    position: { x: 50, y: 50 }
   });
 
   const [fishState, setFishState] = useState({
     hunger: 70,
     happiness: 80,
     tankCleanliness: 95,
-    mood: 'calm',
+    mood: 'happy' as 'happy' | 'sad' | 'calm',
+    action: 'idle' as 'idle' | 'eating' | 'playing',
     position: { x: 50, y: 50 }
   });
 
@@ -29,8 +46,6 @@ const ClassroomPets = () => {
     locked: false,
     notifications: [] as string[]
   });
-
-  const [animation, setAnimation] = useState('idle');
 
   // Bunny decay
   useEffect(() => {
@@ -44,7 +59,7 @@ const ClassroomPets = () => {
           energy: Math.min(100, prev.energy - 0.2),
           happiness: Math.max(0, prev.happiness - 0.3)
         };
-        if (newState.hunger < 30) newState.mood = 'sad';
+        if (newState.hunger < 30 || newState.hydration < 30) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'neutral';
         return newState;
@@ -64,7 +79,7 @@ const ClassroomPets = () => {
           happiness: Math.max(0, prev.happiness - 0.2),
           tankCleanliness: Math.max(0, prev.tankCleanliness - 0.4)
         };
-        if (newState.hunger < 30) newState.mood = 'hungry';
+        if (newState.hunger < 30) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'calm';
         return newState;
@@ -80,28 +95,28 @@ const ClassroomPets = () => {
       setBunnyState(prev => ({
         ...prev,
         position: {
-          x: Math.max(20, Math.min(80, prev.position.x + (Math.random() - 0.5) * 20)),
-          y: Math.max(40, Math.min(70, prev.position.y + (Math.random() - 0.5) * 15))
+          x: Math.max(25, Math.min(75, prev.position.x + (Math.random() - 0.5) * 15)),
+          y: Math.max(35, Math.min(65, prev.position.y + (Math.random() - 0.5) * 10))
         }
       }));
-    }, 2000);
+    }, 3000);
     return () => clearInterval(moveInterval);
   }, [currentPet, bunnyState.action]);
 
   // Auto-move fish
   useEffect(() => {
-    if (currentPet !== 'fish') return;
+    if (currentPet !== 'fish' || fishState.action !== 'idle') return;
     const swimInterval = setInterval(() => {
       setFishState(prev => ({
         ...prev,
         position: {
-          x: Math.max(10, Math.min(90, prev.position.x + (Math.random() - 0.5) * 25)),
-          y: Math.max(20, Math.min(80, prev.position.y + (Math.random() - 0.5) * 20))
+          x: Math.max(15, Math.min(85, prev.position.x + (Math.random() - 0.5) * 20)),
+          y: Math.max(20, Math.min(70, prev.position.y + (Math.random() - 0.5) * 15))
         }
       }));
-    }, 1500);
+    }, 2000);
     return () => clearInterval(swimInterval);
-  }, [currentPet]);
+  }, [currentPet, fishState.action]);
 
   // Notifications
   useEffect(() => {
@@ -110,66 +125,85 @@ const ClassroomPets = () => {
       if (currentPet === 'bunny') {
         if (bunnyState.hunger < 30) notifications.push('🥕 Lola is hungry!');
         if (bunnyState.hydration < 30) notifications.push('💧 Water low!');
+        if (bunnyState.happiness < 30) notifications.push('😢 Bunny is sad!');
       } else if (currentPet === 'fish') {
         if (fishState.hunger < 30) notifications.push('🐠 Fish hungry!');
         if (fishState.tankCleanliness < 40) notifications.push('🧽 Tank dirty!');
       }
       setGameState(prev => ({ ...prev, notifications }));
-    }, 5000);
+    }, 3000);
     return () => clearInterval(checkNeeds);
   }, [currentPet, bunnyState, fishState]);
 
-  const doAction = (actionType: string, duration = 3000) => {
+  const doAction = (actionType: 'eating' | 'drinking' | 'playing', duration = 3000) => {
     if (gameState.locked) return;
-    setAnimation(actionType);
     if (currentPet === 'bunny') {
       setBunnyState(prev => ({ ...prev, action: actionType }));
-    }
-    setTimeout(() => {
-      setAnimation('idle');
-      if (currentPet === 'bunny') {
+      setTimeout(() => {
         setBunnyState(prev => ({ ...prev, action: 'idle' }));
-      }
-    }, duration);
+      }, duration);
+    } else {
+      setFishState(prev => ({ ...prev, action: actionType as 'eating' | 'playing' }));
+      setTimeout(() => {
+        setFishState(prev => ({ ...prev, action: 'idle' }));
+      }, duration);
+    }
   };
 
   const feedPet = () => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
       doAction('eating', 4000);
-      setBunnyState(prev => ({ ...prev, hunger: Math.min(100, prev.hunger + 40), happiness: Math.min(100, prev.happiness + 10) }));
+      setBunnyState(prev => ({ 
+        ...prev, 
+        hunger: Math.min(100, prev.hunger + 40), 
+        happiness: Math.min(100, prev.happiness + 10) 
+      }));
     } else {
-      setAnimation('eating');
-      setTimeout(() => setAnimation('idle'), 2000);
-      setFishState(prev => ({ ...prev, hunger: Math.min(100, prev.hunger + 50), happiness: Math.min(100, prev.happiness + 10) }));
+      doAction('eating', 3000);
+      setFishState(prev => ({ 
+        ...prev, 
+        hunger: Math.min(100, prev.hunger + 50), 
+        happiness: Math.min(100, prev.happiness + 10) 
+      }));
     }
   };
 
   const waterBunny = () => {
     if (gameState.locked || currentPet !== 'bunny') return;
     doAction('drinking', 3000);
-    setBunnyState(prev => ({ ...prev, hydration: Math.min(100, prev.hydration + 50), happiness: Math.min(100, prev.happiness + 5) }));
+    setBunnyState(prev => ({ 
+      ...prev, 
+      hydration: Math.min(100, prev.hydration + 50), 
+      happiness: Math.min(100, prev.happiness + 5) 
+    }));
   };
 
   const playWithPet = () => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
-      doAction('playing', 6000);
-      setBunnyState(prev => ({ ...prev, happiness: Math.min(100, prev.happiness + 25), energy: Math.max(0, prev.energy - 15) }));
+      doAction('playing', 5000);
+      setBunnyState(prev => ({ 
+        ...prev, 
+        happiness: Math.min(100, prev.happiness + 25), 
+        energy: Math.max(0, prev.energy - 15) 
+      }));
     } else {
-      setAnimation('playing');
-      setTimeout(() => setAnimation('idle'), 3000);
-      setFishState(prev => ({ ...prev, happiness: Math.min(100, prev.happiness + 20) }));
+      doAction('playing', 3000);
+      setFishState(prev => ({ 
+        ...prev, 
+        happiness: Math.min(100, prev.happiness + 20) 
+      }));
     }
   };
 
   const cleanHabitat = () => {
-    if (gameState.locked) return;
-    if (currentPet === 'fish') {
-      setAnimation('cleaning');
-      setTimeout(() => setAnimation('idle'), 4000);
-      setFishState(prev => ({ ...prev, tankCleanliness: 100, happiness: Math.min(100, prev.happiness + 15) }));
-    }
+    if (gameState.locked || currentPet !== 'fish') return;
+    setFishState(prev => ({ 
+      ...prev, 
+      tankCleanliness: 100, 
+      happiness: Math.min(100, prev.happiness + 15) 
+    }));
   };
 
   const resetPet = () => {
@@ -181,14 +215,15 @@ const ClassroomPets = () => {
         energy: 70,
         mood: 'happy',
         action: 'idle',
-        position: { x: 50, y: 60 }
+        position: { x: 50, y: 50 }
       });
     } else {
       setFishState({
         hunger: 70,
         happiness: 80,
         tankCleanliness: 95,
-        mood: 'calm',
+        mood: 'happy',
+        action: 'idle',
         position: { x: 50, y: 50 }
       });
     }
@@ -200,6 +235,27 @@ const ClassroomPets = () => {
     return 'bg-status-low';
   };
 
+  const getBunnyImage = () => {
+    if (bunnyState.action === 'eating') return bunnyEating;
+    if (bunnyState.action === 'drinking') return bunnyDrinking;
+    if (bunnyState.action === 'playing') return bunnyPlaying;
+    if (bunnyState.mood === 'sad') return bunnySad;
+    return bunnyHappy;
+  };
+
+  const getFishImage = () => {
+    if (fishState.action === 'eating') return fishEating;
+    if (fishState.mood === 'sad') return fishSad;
+    return fishHappy;
+  };
+
+  const getHabitatImage = () => {
+    if (currentPet === 'fish') return habitatTank;
+    if (currentScene === 'park') return habitatPark;
+    if (currentScene === 'room') return habitatRoom;
+    return habitatIndoor;
+  };
+
   return (
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -209,12 +265,14 @@ const ClassroomPets = () => {
           <button 
             onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
             className={`control-button ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
+            title={gameState.locked ? 'Unlock controls' : 'Lock controls'}
           >
             {gameState.locked ? <Lock size={20} /> : <Unlock size={20} />}
           </button>
           <button 
             onClick={resetPet} 
             className="control-button bg-secondary/20 text-secondary"
+            title="Reset pet"
           >
             <RotateCcw size={20} />
           </button>
@@ -263,7 +321,7 @@ const ClassroomPets = () => {
           <>
             <button 
               onClick={() => setCurrentScene('habitat')} 
-              className={currentScene === 'habitat' ? 'scene-button-active bg-habitat-grass text-primary-foreground' : 'scene-button-inactive'}
+              className={currentScene === 'habitat' ? 'scene-button-active bg-primary text-primary-foreground' : 'scene-button-inactive'}
             >
               🏠 Habitat
             </button>
@@ -275,7 +333,7 @@ const ClassroomPets = () => {
             </button>
             <button 
               onClick={() => setCurrentScene('park')} 
-              className={currentScene === 'park' ? 'scene-button-active bg-park-grass text-primary-foreground' : 'scene-button-inactive'}
+              className={currentScene === 'park' ? 'scene-button-active bg-success text-success-foreground' : 'scene-button-inactive'}
             >
               🌳 Park
             </button>
@@ -285,188 +343,105 @@ const ClassroomPets = () => {
 
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Fish Tank Scene */}
+        {/* Background Habitat */}
+        <div className="absolute inset-0">
+          <img 
+            src={getHabitatImage()} 
+            alt="Pet habitat" 
+            className="w-full h-full object-cover transition-opacity duration-500"
+          />
+          {/* Overlay for better pet visibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        </div>
+
+        {/* Animated Bubbles for Fish Tank */}
         {currentPet === 'fish' && (
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-tank-water via-tank-water to-tank-deep" />
-            <div className="absolute bottom-0 h-[20%] w-full bg-gradient-to-t from-tank-sand to-tank-sand/80" />
-            {/* Coral */}
-            <div className="absolute bottom-[15%] left-[10%] w-[15%] h-[25%] bg-gradient-to-b from-bunny-pink to-destructive rounded-t-full opacity-90" />
-            {/* Seaweed */}
-            <div className="absolute top-[30%] left-[15%] w-[20%] h-[25%] bg-habitat-grass rounded-full opacity-70 animate-pulse-soft" />
-            <div className="absolute top-[40%] right-[20%] w-[15%] h-[30%] bg-habitat-grass rounded-full opacity-60 animate-pulse-soft" />
-            {/* Bubbles */}
-            <div className="absolute top-[20%] left-[30%] w-3 h-3 bg-card/40 rounded-full animate-bounce" />
-            <div className="absolute top-[35%] left-[60%] w-2 h-2 bg-card/30 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
-          </div>
-        )}
-        
-        {/* Bunny Habitat Scene */}
-        {currentPet === 'bunny' && currentScene === 'habitat' && (
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-habitat-sky to-habitat-sky/60" />
-            <div className="absolute bottom-0 h-1/2 w-full bg-gradient-to-t from-habitat-ground to-habitat-ground/80" />
-            {/* Wooden platform */}
-            <div className="absolute bottom-[40%] left-[10%] w-[30%] h-[8%] bg-room-floor rounded-lg shadow-strong" />
-            {/* House */}
-            <div className="absolute bottom-[25%] left-[15%] w-[20%] h-[20%]">
-              <div className="absolute bottom-0 w-full h-[70%] bg-destructive/80 rounded-t-lg shadow-medium" />
-              <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 w-[35%] h-[50%] bg-room-floor rounded-lg" />
-            </div>
-            {/* Water bottle */}
-            <div className="absolute top-[30%] left-[20%] w-[5%] h-[20%] bg-secondary/60 rounded-full border-2 border-secondary shadow-soft" />
-            {/* Food bowl */}
-            <div className="absolute bottom-[28%] right-[30%] w-[12%] h-[8%] bg-bunny-pink rounded-full border-4 border-bunny-pink/80 shadow-medium" />
-          </div>
-        )}
-
-        {/* Room Scene */}
-        {currentPet === 'bunny' && currentScene === 'room' && (
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-room-wall via-room-wall/90 to-secondary/30" />
-            <div className="absolute bottom-0 h-[40%] w-full bg-gradient-to-t from-room-floor to-room-floor/90" />
-            {/* Rug */}
-            <div className="absolute bottom-[5%] left-[20%] w-[60%] h-[30%] bg-gradient-to-br from-destructive/70 to-accent/70 rounded-3xl shadow-strong border-8 border-warning/60" />
-            {/* Couch */}
-            <div className="absolute bottom-[15%] right-[10%] w-[25%] h-[20%] bg-gradient-to-b from-secondary to-secondary/80 rounded-t-3xl shadow-medium" />
-            {/* Window */}
-            <div className="absolute top-[10%] right-[20%] w-[25%] h-[35%] bg-gradient-to-b from-habitat-sky to-secondary/40 rounded-lg border-8 border-card shadow-strong" />
-          </div>
-        )}
-
-        {/* Park Scene */}
-        {currentPet === 'bunny' && currentScene === 'park' && (
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-park-sky via-park-sky/80 to-habitat-grass/40">
-              {/* Cloud */}
-              <div className="absolute top-[10%] left-[20%] w-24 h-12 bg-card rounded-full opacity-90 shadow-soft" />
-              <div className="absolute top-[8%] left-[25%] w-16 h-10 bg-card rounded-full opacity-90" />
-              {/* Sun */}
-              <div className="absolute top-[5%] right-[10%] w-20 h-20 bg-warning rounded-full shadow-strong animate-pulse-soft" />
-            </div>
-            <div className="absolute bottom-0 h-[45%] w-full bg-gradient-to-t from-park-grass to-habitat-grass" />
-            {/* Path */}
-            <div className="absolute bottom-0 left-[20%] right-[20%] h-[25%] bg-gradient-to-t from-park-path to-park-path/80 rounded-t-full" />
-            {/* Tree */}
-            <div className="absolute bottom-[30%] left-[10%] w-[12%] h-[35%]">
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[25%] h-[40%] bg-room-floor" />
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[70%] bg-park-grass rounded-full shadow-medium" />
-            </div>
-          </div>
-        )}
-
-        {/* Bunny Pet */}
-        {currentPet === 'bunny' && (
-          <div 
-            className="absolute transition-all duration-700 ease-in-out z-10" 
-            style={{ 
-              left: `${bunnyState.position.x}%`, 
-              bottom: `${bunnyState.position.y}%`, 
-              transform: 'translate(-50%, 50%)' 
-            }}
-          >
-            <div className={`relative ${animation === 'playing' ? 'animate-wiggle' : ''}`}>
-              {/* Ears */}
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-2">
-                <div 
-                  className={`w-5 h-20 rounded-full shadow-medium border-2 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`}
-                  style={{ transform: 'rotate(-20deg)' }}
-                >
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-12 bg-bunny-pink/60 rounded-full" />
-                </div>
-                <div 
-                  className={`w-5 h-20 rounded-full shadow-medium border-2 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`}
-                  style={{ transform: 'rotate(20deg)' }}
-                >
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-12 bg-bunny-pink/60 rounded-full" />
-                </div>
-              </div>
-              
-              {/* Head */}
-              <div className={`w-20 h-20 rounded-full relative shadow-strong border-4 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`}>
-                {/* Whiskers */}
-                <div className="absolute left-0 top-1/2 w-8 h-0.5 bg-foreground/40 -translate-x-full" />
-                <div className="absolute left-0 top-[45%] w-7 h-0.5 bg-foreground/40 -translate-x-full rotate-12" />
-                <div className="absolute right-0 top-1/2 w-8 h-0.5 bg-foreground/40 translate-x-full" />
-                <div className="absolute right-0 top-[45%] w-7 h-0.5 bg-foreground/40 translate-x-full -rotate-12" />
-                
-                {/* Eyes */}
-                <div className="absolute top-6 left-4 w-4 h-4 bg-foreground rounded-full">
-                  <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-card rounded-full" />
-                </div>
-                <div className="absolute top-6 right-4 w-4 h-4 bg-foreground rounded-full">
-                  <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-card rounded-full" />
-                </div>
-                
-                {/* Nose */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3 h-3 bg-bunny-pink rounded-full animate-pulse-soft" />
-                
-                {/* Mouth */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-lg font-bold text-foreground">
-                  {bunnyState.mood === 'happy' ? '⌣' : bunnyState.mood === 'sad' ? '⌢' : '–'}
-                </div>
-              </div>
-              
-              {/* Body */}
-              <div className={`w-24 h-20 rounded-full mt-2 shadow-strong border-4 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`} />
-              
-              {/* Feet */}
-              <div className={`absolute -bottom-2 left-4 w-4 h-6 rounded-full shadow-medium border-2 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`} />
-              <div className={`absolute -bottom-2 right-4 w-4 h-6 rounded-full shadow-medium border-2 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`} />
-              
-              {/* Tail */}
-              <div className={`absolute -bottom-2 -right-6 w-8 h-8 rounded-full shadow-medium border-2 border-card ${bunnyState.mood === 'sad' ? 'bg-bunny-sad' : bunnyState.mood === 'happy' ? 'bg-bunny-happy' : 'bg-bunny-neutral'}`} />
-              
-              {/* Speech bubbles */}
-              {animation === 'eating' && <div className="speech-bubble">🥕 Nom nom!</div>}
-              {animation === 'playing' && <div className="speech-bubble">🎾 Wheee!</div>}
-              {animation === 'drinking' && <div className="speech-bubble">💧 Gulp!</div>}
-            </div>
-          </div>
-        )}
-
-        {/* Fish Pet */}
-        {currentPet === 'fish' && (
-          <div 
-            className="absolute transition-all duration-1000 ease-in-out z-10 animate-swim" 
-            style={{ 
-              left: `${fishState.position.x}%`, 
-              top: `${fishState.position.y}%`, 
-              transform: 'translate(-50%, -50%)' 
-            }}
-          >
-            <div className="relative">
-              {/* Body */}
-              <div className="w-16 h-10 bg-gradient-to-r from-fish-orange via-fish-yellow to-fish-orange rounded-full shadow-medium border-2 border-fish-orange relative">
-                {/* Eye */}
-                <div className="absolute top-2 left-3 w-3 h-3 bg-foreground rounded-full">
-                  <div className="absolute top-0.5 left-0.5 w-1.5 h-1.5 bg-card rounded-full" />
-                </div>
-                {/* Fin */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-6 bg-fish-tail/80 rounded-full" />
-              </div>
-              {/* Tail */}
-              <div 
-                className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-12 bg-gradient-to-r from-fish-orange to-fish-tail opacity-90" 
-                style={{ clipPath: 'polygon(0 0, 100% 30%, 100% 70%, 0 100%)' }} 
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute bg-white/30 rounded-full animate-bounce"
+                style={{
+                  width: `${8 + Math.random() * 12}px`,
+                  height: `${8 + Math.random() * 12}px`,
+                  left: `${10 + Math.random() * 80}%`,
+                  bottom: `${Math.random() * 30}%`,
+                  animationDelay: `${i * 0.3}s`,
+                  animationDuration: `${2 + Math.random() * 2}s`
+                }}
               />
-              
-              {/* Speech bubbles */}
-              {animation === 'eating' && <div className="speech-bubble">🐟 Yummy!</div>}
-              {animation === 'playing' && <div className="speech-bubble">💫 Splash!</div>}
-            </div>
+            ))}
           </div>
         )}
+
+        {/* Pet */}
+        <div 
+          className="absolute z-10 transition-all duration-1000 ease-in-out"
+          style={{ 
+            left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
+            top: `${currentPet === 'bunny' ? bunnyState.position.y : fishState.position.y}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <div className={`relative ${
+            currentPet === 'fish' ? 'animate-swim' : ''
+          } ${
+            (currentPet === 'bunny' && bunnyState.action === 'playing') ||
+            (currentPet === 'fish' && fishState.action === 'playing')
+              ? 'animate-wiggle' : ''
+          }`}>
+            {/* Pet Image */}
+            <img 
+              src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
+              alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
+              className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl transition-all duration-300 ${
+                bunnyState.action === 'eating' || fishState.action === 'eating' ? 'scale-110' : ''
+              }`}
+              style={{
+                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))'
+              }}
+            />
+            
+            {/* Speech Bubbles */}
+            {(bunnyState.action !== 'idle' || fishState.action !== 'idle') && (
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-card px-4 py-2 rounded-2xl shadow-strong border-4 border-primary animate-bounce-slow whitespace-nowrap">
+                <span className="text-lg font-bold">
+                  {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
+                  {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
+                  {currentPet === 'bunny' && bunnyState.action === 'playing' && '🎾 Wheee!'}
+                  {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
+                  {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
+                </span>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card border-b-4 border-r-4 border-primary rotate-45" />
+              </div>
+            )}
+
+            {/* Mood Indicator */}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-2xl">
+              {currentPet === 'bunny' && (
+                bunnyState.mood === 'happy' ? '💕' : 
+                bunnyState.mood === 'sad' ? '💔' : '💭'
+              )}
+              {currentPet === 'fish' && (
+                fishState.mood === 'happy' ? '✨' : 
+                fishState.mood === 'sad' ? '💔' : '💤'
+              )}
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Controls Panel */}
       <footer className="bg-card border-t-4 border-primary p-4 shadow-strong">
         {/* Status Bars */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {currentPet === 'bunny' ? (
             <>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">🥕 HUNGER</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🥕</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Hunger</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.hunger)}`} 
@@ -475,7 +450,10 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">💧 HYDRATION</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">💧</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Water</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.hydration)}`} 
@@ -484,7 +462,10 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">😊 HAPPINESS</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">😊</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Happy</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.happiness)}`} 
@@ -493,7 +474,10 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">⚡ ENERGY</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">⚡</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Energy</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} 
@@ -505,7 +489,10 @@ const ClassroomPets = () => {
           ) : (
             <>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">🍽️ HUNGER</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🍽️</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Hunger</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(fishState.hunger)}`} 
@@ -514,7 +501,10 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">😊 HAPPINESS</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">😊</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Happy</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(fishState.happiness)}`} 
@@ -523,7 +513,10 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold text-muted-foreground mb-1">🧽 TANK CLEAN</div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🧽</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Clean</span>
+                </div>
                 <div className="status-bar">
                   <div 
                     className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} 
@@ -532,8 +525,8 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div className="flex items-center justify-center">
-                <div className="text-3xl">
-                  {fishState.mood === 'happy' ? '😊' : fishState.mood === 'hungry' ? '😟' : '😌'}
+                <div className="text-4xl">
+                  {fishState.mood === 'happy' ? '🐠✨' : fishState.mood === 'sad' ? '🐠😢' : '🐠💤'}
                 </div>
               </div>
             </>
@@ -541,26 +534,42 @@ const ClassroomPets = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-3">
-          <button onClick={feedPet} disabled={gameState.locked} className="pet-button-feed">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button 
+            onClick={feedPet} 
+            disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
+            className="pet-button-feed"
+          >
             🥕 Feed
           </button>
           {currentPet === 'bunny' ? (
-            <button onClick={waterBunny} disabled={gameState.locked} className="pet-button-water">
+            <button 
+              onClick={waterBunny} 
+              disabled={gameState.locked || bunnyState.action !== 'idle'} 
+              className="pet-button-water"
+            >
               💧 Water
             </button>
           ) : (
-            <button onClick={cleanHabitat} disabled={gameState.locked} className="pet-button-clean">
+            <button 
+              onClick={cleanHabitat} 
+              disabled={gameState.locked} 
+              className="pet-button-clean"
+            >
               🧽 Clean Tank
             </button>
           )}
-          <button onClick={playWithPet} disabled={gameState.locked} className="pet-button-play">
+          <button 
+            onClick={playWithPet} 
+            disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
+            className="pet-button-play"
+          >
             🎾 Play
           </button>
-          <div className="flex items-center justify-center text-2xl font-bold text-muted-foreground">
+          <div className="flex items-center justify-center text-3xl font-bold">
             {currentPet === 'bunny' 
               ? (bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰')
-              : '🐠'
+              : (fishState.mood === 'happy' ? '🐠💕' : fishState.mood === 'sad' ? '🐠😢' : '🐠')
             }
           </div>
         </div>
