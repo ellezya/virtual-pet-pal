@@ -22,6 +22,10 @@ import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
 import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
+// Animated overlay plants
+import hangingPlant1 from '@/assets/hanging-plant-1.png';
+import hangingPlant2 from '@/assets/hanging-plant-2.png';
+
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
@@ -866,55 +870,40 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[6]"
-            style={{ left: 0, top: 0, width: '100%', height: '55%' }}
+            style={{ left: 0, top: 0, width: '100%', height: '100%' }}
             aria-hidden="true"
           >
-            {/* Multiple hanging vine strands */}
-            {[
-              { x: '58%', delay: 0, length: 90 },
-              { x: '64%', delay: 0.4, length: 75 },
-              { x: '70%', delay: 0.8, length: 100 },
-              { x: '76%', delay: 0.2, length: 85 },
-              { x: '82%', delay: 0.6, length: 70 },
-              { x: '88%', delay: 1.0, length: 95 },
-            ].map((vine, idx) => (
-              <svg
-                key={`vine-${idx}`}
-                className="absolute top-0"
-                style={{
-                  left: vine.x,
-                  width: '28px',
-                  height: `${vine.length}%`,
-                  transformOrigin: 'top center',
-                  animation: `plantSway ${plantDuration}s ease-in-out infinite`,
-                  animationDelay: `${vine.delay}s`,
-                  ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
-                }}
-                viewBox="0 0 28 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Main vine stem */}
-                <path
-                  d={`M14 0 Q${10 + idx * 2} 30, 14 50 Q${18 - idx} 70, 14 100`}
-                  stroke="hsla(95, 45%, 35%, 0.7)"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                {/* Leaves along the vine */}
-                {[15, 30, 45, 60, 75, 90].map((y, leafIdx) => (
-                  <ellipse
-                    key={leafIdx}
-                    cx={leafIdx % 2 === 0 ? 8 : 20}
-                    cy={y}
-                    rx="6"
-                    ry="3"
-                    fill={`hsla(${90 + leafIdx * 5}, ${40 + leafIdx * 3}%, ${32 + leafIdx * 2}%, 0.8)`}
-                    transform={`rotate(${leafIdx % 2 === 0 ? -30 : 30} ${leafIdx % 2 === 0 ? 8 : 20} ${y})`}
-                  />
-                ))}
-              </svg>
-            ))}
+            {/* Hanging plant 1 - positioned to match background */}
+            <img
+              src={hangingPlant1}
+              alt=""
+              className="absolute"
+              style={{
+                right: '18%',
+                top: '-5%',
+                width: '18%',
+                maxWidth: '140px',
+                transformOrigin: 'top center',
+                animation: `plantSway ${plantDuration}s ease-in-out infinite`,
+                ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
+              }}
+            />
+            {/* Hanging plant 2 - positioned to match background */}
+            <img
+              src={hangingPlant2}
+              alt=""
+              className="absolute"
+              style={{
+                right: '5%',
+                top: '-3%',
+                width: '16%',
+                maxWidth: '120px',
+                transformOrigin: 'top center',
+                animation: `plantSway ${plantDuration}s ease-in-out infinite`,
+                animationDelay: '0.5s',
+                ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
+              }}
+            />
           </div>
         )}
 
