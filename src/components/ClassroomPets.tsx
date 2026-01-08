@@ -22,7 +22,8 @@ import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
 import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
-// Note: SVG vines are used instead of PNG images to avoid white background issues
+// Animated video background
+import lofiRoomBg from '@/assets/lofi-room-bg.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -852,56 +853,19 @@ const ClassroomPets = () => {
       <main className="flex-1 min-h-0 relative overflow-hidden">
         {/* Background based on pet/scene */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
-          <div className="absolute inset-0 z-0 bg-room-wall">
-            <img
-              src={habitatIndoor}
-              alt="Habitat"
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            {/* Animated video background for immersive scene */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-full object-cover"
-              loading="eager"
-            />
+            >
+              <source src={lofiRoomBg} type="video/mp4" />
+            </video>
             {/* Cozy warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
-          </div>
-        )}
-
-        {/* Shimmering light rays from window that pulse with wind */}
-        {currentPet !== 'fish' && currentScene === 'habitat' && (
-          <div 
-            className="absolute pointer-events-none z-[5]"
-            style={{ 
-              right: '0%', 
-              top: '0%', 
-              width: '55%', 
-              height: '85%',
-            }}
-            aria-hidden="true"
-          >
-            {/* Multiple light ray beams - brighter and more visible */}
-            {[
-              { rotation: -20, width: '18%', left: '5%', delay: 0 },
-              { rotation: -12, width: '22%', left: '25%', delay: 0.4 },
-              { rotation: -5, width: '25%', left: '48%', delay: 0.8 },
-              { rotation: 3, width: '20%', left: '72%', delay: 1.2 },
-            ].map((ray, idx) => (
-              <div
-                key={`ray-${idx}`}
-                className="absolute top-0 h-full"
-                style={{
-                  left: ray.left,
-                  width: ray.width,
-                  transform: `rotate(${ray.rotation}deg)`,
-                  transformOrigin: 'top center',
-                  background: `linear-gradient(180deg, 
-                    hsla(45, 100%, 90%, 0.5) 0%, 
-                    hsla(45, 90%, 85%, 0.3) 30%,
-                    hsla(40, 80%, 80%, 0.15) 60%, 
-                    transparent 100%)`,
-                  animation: `shimmer ${3 + idx * 0.5}s ease-in-out infinite`,
-                  animationDelay: `${ray.delay}s`,
-                  filter: 'blur(12px)',
-                }}
-              />
-            ))}
           </div>
         )}
 
