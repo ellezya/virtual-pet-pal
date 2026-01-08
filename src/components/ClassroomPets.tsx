@@ -461,18 +461,20 @@ const ClassroomPets = () => {
 
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Video Background for non-fish */}
+        {/* Video Background for non-fish (full-room framing) */}
         {currentPet !== 'fish' && (
-          <video
-            key="lofi-video-bg"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover z-0"
-          >
-            <source src={lofiRoomVideo} type="video/mp4" />
-          </video>
+          <div className="absolute inset-0 z-0 bg-room-wall">
+            <video
+              key="lofi-video-bg"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-contain object-bottom"
+            >
+              <source src={lofiRoomVideo} type="video/mp4" />
+            </video>
+          </div>
         )}
 
         {/* Fish tank static background */}
