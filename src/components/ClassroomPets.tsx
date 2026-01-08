@@ -726,91 +726,86 @@ const ClassroomPets = () => {
 
   return (
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="bg-card shadow-medium p-4 flex justify-between items-center z-10">
-        <div className="flex gap-3 items-center">
-          <h1 className="text-2xl font-extrabold text-foreground">🐰 Lola's Classroom</h1>
+      {/* Header - Compact */}
+      <header className="bg-card shadow-medium px-3 py-1.5 flex justify-between items-center z-10">
+        <div className="flex gap-2 items-center">
+          <h1 className="text-base sm:text-lg font-extrabold text-foreground">🐰 Lola</h1>
           <button 
             onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
-            className={`control-button ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
+            className={`control-button p-1.5 ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
             title={gameState.locked ? 'Unlock controls' : 'Lock controls'}
           >
-            {gameState.locked ? <Lock size={20} /> : <Unlock size={20} />}
+            {gameState.locked ? <Lock size={16} /> : <Unlock size={16} />}
           </button>
           <button 
             onClick={resetPet} 
-            className="control-button bg-secondary/20 text-secondary"
+            className="control-button p-1.5 bg-secondary/20 text-secondary"
             title="Reset pet"
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={16} />
           </button>
           <button 
             onClick={toggleAmbient} 
-            className={`control-button ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            className={`control-button p-1.5 ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
           >
-            {isAmbientPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            {isAmbientPlaying ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {gameState.notifications.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {gameState.notifications.map((notif, i) => (
-                <div key={i} className="notification-badge">{notif}</div>
+            <div className="flex gap-1">
+              {gameState.notifications.slice(0, 2).map((notif, i) => (
+                <div key={i} className="notification-badge text-xs px-1.5 py-0.5">{notif}</div>
               ))}
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-muted-foreground hidden sm:inline">
-              {user?.email?.split('@')[0]}
-            </span>
-            <button 
-              onClick={signOut}
-              className="control-button bg-muted hover:bg-destructive/20 hover:text-destructive"
-              title="Sign out"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
+          <button 
+            onClick={signOut}
+            className="control-button p-1.5 bg-muted hover:bg-destructive/20 hover:text-destructive"
+            title="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 
-      {/* Pet/Scene Selector */}
-      <nav className="flex gap-2 p-3 bg-card/80 backdrop-blur-sm border-b border-border">
+      {/* Pet/Scene Selector - Compact */}
+      <nav className="flex gap-1.5 px-2 py-1 bg-card/80 backdrop-blur-sm border-b border-border">
         <button 
           onClick={() => setCurrentPet('bunny')} 
-          className={currentPet === 'bunny' ? 'scene-button-active bg-primary text-primary-foreground' : 'scene-button-inactive'}
+          className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 hover:bg-muted'}`}
         >
-          🐰 Bunny
+          🐰
         </button>
         <button 
           onClick={() => { setCurrentPet('fish'); setCurrentScene('tank'); }} 
-          className={currentPet === 'fish' ? 'scene-button-active bg-secondary text-secondary-foreground' : 'scene-button-inactive'}
+          className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${currentPet === 'fish' ? 'bg-secondary text-secondary-foreground' : 'bg-muted/50 hover:bg-muted'}`}
         >
-          🐠 Fish
+          🐠
         </button>
         
-        <div className="w-px bg-border mx-2" />
+        <div className="w-px bg-border mx-1" />
         
         {currentPet === 'bunny' && (
           <>
             <button 
               onClick={() => setCurrentScene('habitat')} 
-              className={currentScene === 'habitat' ? 'scene-button-active bg-primary text-primary-foreground' : 'scene-button-inactive'}
+              className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${currentScene === 'habitat' ? 'bg-primary text-primary-foreground' : 'bg-muted/50 hover:bg-muted'}`}
             >
-              🏠 Habitat
+              🏠
             </button>
             <button 
               onClick={() => setCurrentScene('room')} 
-              className={currentScene === 'room' ? 'scene-button-active bg-accent text-accent-foreground' : 'scene-button-inactive'}
+              className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${currentScene === 'room' ? 'bg-accent text-accent-foreground' : 'bg-muted/50 hover:bg-muted'}`}
             >
-              🛋️ Room
+              🛋️
             </button>
             <button 
               onClick={() => setCurrentScene('park')} 
-              className={currentScene === 'park' ? 'scene-button-active bg-success text-success-foreground' : 'scene-button-inactive'}
+              className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${currentScene === 'park' ? 'bg-success text-success-foreground' : 'bg-muted/50 hover:bg-muted'}`}
             >
-              🌳 Park
+              🌳
             </button>
           </>
         )}
@@ -1194,190 +1189,131 @@ const ClassroomPets = () => {
         )}
       </main>
 
-      {/* Controls Panel */}
-      <footer className="bg-card border-t-4 border-primary p-4 shadow-strong">
-        {/* Status Bars */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
+      {/* Controls Panel - Compact */}
+      <footer className="bg-card border-t-2 border-primary px-3 py-2 shadow-strong">
+        {/* Status Bars - Inline compact */}
+        <div className="flex gap-2 mb-2 overflow-x-auto">
           {currentPet === 'bunny' ? (
             <>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🥕</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Hunger</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.hunger)}`} 
-                    style={{ width: `${bunnyState.hunger}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">🥕</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.hunger)}`} style={{ width: `${bunnyState.hunger}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">💧</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Water</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.hydration)}`} 
-                    style={{ width: `${bunnyState.hydration}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">💧</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.hydration)}`} style={{ width: `${bunnyState.hydration}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">😊</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Happy</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.happiness)}`} 
-                    style={{ width: `${bunnyState.happiness}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">😊</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.happiness)}`} style={{ width: `${bunnyState.happiness}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">⚡</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Energy</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} 
-                    style={{ width: `${bunnyState.energy}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">⚡</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} style={{ width: `${bunnyState.energy}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">😴</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Rest</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} 
-                    style={{ width: `${bunnyState.rest}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">😴</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">✨</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Clean</span>
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">✨</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(bunnyState.cleanliness)}`} style={{ width: `${bunnyState.cleanliness}%` }} />
                 </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(bunnyState.cleanliness)}`} 
-                    style={{ width: `${bunnyState.cleanliness}%` }} 
-                  />
-                </div>
+              </div>
+              <div className="text-xl ml-2">
+                {bunnyState.isNapping ? '🐰💤' : bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰'}
               </div>
             </>
           ) : (
             <>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🍽️</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Hunger</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(fishState.hunger)}`} 
-                    style={{ width: `${fishState.hunger}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">🍽️</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(fishState.hunger)}`} style={{ width: `${fishState.hunger}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">😊</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Happy</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(fishState.happiness)}`} 
-                    style={{ width: `${fishState.happiness}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">😊</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(fishState.happiness)}`} style={{ width: `${fishState.happiness}%` }} />
                 </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🧽</span>
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Clean</span>
-                </div>
-                <div className="status-bar">
-                  <div 
-                    className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} 
-                    style={{ width: `${fishState.tankCleanliness}%` }} 
-                  />
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm">🧽</span>
+                <div className="status-bar w-12 h-2">
+                  <div className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} style={{ width: `${fishState.tankCleanliness}%` }} />
                 </div>
               </div>
-              <div className="flex items-center justify-center">
-                <div className="text-4xl">
-                  {fishState.mood === 'happy' ? '🐠✨' : fishState.mood === 'sad' ? '🐠😢' : '🐠💤'}
-                </div>
+              <div className="text-xl ml-2">
+                {fishState.mood === 'happy' ? '🐠✨' : fishState.mood === 'sad' ? '🐠😢' : '🐠💤'}
               </div>
             </>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        {/* Action Buttons - Compact */}
+        <div className="flex gap-2 flex-wrap">
           <button 
             onClick={feedPet} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-feed"
+            className="pet-button-feed text-xs px-2 py-1"
           >
-            🥕 Feed
+            🥕
           </button>
           {currentPet === 'bunny' ? (
             <button 
               onClick={waterBunny} 
               disabled={gameState.locked || bunnyState.action !== 'idle'} 
-              className="pet-button-water"
+              className="pet-button-water text-xs px-2 py-1"
             >
-              💧 Water
+              💧
             </button>
           ) : (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked} 
-              className="pet-button-clean"
+              className="pet-button-clean text-xs px-2 py-1"
             >
-              🧽 Clean Tank
+              🧽
             </button>
           )}
           <button 
             onClick={() => playWithToy(selectedToy)} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-play"
+            className="pet-button-play text-xs px-2 py-1"
           >
-            {selectedToy.emoji} Play
+            {selectedToy.emoji || '🎪'}
           </button>
           {currentPet === 'bunny' && (
             <button 
               onClick={takeNap} 
               disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping} 
-              className={`pet-button-play ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              className={`pet-button-play text-xs px-2 py-1 ${currentScene !== 'room' ? 'opacity-50' : ''}`}
               title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
             >
-              😴 Nap {currentScene !== 'room' && '🔒'}
+              😴
             </button>
           )}
           {currentPet === 'bunny' && (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked || poops.length === 0} 
-              className="pet-button-clean"
+              className="pet-button-clean text-xs px-2 py-1"
             >
-              🧹 Clean {poops.length > 0 && `(${poops.length})`}
+              🧹{poops.length > 0 && <span className="ml-0.5">{poops.length}</span>}
             </button>
           )}
-          <div className="flex items-center justify-center text-3xl font-bold">
-            {currentPet === 'bunny' 
-              ? (bunnyState.isNapping ? '🐰💤' : bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰')
-              : (fishState.mood === 'happy' ? '🐠💕' : fishState.mood === 'sad' ? '🐠😢' : '🐠')
-            }
-          </div>
         </div>
       </footer>
     </div>
