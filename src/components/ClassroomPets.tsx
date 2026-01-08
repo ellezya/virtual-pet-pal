@@ -10,6 +10,7 @@ import bunnySad from '@/assets/bunny-sad.png';
 import bunnyEating from '@/assets/bunny-eating.png';
 import bunnyDrinking from '@/assets/bunny-drinking.png';
 import bunnyPlaying from '@/assets/bunny-playing.png';
+import bunnySleeping from '@/assets/bunny-sleeping.png';
 import fishHappy from '@/assets/fish-happy.png';
 import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
@@ -832,6 +833,7 @@ const ClassroomPets = () => {
   const getBunnyImage = () => {
     const alpha = bunnySpriteAlpha;
 
+    if (bunnyState.isNapping) return bunnySleeping;
     if (bunnyState.action === 'eating') return alpha?.eating ?? bunnyEating;
     if (bunnyState.action === 'drinking') return alpha?.drinking ?? bunnyDrinking;
     if (bunnyState.action === 'playing') return alpha?.playing ?? bunnyPlaying;
@@ -1315,7 +1317,7 @@ const ClassroomPets = () => {
                   currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
                 } ${
                   bunnyState.isNapping
-                    ? 'rotate(15deg) scaleY(0.9) scaleX(0.95) translateY(15%)'
+                    ? ''
                     : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
                     ? 'rotate(-5deg) translateY(-5%)'
                     : ''
