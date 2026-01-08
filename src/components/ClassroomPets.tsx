@@ -22,8 +22,8 @@ import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
 import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
-// Animated video background
-import lofiRoomBg from '@/assets/lofi-room-bg.mp4';
+// Animated video backgrounds
+import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
