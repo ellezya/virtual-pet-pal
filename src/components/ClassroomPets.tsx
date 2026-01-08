@@ -26,7 +26,7 @@ import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 // Animated video backgrounds
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
-import lofiParkBg from '@/assets/lofi-park-v2.mp4';
+import lofiParkBg from '@/assets/lofi-park-v3.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -1042,14 +1042,14 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'park' && (
           <div className="absolute inset-0 z-0 overflow-hidden">
             <video
-              key="lofi-park"
+              key={lofiParkBg}
               autoPlay
               loop
               muted
               playsInline
               className="w-full h-full object-cover"
               style={{
-                transform: 'scale(1.2)',
+                transform: 'scale(1.0)',
                 transformOrigin: 'center center',
               }}
             >
