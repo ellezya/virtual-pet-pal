@@ -841,41 +841,29 @@ const ClassroomPets = () => {
             {/* Window curtain blowing in breeze - positioned over left window */}
             <div
               className="absolute pointer-events-none z-[6]"
-              style={{ left: '7%', top: '10%', width: '34%', height: '56%' }}
+              style={{ left: '6%', top: '6%', width: '36%', height: '58%' }}
             >
               {/* Left curtain panel */}
-              <svg
-                className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow"
-                viewBox="0 0 50 100"
-                preserveAspectRatio="none"
-                style={{ transformOrigin: 'top left', filter: 'drop-shadow(0 10px 18px hsl(var(--foreground) / 0.08))' }}
-              >
-                <defs>
-                  <linearGradient id="curtainGradL" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.28 }} />
-                    <stop offset="55%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.16 }} />
-                    <stop offset="100%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0 }} />
-                  </linearGradient>
-                </defs>
-                <path d="M0,0 Q15,18 10,50 Q5,82 0,100 L50,100 Q45,82 48,50 Q50,18 50,0 Z" fill="url(#curtainGradL)" />
-              </svg>
-
+              <div
+                className="absolute left-0 top-0 h-full w-[55%] animate-curtain-blow"
+                style={{
+                  transformOrigin: 'top left',
+                  background: 'linear-gradient(to right, rgba(255,250,240,0.55) 0%, rgba(255,250,240,0.35) 50%, transparent 100%)',
+                  borderRadius: '0 24px 24px 0',
+                  boxShadow: '4px 0 20px rgba(0,0,0,0.08)',
+                }}
+              />
               {/* Right curtain panel */}
-              <svg
-                className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow"
-                viewBox="0 0 50 100"
-                preserveAspectRatio="none"
-                style={{ transformOrigin: 'top right', animationDelay: '0.5s', filter: 'drop-shadow(0 10px 18px hsl(var(--foreground) / 0.08))' }}
-              >
-                <defs>
-                  <linearGradient id="curtainGradR" x1="100%" y1="0%" x2="0%" y2="0%">
-                    <stop offset="0%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.26 }} />
-                    <stop offset="55%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.14 }} />
-                    <stop offset="100%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0 }} />
-                  </linearGradient>
-                </defs>
-                <path d="M50,0 Q35,18 40,50 Q45,82 50,100 L0,100 Q5,82 2,50 Q0,18 0,0 Z" fill="url(#curtainGradR)" />
-              </svg>
+              <div
+                className="absolute right-0 top-0 h-full w-[50%] animate-curtain-blow"
+                style={{
+                  transformOrigin: 'top right',
+                  animationDelay: '0.6s',
+                  background: 'linear-gradient(to left, rgba(255,250,240,0.5) 0%, rgba(255,250,240,0.3) 50%, transparent 100%)',
+                  borderRadius: '24px 0 0 24px',
+                  boxShadow: '-4px 0 20px rgba(0,0,0,0.08)',
+                }}
+              />
             </div>
 
             {/* Breeze/wind particles floating across */}
