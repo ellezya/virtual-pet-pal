@@ -74,11 +74,10 @@ const ClassroomPets = () => {
   const parkZones = {
     grass: { xMin: 30, xMax: 70, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass - full size
     flowers: { xMin: 72, xMax: 90, y: 86, scale: 0.9, label: '🌸 Flower Garden' },   // Flower garden area - ground level, slightly smaller
-    tree: { xMin: 10, xMax: 30, y: 60, scale: 0.55, label: '🌳 Under the Tree' },    // Background near trees - smaller (far away)
   };
   
   // Track which park zone Lola is in
-  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'flowers' | 'tree'>('grass');
+  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'flowers'>('grass');
   
   // Track which couch zone Lola is on
   const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
@@ -408,8 +407,7 @@ const ClassroomPets = () => {
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const poopInterval = setInterval(() => {
-      // In park, only poop on ground-level zones (grass or flowers)
-      if (currentScene === 'park' && currentParkZone === 'tree') return;
+      // In park, poop is allowed (both grass + flowers are ground-level)
       
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
@@ -537,7 +535,7 @@ const ClassroomPets = () => {
         // Park scene - move within current park zone, with chance to change zones
         if (Math.random() < 0.15) {
           // 15% chance to hop to a different park zone
-          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'flowers' | 'tree'>;
+          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'flowers'>;
           const otherZones = zoneKeys.filter(z => z !== currentParkZone);
           const newZone = otherZones[Math.floor(Math.random() * otherZones.length)];
           const targetZone = parkZones[newZone];
@@ -1341,10 +1339,14 @@ const ClassroomPets = () => {
               isTrampolineBouncing ? bunnyState.position.y - 2 : 
               bunnyState.position.y
             ) : fishState.position.y}%`,
-            transform: `translate(-50%, ${currentPet === 'bunny' ? '-100%' : '-50%'}) scale(${currentPet === 'bunny' && currentScene === 'park' ? getParkDepthScale() : 1})`,
+            transform: currentPet === 'bunny'
+              ? (currentScene === 'park'
+                  ? `scale(${getParkDepthScale()}) translate(-50%, -100%)`
+                  : 'translate(-50%, -100%)')
+              : 'translate(-50%, -50%)',
             transition: isHoppingThroughTunnel ? 'left 0.6s ease-out, top 0.6s ease-out, opacity 0.2s ease-out, transform 0.8s ease-out' : 'transform 0.8s ease-out',
             // Depth-based z-index: foreground = 10, mid = 8, background = 5
-            zIndex: currentScene === 'park' ? (currentParkZone === 'grass' ? 10 : currentParkZone === 'flowers' ? 8 : 5) : 10
+            zIndex: currentScene === 'park' ? (currentParkZone === 'grass' ? 10 : 9) : 10
           }}
         >
           {/* Balloon with string above bunny when playing */}
@@ -1368,7 +1370,7 @@ const ClassroomPets = () => {
           <div className={`relative ${
             currentPet === 'fish' ? 'animate-swim' : ''
           } ${
-            currentPet === 'bunny' && bunnyState.isHopping && !isTrampolineBouncing ? 'animate-hop' : ''
+            currentPet === 'bunny' && bunnyState.isHopping && currentScene !== 'park' && !isTrampolineBouncing ? 'animate-hop' : ''
           } ${
             currentPet === 'bunny' && bunnyState.idleBehavior === 'sniffing' ? 'animate-sniff' : ''
           } ${
