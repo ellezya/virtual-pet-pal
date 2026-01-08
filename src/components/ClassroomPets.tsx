@@ -26,6 +26,7 @@ import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 // Animated video backgrounds
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
+import lofiParkBg from '@/assets/lofi-park.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -1037,15 +1038,47 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Park scene */}
+        {/* Park scene - video background */}
         {currentPet !== 'fish' && currentScene === 'park' && (
-          <div className="absolute inset-0 z-0 bg-park-grass">
-            <img 
-              src={habitatPark} 
-              alt="Park" 
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <video
+              key="lofi-park"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-full object-cover"
-              loading="eager"
+              style={{
+                transform: 'scale(1.2)',
+                transformOrigin: 'center center',
+              }}
+            >
+              <source src={lofiParkBg} type="video/mp4" />
+            </video>
+            {/* Sunny warm overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-200/15 via-transparent to-green-200/10 pointer-events-none" />
+            
+            {/* Sun glow */}
+            <div 
+              className="absolute top-[5%] right-[20%] w-40 h-40 rounded-full bg-gradient-radial from-amber-300/50 via-yellow-200/20 to-transparent blur-2xl animate-pulse-soft pointer-events-none"
+              style={{ animationDuration: '5s' }}
             />
+            
+            {/* Floating butterflies */}
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={`butterfly-${i}`}
+                className="absolute animate-float-butterfly pointer-events-none z-10"
+                style={{
+                  left: `${15 + (i * 18)}%`,
+                  top: `${30 + (i % 3) * 20}%`,
+                  animationDelay: `${i * 1.2}s`,
+                  animationDuration: `${6 + (i % 3) * 2}s`,
+                }}
+              >
+                <span className="text-lg drop-shadow-sm" style={{ fontSize: `${14 + (i % 3) * 4}px` }}>🦋</span>
+              </div>
+            ))}
           </div>
         )}
 
