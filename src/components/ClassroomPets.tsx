@@ -70,8 +70,15 @@ const ClassroomPets = () => {
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
   // Modern trampoline SVG component
-  const TrampolineSVG = () => (
-    <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+  const TrampolineSVG = ({ large = false }: { large?: boolean }) => (
+    <svg 
+      width={large ? "80" : "48"} 
+      height={large ? "40" : "24"} 
+      viewBox="0 0 48 24" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      className="drop-shadow-lg"
+    >
       {/* Legs */}
       <path d="M6 24L10 12" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"/>
       <path d="M42 24L38 12" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"/>
@@ -88,10 +95,44 @@ const ClassroomPets = () => {
     </svg>
   );
 
+  // Hollow tree trunk SVG component
+  const HollowTreeTrunkSVG = ({ large = false }: { large?: boolean }) => (
+    <svg 
+      width={large ? "100" : "48"} 
+      height={large ? "50" : "28"} 
+      viewBox="0 0 100 50" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg" 
+      className="drop-shadow-lg"
+    >
+      {/* Outer bark - back side */}
+      <ellipse cx="85" cy="25" rx="12" ry="20" fill="hsl(25 40% 25%)" />
+      {/* Main trunk body */}
+      <path d="M15 5 L85 5 L85 45 L15 45 Z" fill="hsl(25 45% 30%)" />
+      {/* Bark texture lines */}
+      <path d="M25 5 L23 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
+      <path d="M45 5 L48 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
+      <path d="M65 5 L62 45" stroke="hsl(25 35% 22%)" strokeWidth="2" opacity="0.5"/>
+      {/* Hollow opening - front */}
+      <ellipse cx="15" cy="25" rx="14" ry="22" fill="hsl(25 40% 25%)" />
+      <ellipse cx="15" cy="25" rx="10" ry="16" fill="hsl(25 30% 12%)" />
+      {/* Inner darkness gradient */}
+      <ellipse cx="30" cy="25" rx="8" ry="12" fill="hsl(25 25% 8%)" opacity="0.8"/>
+      {/* Moss/lichen accents */}
+      <circle cx="20" cy="8" r="3" fill="hsl(85 35% 35%)" opacity="0.6"/>
+      <circle cx="70" cy="42" r="4" fill="hsl(85 35% 35%)" opacity="0.5"/>
+      <circle cx="50" cy="6" r="2" fill="hsl(85 40% 40%)" opacity="0.4"/>
+    </svg>
+  );
+
+  // Trampoline bounce state
+  const [trampolineBounceCount, setTrampolineBounceCount] = useState(0);
+  const [isTrampolineBouncing, setIsTrampolineBouncing] = useState(false);
+
   // Toys configuration
   const toys = [
     { id: 'trampoline', emoji: null, component: TrampolineSVG, name: 'Trampoline', energyCost: 25, happinessBoost: 30, lowEnergy: false },
-    { id: 'tunnel', emoji: '🪵', component: null, name: 'Tunnel', energyCost: 15, happinessBoost: 20, lowEnergy: false },
+    { id: 'tunnel', emoji: null, component: HollowTreeTrunkSVG, name: 'Tree Trunk', energyCost: 15, happinessBoost: 20, lowEnergy: false },
     { id: 'hayPile', emoji: '🪺', component: null, name: 'Hay Pile', energyCost: 8, happinessBoost: 15, lowEnergy: true },
     { id: 'balloon', emoji: '🎈', component: null, name: 'Balloon', energyCost: 5, happinessBoost: 12, lowEnergy: true },
     { id: 'cardboard', emoji: '📦', component: null, name: 'Box', energyCost: 10, happinessBoost: 18, lowEnergy: true },
@@ -438,6 +479,40 @@ const ClassroomPets = () => {
   const playWithToy = (toy: typeof toys[0]) => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
+      // Special handling for trampoline - bunny jumps directly on it
+      if (toy.id === 'trampoline') {
+        setIsTrampolineBouncing(true);
+        setTrampolineBounceCount(0);
+        setBunnyState(prev => ({ ...prev, action: 'playing', targetObject: null }));
+        
+        // Do 3 bounces
+        let bounceNum = 0;
+        const bounceInterval = setInterval(() => {
+          bounceNum++;
+          setTrampolineBounceCount(bounceNum);
+          playHop();
+          
+          if (bounceNum >= 3) {
+            clearInterval(bounceInterval);
+            setTimeout(() => {
+              setIsTrampolineBouncing(false);
+              setTrampolineBounceCount(0);
+              setBunnyState(prev => ({ ...prev, action: 'idle' }));
+            }, 600);
+          }
+        }, 700);
+        
+        playPlay();
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - toy.energyCost) 
+        }));
+        return;
+      }
+      
       doAction('playing', 'toy-area' as any, 5000);
       setTimeout(() => {
         // Play hay sound for hay pile, otherwise normal play sound
@@ -805,45 +880,50 @@ const ClassroomPets = () => {
               />
             </div>
             
-            {/* Selected Toy Display - with balloon string when bunny is floating */}
-            <div 
-              className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
-              } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
-              style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
-            >
-              {bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? (
-                // Show balloon with string when bunny is floating
-                <div className="relative">
-                  <div className="text-3xl sm:text-4xl md:text-5xl animate-balloon-sway">🎈</div>
-                  {/* Balloon string going down */}
-                  <svg className="absolute top-full left-1/2 -translate-x-1/2 w-4 h-24" viewBox="0 0 16 96">
-                    <path 
-                      d="M8 0 Q12 24 4 48 Q12 72 8 96" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      strokeWidth="1.5" 
-                      fill="none"
-                      className="animate-string-wave"
-                    />
-                  </svg>
-                </div>
-              ) : selectedToy.id === 'hayPile' ? (
-                // Nest with eggs
-                <div className="relative">
-                  <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🪺</div>
-                  {/* Show remaining eggs */}
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                    {[...Array(eggsRemaining)].map((_, i) => (
-                      <span key={i} className="text-xs">🥚</span>
-                    ))}
+            {/* Selected Toy Display - with special handling for trampoline and balloon */}
+            {!isTrampolineBouncing && (
+              <div 
+                className={`absolute transition-transform duration-200 ${
+                  bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
+                } ${bunnyState.action === 'playing' && selectedToy.id !== 'trampoline' ? 'animate-bounce-slow' : ''}`}
+                style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
+              >
+                {bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? (
+                  // Show balloon with string when bunny is floating
+                  <div className="relative">
+                    <div className="text-3xl sm:text-4xl md:text-5xl animate-balloon-sway">🎈</div>
+                    {/* Balloon string going down */}
+                    <svg className="absolute top-full left-1/2 -translate-x-1/2 w-4 h-24" viewBox="0 0 16 96">
+                      <path 
+                        d="M8 0 Q12 24 4 48 Q12 72 8 96" 
+                        stroke="hsl(var(--muted-foreground))" 
+                        strokeWidth="1.5" 
+                        fill="none"
+                        className="animate-string-wave"
+                      />
+                    </svg>
                   </div>
-                </div>
-              ) : selectedToy.component ? (
-                <selectedToy.component />
-              ) : (
-                <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
-              )}
-            </div>
+                ) : selectedToy.id === 'hayPile' ? (
+                  // Nest with eggs
+                  <div className="relative">
+                    <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🪺</div>
+                    {/* Show remaining eggs */}
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      {[...Array(eggsRemaining)].map((_, i) => (
+                        <span key={i} className="text-xs">🥚</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : selectedToy.id === 'tunnel' && selectedToy.component ? (
+                  // Hollow tree trunk - larger display
+                  <HollowTreeTrunkSVG large />
+                ) : selectedToy.component ? (
+                  <selectedToy.component large />
+                ) : (
+                  <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
+                )}
+              </div>
+            )}
             
             {/* Flying baby birds */}
             {flyingBirds.map((bird) => (
@@ -875,22 +955,42 @@ const ClassroomPets = () => {
             ))}
           </div>
         )}
+        {/* Trampoline displayed under bunny when bouncing */}
+        {isTrampolineBouncing && currentPet === 'bunny' && (
+          <div 
+            className="absolute z-[9]"
+            style={{ 
+              left: `${bunnyState.position.x}%`, 
+              top: `${bunnyState.position.y + 2}%`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <TrampolineSVG large />
+          </div>
+        )}
+        
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
-        {/* When playing with balloon, bunny floats up! */}
+        {/* When playing with balloon, bunny floats up! When on trampoline, bunny bounces! */}
         <div 
           className={`absolute z-10 transition-all ease-out ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
-          } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''}`}
+          } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''} ${
+            isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
+          }`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
-            top: `${currentPet === 'bunny' ? (bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 25 : bunnyState.position.y) : fishState.position.y}%`,
+            top: `${currentPet === 'bunny' ? (
+              bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 25 : 
+              isTrampolineBouncing ? bunnyState.position.y - 8 : 
+              bunnyState.position.y
+            ) : fishState.position.y}%`,
             transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)'
           }}
         >
           <div className={`relative ${
             currentPet === 'fish' ? 'animate-swim' : ''
           } ${
-            currentPet === 'bunny' && bunnyState.isHopping ? 'animate-hop' : ''
+            currentPet === 'bunny' && bunnyState.isHopping && !isTrampolineBouncing ? 'animate-hop' : ''
           } ${
             currentPet === 'bunny' && bunnyState.idleBehavior === 'sniffing' ? 'animate-sniff' : ''
           } ${
@@ -900,7 +1000,7 @@ const ClassroomPets = () => {
           } ${
             currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
           } ${
-            (currentPet === 'bunny' && bunnyState.action === 'playing') ||
+            (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing) ||
             (currentPet === 'fish' && fishState.action === 'playing')
               ? 'animate-wiggle' : ''
           }`}>

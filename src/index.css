@@ -395,4 +395,32 @@
       opacity: 0;
     }
   }
+
+  @keyframes trampoline-bounce {
+    0%, 100% { 
+      transform: translate(-50%, -100%) translateY(0);
+    }
+    20% { 
+      transform: translate(-50%, -100%) translateY(-40px);
+    }
+    40% { 
+      transform: translate(-50%, -100%) translateY(0);
+    }
+    55% { 
+      transform: translate(-50%, -100%) translateY(-35px);
+    }
+    70% { 
+      transform: translate(-50%, -100%) translateY(0);
+    }
+    82% { 
+      transform: translate(-50%, -100%) translateY(-30px);
+    }
+    94% { 
+      transform: translate(-50%, -100%) translateY(0);
+    }
+  }
+
+  .animate-trampoline-bounce {
+    animation: trampoline-bounce 2.1s ease-in-out;
+  }
 }
