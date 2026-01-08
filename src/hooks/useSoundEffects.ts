@@ -20,8 +20,8 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     childrenInterval: NodeJS.Timeout | null;
   }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null });
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
-  const sfxVolume = 0.7;
-  const ambientVolume = 0.15;
+  const sfxVolume = 0.8;
+  const ambientVolume = 0.35;
 
   // Initialize audio context on first user interaction
   const getAudioContext = useCallback(() => {
