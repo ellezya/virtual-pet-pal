@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Lock, Unlock } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const ClassroomPets = () => {
+  const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
   const [currentScene, setCurrentScene] = useState('habitat');
   
@@ -217,13 +219,27 @@ const ClassroomPets = () => {
             <RotateCcw size={20} />
           </button>
         </div>
-        {gameState.notifications.length > 0 && (
-          <div className="flex flex-col gap-1">
-            {gameState.notifications.map((notif, i) => (
-              <div key={i} className="notification-badge">{notif}</div>
-            ))}
+        <div className="flex items-center gap-3">
+          {gameState.notifications.length > 0 && (
+            <div className="flex flex-col gap-1">
+              {gameState.notifications.map((notif, i) => (
+                <div key={i} className="notification-badge">{notif}</div>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-muted-foreground hidden sm:inline">
+              {user?.email?.split('@')[0]}
+            </span>
+            <button 
+              onClick={signOut}
+              className="control-button bg-muted hover:bg-destructive/20 hover:text-destructive"
+              title="Sign out"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
-        )}
+        </div>
       </header>
 
       {/* Pet/Scene Selector */}
