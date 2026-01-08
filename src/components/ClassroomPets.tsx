@@ -143,6 +143,9 @@ const ClassroomPets = () => {
   // Trampoline bounce state
   const [trampolineBounceCount, setTrampolineBounceCount] = useState(0);
   const [isTrampolineBouncing, setIsTrampolineBouncing] = useState(false);
+  
+  // Tunnel hop-through state
+  const [isHoppingThroughTunnel, setIsHoppingThroughTunnel] = useState(false);
 
   // Toys configuration
   const toys = [
@@ -516,6 +519,46 @@ const ClassroomPets = () => {
             }, 600);
           }
         }, 700);
+        
+        playPlay();
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - toy.energyCost) 
+        }));
+        return;
+      }
+      
+      // Special handling for tunnel - bunny hops through it
+      if (toy.id === 'tunnel') {
+        setIsHoppingThroughTunnel(true);
+        setBunnyState(prev => ({ ...prev, action: 'playing', targetObject: null, facingRight: true }));
+        
+        // Bunny hops to the left side, goes through, emerges on right
+        const tunnelLeftX = 55;
+        const tunnelRightX = 75;
+        
+        // Move to left entrance
+        setBunnyState(prev => ({ ...prev, position: { x: tunnelLeftX, y: prev.position.y }, isHopping: true }));
+        playHop();
+        
+        // After a moment, bunny goes "inside" (we'll fade/hide briefly)
+        setTimeout(() => {
+          setBunnyState(prev => ({ ...prev, isHopping: false }));
+        }, 400);
+        
+        // Emerge from right side
+        setTimeout(() => {
+          playHop();
+          setBunnyState(prev => ({ ...prev, position: { x: tunnelRightX, y: prev.position.y }, isHopping: true }));
+        }, 1200);
+        
+        setTimeout(() => {
+          setBunnyState(prev => ({ ...prev, isHopping: false, action: 'idle' }));
+          setIsHoppingThroughTunnel(false);
+        }, 1800);
         
         playPlay();
         const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
@@ -997,7 +1040,7 @@ const ClassroomPets = () => {
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
           } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''} ${
             isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
-          }`}
+          } ${isHoppingThroughTunnel && bunnyState.position.x > 58 && bunnyState.position.x < 72 ? 'opacity-0' : 'opacity-100'}`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
@@ -1005,7 +1048,8 @@ const ClassroomPets = () => {
               isTrampolineBouncing ? bunnyState.position.y - 8 : 
               bunnyState.position.y
             ) : fishState.position.y}%`,
-            transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)'
+            transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
+            transition: isHoppingThroughTunnel ? 'left 0.6s ease-out, top 0.6s ease-out, opacity 0.2s ease-out' : undefined
           }}
         >
           <div className={`relative ${
