@@ -100,7 +100,7 @@ const ClassroomPets = () => {
     const moveInterval = setInterval(() => {
       const deltaX = (Math.random() - 0.5) * 20;
       const newX = Math.max(20, Math.min(80, bunnyState.position.x + deltaX));
-      const newY = Math.max(40, Math.min(65, bunnyState.position.y + (Math.random() - 0.5) * 8));
+      const newY = Math.max(42, Math.min(72, bunnyState.position.y + (Math.random() - 0.5) * 8));
       const movingRight = deltaX > 0;
       
       // Start hop animation
@@ -455,9 +455,9 @@ const ClassroomPets = () => {
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
               className={`w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl transition-all duration-300 ${
                 bunnyState.action === 'eating' || fishState.action === 'eating' ? 'scale-110' : ''
-              }`}
+              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
-                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))',
+                filter: 'drop-shadow(0 10px 18px hsl(var(--foreground) / 0.25))',
                 transform: currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
               }}
             />
@@ -465,7 +465,7 @@ const ClassroomPets = () => {
             {/* Ground shadow that grows/shrinks with hop */}
             {currentPet === 'bunny' && (
               <div 
-                className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/20 blur-sm transition-all duration-300 ${
+                className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-foreground/15 blur-sm transition-all duration-300 ${
                   bunnyState.isHopping ? 'w-12 h-2 opacity-30' : 'w-16 h-3 opacity-50'
                 }`}
               />
@@ -498,6 +498,19 @@ const ClassroomPets = () => {
             </div>
           </div>
         </div>
+
+        {/* Foreground matte so the bunny feels "in" the scene */}
+        {currentPet === 'bunny' && (
+          <div
+            className={`absolute inset-x-0 bottom-0 z-20 h-28 sm:h-32 pointer-events-none ${
+              currentScene === 'park'
+                ? 'bg-gradient-to-t from-park-path/45 via-park-grass/15 to-transparent'
+                : currentScene === 'room'
+                ? 'bg-gradient-to-t from-room-floor/55 via-room-floor/15 to-transparent'
+                : 'bg-gradient-to-t from-habitat-ground/55 via-habitat-grass/15 to-transparent'
+            }`}
+          />
+        )}
       </main>
 
       {/* Controls Panel */}
