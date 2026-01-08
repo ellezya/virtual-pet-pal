@@ -843,33 +843,74 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Window curtains - rendered OUTSIDE scene divs so z-index works properly */}
-        {currentPet !== 'fish' && (currentScene === 'habitat' || currentScene === 'room') && (
+        {/* Window curtains - shaped SVG so it doesn't look like rectangles */}
+        {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[15]"
-            style={{ left: '5%', top: '5%', width: '32%', height: '48%' }}
+            style={{ left: '5%', top: '6%', width: '34%', height: '54%' }}
+            aria-hidden="true"
           >
-            {/* Left curtain panel - sheer fabric effect */}
-            <div
-              className="absolute left-0 top-0 h-full w-[45%] animate-curtain-blow"
-              style={{
-                transformOrigin: 'top left',
-                background: 'linear-gradient(135deg, rgba(255,250,245,0.35) 0%, rgba(255,248,240,0.2) 50%, rgba(255,255,255,0.08) 100%)',
-                backdropFilter: 'blur(1px)',
-                borderRight: '1px solid rgba(255,255,255,0.3)',
-              }}
-            />
-            {/* Right curtain panel - sheer fabric effect */}
-            <div
-              className="absolute right-0 top-0 h-full w-[45%] animate-curtain-blow"
-              style={{
-                transformOrigin: 'top right',
-                animationDelay: '0.6s',
-                background: 'linear-gradient(225deg, rgba(255,250,245,0.35) 0%, rgba(255,248,240,0.2) 50%, rgba(255,255,255,0.08) 100%)',
-                backdropFilter: 'blur(1px)',
-                borderLeft: '1px solid rgba(255,255,255,0.3)',
-              }}
-            />
+            {/* Left curtain */}
+            <svg
+              className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              style={{ transformOrigin: 'top left', filter: 'drop-shadow(0 12px 18px hsl(var(--foreground) / 0.12))' }}
+            >
+              <defs>
+                <linearGradient id="curtainGradL" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--background) / 0.34)" />
+                  <stop offset="55%" stopColor="hsl(var(--background) / 0.18)" />
+                  <stop offset="100%" stopColor="hsl(var(--background) / 0.02)" />
+                </linearGradient>
+                <linearGradient id="curtainFoldsL" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--foreground) / 0.06)" />
+                  <stop offset="100%" stopColor="hsl(var(--foreground) / 0.00)" />
+                </linearGradient>
+              </defs>
+
+              {/* Sheer body */}
+              <path
+                d="M0,0 L0,100 L78,100 C64,82 90,66 76,50 C62,34 92,18 78,0 Z"
+                fill="url(#curtainGradL)"
+              />
+              {/* Folds */}
+              <path d="M18,0 L18,100" stroke="url(#curtainFoldsL)" strokeWidth="2" opacity="0.6" />
+              <path d="M34,0 L34,100" stroke="url(#curtainFoldsL)" strokeWidth="1.6" opacity="0.45" />
+              <path d="M50,0 L50,100" stroke="url(#curtainFoldsL)" strokeWidth="1.3" opacity="0.35" />
+              <path d="M66,0 L66,100" stroke="url(#curtainFoldsL)" strokeWidth="1" opacity="0.25" />
+            </svg>
+
+            {/* Right curtain */}
+            <svg
+              className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              style={{ transformOrigin: 'top right', animationDelay: '0.6s', filter: 'drop-shadow(0 12px 18px hsl(var(--foreground) / 0.12))' }}
+            >
+              <defs>
+                <linearGradient id="curtainGradR" x1="1" y1="0" x2="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--background) / 0.32)" />
+                  <stop offset="55%" stopColor="hsl(var(--background) / 0.17)" />
+                  <stop offset="100%" stopColor="hsl(var(--background) / 0.02)" />
+                </linearGradient>
+                <linearGradient id="curtainFoldsR" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--foreground) / 0.06)" />
+                  <stop offset="100%" stopColor="hsl(var(--foreground) / 0.00)" />
+                </linearGradient>
+              </defs>
+
+              {/* Sheer body */}
+              <path
+                d="M100,0 L100,100 L22,100 C36,82 10,66 24,50 C38,34 8,18 22,0 Z"
+                fill="url(#curtainGradR)"
+              />
+              {/* Folds */}
+              <path d="M82,0 L82,100" stroke="url(#curtainFoldsR)" strokeWidth="2" opacity="0.6" />
+              <path d="M66,0 L66,100" stroke="url(#curtainFoldsR)" strokeWidth="1.6" opacity="0.45" />
+              <path d="M50,0 L50,100" stroke="url(#curtainFoldsR)" strokeWidth="1.3" opacity="0.35" />
+              <path d="M34,0 L34,100" stroke="url(#curtainFoldsR)" strokeWidth="1" opacity="0.25" />
+            </svg>
           </div>
         )}
 
