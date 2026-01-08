@@ -47,6 +47,8 @@ const ClassroomPets = () => {
     notifications: [] as string[]
   });
 
+  const [bgImgFailed, setBgImgFailed] = useState(false);
+
   // Bunny decay
   useEffect(() => {
     if (currentPet !== 'bunny') return;
@@ -249,12 +251,20 @@ const ClassroomPets = () => {
     return fishHappy;
   };
 
-  const getHabitatImage = () => {
-    if (currentPet === 'fish') return habitatTank;
-    if (currentScene === 'park') return habitatPark;
-    if (currentScene === 'room') return habitatRoom;
-    return habitatIndoor;
-  };
+  const habitatSrc =
+    currentPet === 'fish'
+      ? habitatTank
+      : currentScene === 'park'
+      ? habitatPark
+      : currentScene === 'room'
+      ? habitatRoom
+      : habitatIndoor;
+
+  useEffect(() => {
+    setBgImgFailed(false);
+    // Debug: helps confirm which asset URL Vite is using
+    console.log('[habitat] src', habitatSrc);
+  }, [habitatSrc]);
 
   return (
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
@@ -354,12 +364,13 @@ const ClassroomPets = () => {
             : 'bg-gradient-to-b from-primary/20 to-primary/40'
         }`}>
           <img 
-            src={getHabitatImage()} 
+            src={habitatSrc} 
             alt="Pet habitat" 
-            className="w-full h-full object-cover transition-opacity duration-500"
-            onError={(e) => {
-              // Hide image on error, fallback gradient will show
-              (e.target as HTMLImageElement).style.display = 'none';
+            className={`w-full h-full object-cover transition-opacity duration-500 ${bgImgFailed ? 'opacity-0' : 'opacity-100'}`}
+            loading="eager"
+            onError={() => {
+              setBgImgFailed(true);
+              console.log('[habitat] failed to load', habitatSrc);
             }}
           />
           {/* Overlay for better pet visibility */}
