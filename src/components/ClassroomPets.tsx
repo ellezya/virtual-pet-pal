@@ -73,12 +73,12 @@ const ClassroomPets = () => {
   // Higher y = lower on screen = closer = larger scale
   const parkZones = {
     grass: { xMin: 30, xMax: 70, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass - full size
-    bench: { xMin: 72, xMax: 90, y: 58, scale: 0.75, label: '🪑 Park Bench' },       // Elevated on bench - slightly smaller (mid-ground)
+    flowers: { xMin: 72, xMax: 90, y: 86, scale: 0.9, label: '🌸 Flower Garden' },   // Flower garden area - ground level, slightly smaller
     tree: { xMin: 10, xMax: 30, y: 60, scale: 0.55, label: '🌳 Under the Tree' },    // Background near trees - smaller (far away)
   };
   
   // Track which park zone Lola is in
-  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'bench' | 'tree'>('grass');
+  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'flowers' | 'tree'>('grass');
   
   // Track which couch zone Lola is on
   const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
@@ -537,7 +537,7 @@ const ClassroomPets = () => {
         // Park scene - move within current park zone, with chance to change zones
         if (Math.random() < 0.15) {
           // 15% chance to hop to a different park zone
-          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'bench' | 'tree'>;
+          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'flowers' | 'tree'>;
           const otherZones = zoneKeys.filter(z => z !== currentParkZone);
           const newZone = otherZones[Math.floor(Math.random() * otherZones.length)];
           const targetZone = parkZones[newZone];
@@ -1344,7 +1344,7 @@ const ClassroomPets = () => {
             transform: `translate(-50%, ${currentPet === 'bunny' ? '-100%' : '-50%'}) scale(${currentPet === 'bunny' && currentScene === 'park' ? getParkDepthScale() : 1})`,
             transition: isHoppingThroughTunnel ? 'left 0.6s ease-out, top 0.6s ease-out, opacity 0.2s ease-out, transform 0.8s ease-out' : 'transform 0.8s ease-out',
             // Depth-based z-index: foreground = 10, mid = 8, background = 5
-            zIndex: currentScene === 'park' ? (currentParkZone === 'grass' ? 10 : currentParkZone === 'bench' ? 8 : 5) : 10
+            zIndex: currentScene === 'park' ? (currentParkZone === 'grass' ? 10 : currentParkZone === 'flowers' ? 8 : 5) : 10
           }}
         >
           {/* Balloon with string above bunny when playing */}
