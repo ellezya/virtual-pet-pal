@@ -34,10 +34,19 @@ const ClassroomPets = () => {
     energy: 70,
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing',
-    position: { x: 50, y: 50 },
+    idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
+    position: { x: 50, y: 55 },
+    targetObject: null as null | 'food-bowl' | 'water-bottle' | 'toy-ball',
     isHopping: false,
     facingRight: true
   });
+
+  // Interactive environment objects with positions
+  const envObjects = {
+    'food-bowl': { x: 25, y: 70, emoji: '🥕', label: 'Food Bowl' },
+    'water-bottle': { x: 75, y: 70, emoji: '💧', label: 'Water' },
+    'toy-ball': { x: 50, y: 75, emoji: '🎾', label: 'Toy' },
+  };
 
   const [fishState, setFishState] = useState({
     hunger: 70,
@@ -129,19 +138,36 @@ const ClassroomPets = () => {
     return () => clearInterval(interval);
   }, [currentPet]);
 
-  // Auto-move bunny with hopping animation
+  // Auto-move bunny with hopping to objects or idle wandering
   useEffect(() => {
     if (currentPet !== 'bunny' || bunnyState.action !== 'idle') return;
+    
     const moveInterval = setInterval(() => {
+      // If bunny has a target object, hop towards it
+      if (bunnyState.targetObject) {
+        const target = envObjects[bunnyState.targetObject];
+        const movingRight = target.x > bunnyState.position.x;
+        
+        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+        
+        setTimeout(() => {
+          setBunnyState(prev => ({
+            ...prev,
+            isHopping: false,
+            position: { x: target.x, y: target.y - 15 }
+          }));
+        }, 600);
+        return;
+      }
+      
+      // Random idle wandering
       const deltaX = (Math.random() - 0.5) * 20;
       const newX = Math.max(20, Math.min(80, bunnyState.position.x + deltaX));
-      const newY = Math.max(42, Math.min(72, bunnyState.position.y + (Math.random() - 0.5) * 8));
+      const newY = Math.max(45, Math.min(70, bunnyState.position.y + (Math.random() - 0.5) * 8));
       const movingRight = deltaX > 0;
       
-      // Start hop animation
       setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
       
-      // After hop animation (600ms), update position and end hop
       setTimeout(() => {
         setBunnyState(prev => ({
           ...prev,
@@ -151,7 +177,26 @@ const ClassroomPets = () => {
       }, 600);
     }, 2500);
     return () => clearInterval(moveInterval);
-  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y]);
+  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject]);
+
+  // Idle behaviors (sniffing, scratching, looking around)
+  useEffect(() => {
+    if (currentPet !== 'bunny' || bunnyState.action !== 'idle') return;
+    
+    const idleInterval = setInterval(() => {
+      const behaviors: Array<'sniffing' | 'ear-scratch' | 'nibbling' | 'looking'> = ['sniffing', 'ear-scratch', 'nibbling', 'looking'];
+      const randomBehavior = behaviors[Math.floor(Math.random() * behaviors.length)];
+      
+      setBunnyState(prev => ({ ...prev, idleBehavior: randomBehavior }));
+      
+      // Clear behavior after animation
+      setTimeout(() => {
+        setBunnyState(prev => ({ ...prev, idleBehavior: 'none' }));
+      }, randomBehavior === 'nibbling' ? 2000 : 1200);
+    }, 4000);
+    
+    return () => clearInterval(idleInterval);
+  }, [currentPet, bunnyState.action]);
 
   // Auto-move fish
   useEffect(() => {
@@ -185,13 +230,21 @@ const ClassroomPets = () => {
     return () => clearInterval(checkNeeds);
   }, [currentPet, bunnyState, fishState]);
 
-  const doAction = (actionType: 'eating' | 'drinking' | 'playing', duration = 3000) => {
+  const doAction = (actionType: 'eating' | 'drinking' | 'playing', targetObj: 'food-bowl' | 'water-bottle' | 'toy-ball' | null, duration = 3000) => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
-      setBunnyState(prev => ({ ...prev, action: actionType }));
+      // Set target and start hopping towards it
+      setBunnyState(prev => ({ ...prev, targetObject: targetObj, idleBehavior: 'none' }));
+      
+      // After hopping to object, start the action
       setTimeout(() => {
-        setBunnyState(prev => ({ ...prev, action: 'idle' }));
-      }, duration);
+        setBunnyState(prev => ({ ...prev, action: actionType, targetObject: null }));
+        
+        // End action after duration
+        setTimeout(() => {
+          setBunnyState(prev => ({ ...prev, action: 'idle' }));
+        }, duration);
+      }, 800);
     } else {
       setFishState(prev => ({ ...prev, action: actionType as 'eating' | 'playing' }));
       setTimeout(() => {
@@ -203,14 +256,16 @@ const ClassroomPets = () => {
   const feedPet = () => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
-      doAction('eating', 4000);
-      setBunnyState(prev => ({ 
-        ...prev, 
-        hunger: Math.min(100, prev.hunger + 40), 
-        happiness: Math.min(100, prev.happiness + 10) 
-      }));
+      doAction('eating', 'food-bowl', 4000);
+      setTimeout(() => {
+        setBunnyState(prev => ({ 
+          ...prev, 
+          hunger: Math.min(100, prev.hunger + 40), 
+          happiness: Math.min(100, prev.happiness + 10) 
+        }));
+      }, 800);
     } else {
-      doAction('eating', 3000);
+      doAction('eating', null, 3000);
       setFishState(prev => ({ 
         ...prev, 
         hunger: Math.min(100, prev.hunger + 50), 
@@ -221,25 +276,29 @@ const ClassroomPets = () => {
 
   const waterBunny = () => {
     if (gameState.locked || currentPet !== 'bunny') return;
-    doAction('drinking', 3000);
-    setBunnyState(prev => ({ 
-      ...prev, 
-      hydration: Math.min(100, prev.hydration + 50), 
-      happiness: Math.min(100, prev.happiness + 5) 
-    }));
+    doAction('drinking', 'water-bottle', 3000);
+    setTimeout(() => {
+      setBunnyState(prev => ({ 
+        ...prev, 
+        hydration: Math.min(100, prev.hydration + 50), 
+        happiness: Math.min(100, prev.happiness + 5) 
+      }));
+    }, 800);
   };
 
   const playWithPet = () => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
-      doAction('playing', 5000);
-      setBunnyState(prev => ({ 
-        ...prev, 
-        happiness: Math.min(100, prev.happiness + 25), 
-        energy: Math.max(0, prev.energy - 15) 
-      }));
+      doAction('playing', 'toy-ball', 5000);
+      setTimeout(() => {
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + 25), 
+          energy: Math.max(0, prev.energy - 15) 
+        }));
+      }, 800);
     } else {
-      doAction('playing', 3000);
+      doAction('playing', null, 3000);
       setFishState(prev => ({ 
         ...prev, 
         happiness: Math.min(100, prev.happiness + 20) 
@@ -265,7 +324,9 @@ const ClassroomPets = () => {
         energy: 70,
         mood: 'happy',
         action: 'idle',
-        position: { x: 50, y: 50 },
+        idleBehavior: 'none',
+        position: { x: 50, y: 55 },
+        targetObject: null,
         isHopping: false,
         facingRight: true
       });
@@ -485,6 +546,44 @@ const ClassroomPets = () => {
           </div>
         )}
 
+        {/* Interactive Environment Objects for Bunny */}
+        {currentPet === 'bunny' && (
+          <div className="absolute inset-0 z-[5] pointer-events-none">
+            {/* Food Bowl */}
+            <div 
+              className={`absolute transition-transform duration-200 ${
+                bunnyState.targetObject === 'food-bowl' ? 'scale-110' : ''
+              } ${bunnyState.action === 'eating' ? 'animate-wiggle' : ''}`}
+              style={{ left: `${envObjects['food-bowl'].x}%`, top: `${envObjects['food-bowl'].y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <div className="text-4xl sm:text-5xl drop-shadow-lg">🥕</div>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-2 bg-foreground/10 rounded-full blur-sm" />
+            </div>
+            
+            {/* Water Bottle */}
+            <div 
+              className={`absolute transition-transform duration-200 ${
+                bunnyState.targetObject === 'water-bottle' ? 'scale-110' : ''
+              } ${bunnyState.action === 'drinking' ? 'animate-wiggle' : ''}`}
+              style={{ left: `${envObjects['water-bottle'].x}%`, top: `${envObjects['water-bottle'].y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <div className="text-4xl sm:text-5xl drop-shadow-lg">💧</div>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-secondary/20 rounded-full blur-sm" />
+            </div>
+            
+            {/* Toy Ball */}
+            <div 
+              className={`absolute transition-transform duration-200 ${
+                bunnyState.targetObject === 'toy-ball' ? 'scale-110' : ''
+              } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
+              style={{ left: `${envObjects['toy-ball'].x}%`, top: `${envObjects['toy-ball'].y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <div className="text-3xl sm:text-4xl drop-shadow-lg">🎾</div>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-foreground/10 rounded-full blur-sm" />
+            </div>
+          </div>
+        )}
+
         {/* Pet */}
         <div 
           className={`absolute z-10 transition-all ease-out ${
@@ -496,10 +595,18 @@ const ClassroomPets = () => {
             transform: 'translate(-50%, -50%)'
           }}
         >
-          <div className={`relative animate-breathe ${
+          <div className={`relative ${
             currentPet === 'fish' ? 'animate-swim' : ''
           } ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'animate-hop' : ''
+          } ${
+            currentPet === 'bunny' && bunnyState.idleBehavior === 'sniffing' ? 'animate-sniff' : ''
+          } ${
+            currentPet === 'bunny' && bunnyState.idleBehavior === 'ear-scratch' ? 'animate-ear-scratch' : ''
+          } ${
+            currentPet === 'bunny' && bunnyState.idleBehavior === 'nibbling' ? 'animate-nibble' : ''
+          } ${
+            currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
           } ${
             (currentPet === 'bunny' && bunnyState.action === 'playing') ||
             (currentPet === 'fish' && fishState.action === 'playing')
@@ -525,6 +632,16 @@ const ClassroomPets = () => {
                   bunnyState.isHopping ? 'w-12 h-2 opacity-30' : 'w-16 h-3 opacity-50'
                 }`}
               />
+            )}
+            
+            {/* Idle behavior indicators */}
+            {currentPet === 'bunny' && bunnyState.idleBehavior !== 'none' && bunnyState.action === 'idle' && (
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-xl animate-bounce-slow">
+                {bunnyState.idleBehavior === 'sniffing' && '👃'}
+                {bunnyState.idleBehavior === 'ear-scratch' && '✋'}
+                {bunnyState.idleBehavior === 'nibbling' && '🌿'}
+                {bunnyState.idleBehavior === 'looking' && '👀'}
+              </div>
             )}
             
             {/* Speech Bubbles */}
