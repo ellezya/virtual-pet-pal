@@ -938,6 +938,10 @@ const ClassroomPets = () => {
               muted
               playsInline
               className="w-full h-full object-cover"
+              style={{
+                transform: 'scale(1.4)',
+                transformOrigin: 'right center',
+              }}
             >
               <source src={lofiRoomBg} type="video/mp4" />
             </video>
