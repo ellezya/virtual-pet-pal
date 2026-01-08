@@ -176,11 +176,11 @@
   }
 
   .status-bar {
-    @apply w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner;
+    @apply w-full bg-muted rounded-full overflow-hidden shadow-inner;
   }
 
   .status-bar-fill {
-    @apply h-4 rounded-full transition-all duration-500;
+    @apply h-full rounded-full transition-all duration-500;
   }
 
   .notification-badge {
