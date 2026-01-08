@@ -848,23 +848,25 @@ const ClassroomPets = () => {
             >
               {/* Left curtain panel */}
               <div
-                className="absolute left-0 top-0 h-full w-[55%] animate-curtain-blow"
+                className="absolute left-0 top-0 h-full w-[60%] animate-curtain-blow"
                 style={{
                   transformOrigin: 'top left',
-                  background: 'linear-gradient(to right, rgba(255,250,240,0.55) 0%, rgba(255,250,240,0.35) 50%, transparent 100%)',
-                  borderRadius: '0 24px 24px 0',
-                  boxShadow: '4px 0 20px rgba(0,0,0,0.08)',
+                  background: 'linear-gradient(to right, rgba(245,235,220,0.9) 0%, rgba(250,245,235,0.75) 40%, rgba(255,250,240,0.4) 80%, transparent 100%)',
+                  borderRadius: '0 20px 20px 0',
+                  boxShadow: '6px 0 24px rgba(139,90,43,0.15)',
+                  borderRight: '1px solid rgba(200,180,150,0.3)',
                 }}
               />
               {/* Right curtain panel */}
               <div
-                className="absolute right-0 top-0 h-full w-[50%] animate-curtain-blow"
+                className="absolute right-0 top-0 h-full w-[55%] animate-curtain-blow"
                 style={{
                   transformOrigin: 'top right',
                   animationDelay: '0.6s',
-                  background: 'linear-gradient(to left, rgba(255,250,240,0.5) 0%, rgba(255,250,240,0.3) 50%, transparent 100%)',
-                  borderRadius: '24px 0 0 24px',
-                  boxShadow: '-4px 0 20px rgba(0,0,0,0.08)',
+                  background: 'linear-gradient(to left, rgba(245,235,220,0.85) 0%, rgba(250,245,235,0.7) 40%, rgba(255,250,240,0.35) 80%, transparent 100%)',
+                  borderRadius: '20px 0 0 20px',
+                  boxShadow: '-6px 0 24px rgba(139,90,43,0.15)',
+                  borderLeft: '1px solid rgba(200,180,150,0.3)',
                 }}
               />
             </div>
