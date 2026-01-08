@@ -58,8 +58,8 @@ const ClassroomPets = () => {
   // Couch zones for the habitat scene (couch on right side of screen)
   // Tight bounds to prevent Lola from "stepping off" the couch in this cropped video.
   const couchZones = {
-    seat: { xMin: 66, xMax: 94, y: 78 },    // Seat cushions
-    back: { xMin: 66, xMax: 94, y: 64 },    // Back cushions
+    seat: { xMin: 62, xMax: 88, y: 75 },    // Seat cushions - adjusted to be more visible
+    back: { xMin: 62, xMax: 88, y: 62 },    // Back cushions
   };
   
   // Bed zones for the room/bedroom scene (bed centered-left in video)
@@ -111,7 +111,7 @@ const ClassroomPets = () => {
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'napping' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
-    position: { x: 65, y: 88 },  // Start on couch seat cushion
+    position: { x: 75, y: 75 },  // Start on couch seat cushion (centered)
     targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-area',
     isHopping: false,
     facingRight: true,
