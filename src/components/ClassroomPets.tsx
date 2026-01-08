@@ -835,6 +835,51 @@ const ClassroomPets = () => {
               className="w-full h-full object-cover"
               loading="eager"
             />
+            {/* Cozy warm overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
+            
+            {/* Animated curtain on the left */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 pointer-events-none z-[2]">
+              <div 
+                className="w-full h-full bg-gradient-to-r from-accent/40 via-accent/20 to-transparent animate-sway"
+                style={{ transformOrigin: 'top center' }}
+              />
+              {/* Curtain folds */}
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute left-2 top-0 bottom-0 w-1 bg-accent/30 animate-sway" style={{ animationDelay: '0.2s' }} />
+                <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-accent/20 animate-sway" style={{ animationDelay: '0.4s' }} />
+                <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-accent/15 animate-sway" style={{ animationDelay: '0.6s' }} />
+              </div>
+            </div>
+            
+            {/* Animated curtain on the right */}
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 pointer-events-none z-[2]">
+              <div 
+                className="w-full h-full bg-gradient-to-l from-accent/40 via-accent/20 to-transparent animate-sway"
+                style={{ transformOrigin: 'top center', animationDelay: '0.5s' }}
+              />
+              {/* Curtain folds */}
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute right-2 top-0 bottom-0 w-1 bg-accent/30 animate-sway" style={{ animationDelay: '0.7s' }} />
+                <div className="absolute right-6 top-0 bottom-0 w-0.5 bg-accent/20 animate-sway" style={{ animationDelay: '0.9s' }} />
+              </div>
+            </div>
+            
+            {/* Breeze/wind particles floating across */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={`breeze-${i}`}
+                  className="absolute w-8 h-0.5 bg-gradient-to-r from-transparent via-foreground/10 to-transparent rounded-full"
+                  style={{
+                    top: `${15 + (i * 10)}%`,
+                    left: '-10%',
+                    animation: `breeze ${4 + i * 0.5}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.8}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
 
@@ -1101,7 +1146,7 @@ const ClassroomPets = () => {
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
               className={`object-contain drop-shadow-2xl transition-all duration-500 ${
                 currentScene === 'room'
-                  ? 'w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16'
+                  ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
                   : currentScene === 'habitat'
                   ? 'w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24'
                   : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
@@ -1278,56 +1323,62 @@ const ClassroomPets = () => {
           )}
         </div>
 
-        {/* Action Buttons - Compact */}
-        <div className="mt-2 flex flex-nowrap gap-1 overflow-x-auto pb-0.5">
+        {/* Action Buttons - Same size as toy menu */}
+        <div className="mt-2 flex flex-nowrap gap-2 overflow-x-auto pb-0.5 justify-center">
           <button 
             onClick={feedPet} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-feed text-xs px-2 py-1 shrink-0"
+            className="pet-button-feed text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center"
           >
             🥕
+            <span className="text-[9px] font-medium">Feed</span>
           </button>
           {currentPet === 'bunny' ? (
             <button 
               onClick={waterBunny} 
               disabled={gameState.locked || bunnyState.action !== 'idle'} 
-              className="pet-button-water text-xs px-2 py-1 shrink-0"
+              className="pet-button-water text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center"
             >
               💧
+              <span className="text-[9px] font-medium">Water</span>
             </button>
           ) : (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked} 
-              className="pet-button-clean text-xs px-2 py-1 shrink-0"
+              className="pet-button-clean text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center"
             >
               🧽
+              <span className="text-[9px] font-medium">Clean</span>
             </button>
           )}
           <button 
             onClick={() => playWithToy(selectedToy)} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-play text-xs px-2 py-1 shrink-0"
+            className="pet-button-play text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center"
           >
             {selectedToy.emoji || '🎪'}
+            <span className="text-[9px] font-medium">Play</span>
           </button>
           {currentPet === 'bunny' && (
             <button 
               onClick={takeNap} 
               disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping} 
-              className={`pet-button-play text-xs px-2 py-1 shrink-0 ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              className={`pet-button-play text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center ${currentScene !== 'room' ? 'opacity-50' : ''}`}
               title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
             >
               😴
+              <span className="text-[9px] font-medium">Nap</span>
             </button>
           )}
           {currentPet === 'bunny' && (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked || poops.length === 0} 
-              className="pet-button-clean text-xs px-2 py-1 shrink-0"
+              className="pet-button-clean text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center"
             >
-              🧹{poops.length > 0 && <span className="ml-0.5">{poops.length}</span>}
+              🧹{poops.length > 0 && <span className="ml-0.5 text-xs">{poops.length}</span>}
+              <span className="text-[9px] font-medium">Clean</span>
             </button>
           )}
         </div>
