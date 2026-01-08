@@ -404,18 +404,18 @@ const ClassroomPets = () => {
     prevHoppingRef.current = bunnyState.isHopping;
   }, [bunnyState.isHopping, playHop]);
 
-  // Bunny occasionally poops - constrained to grass only in park, couch zones in habitat/room
+  // Bunny occasionally poops - constrained to grass/flowers in park, couch zones in habitat/room
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const poopInterval = setInterval(() => {
-      // In park, only poop on grass zone
-      if (currentScene === 'park' && currentParkZone !== 'grass') return;
+      // In park, only poop on ground-level zones (grass or flowers)
+      if (currentScene === 'park' && currentParkZone === 'tree') return;
       
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
         // Get the appropriate zone for poop placement
         const zone = currentScene === 'park' 
-          ? parkZones.grass 
+          ? parkZones[currentParkZone] 
           : getActiveZones()[currentCouchZone];
         
         // Clamp poop near Lola's X position with small random offset
