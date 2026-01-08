@@ -26,7 +26,7 @@ import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 // Animated video backgrounds
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
-import lofiParkBg from '@/assets/lofi-park.mp4';
+import lofiParkBg from '@/assets/lofi-park-calm.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -1057,48 +1057,6 @@ const ClassroomPets = () => {
             </video>
             {/* Sunny warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-green-200/5 pointer-events-none" />
-            
-            {/* Swaying tree silhouettes - background movement */}
-            <div className="absolute bottom-0 left-[2%] w-24 h-[45%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '0s' }}>
-              <div className="w-full h-full bg-gradient-to-t from-green-900/20 via-green-800/15 to-transparent rounded-t-full blur-sm" />
-            </div>
-            <div className="absolute bottom-0 left-[12%] w-32 h-[55%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '2s' }}>
-              <div className="w-full h-full bg-gradient-to-t from-green-900/25 via-green-800/18 to-transparent rounded-t-full blur-sm" />
-            </div>
-            <div className="absolute bottom-0 right-[5%] w-28 h-[50%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '1s' }}>
-              <div className="w-full h-full bg-gradient-to-t from-green-900/22 via-green-800/16 to-transparent rounded-t-full blur-sm" />
-            </div>
-            <div className="absolute bottom-0 right-[18%] w-20 h-[40%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '3s' }}>
-              <div className="w-full h-full bg-gradient-to-t from-green-900/18 via-green-800/12 to-transparent rounded-t-full blur-sm" />
-            </div>
-            
-            {/* Single distant bird */}
-            <div
-              className="absolute animate-fly-bird pointer-events-none z-10"
-              style={{
-                left: '-5%',
-                top: '12%',
-                animationDuration: '20s',
-              }}
-            >
-              <span className="text-xs opacity-35">🐦</span>
-            </div>
-            
-            {/* Sparse falling blossoms - only 3 */}
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={`blossom-${i}`}
-                className="absolute animate-fall-blossom pointer-events-none z-10"
-                style={{
-                  left: `${15 + (i * 30)}%`,
-                  top: '-5%',
-                  animationDelay: `${i * 6}s`,
-                  animationDuration: `${18 + (i * 4)}s`,
-                }}
-              >
-                <span className="text-xs opacity-30">🌸</span>
-              </div>
-            ))}
           </div>
         )}
 
