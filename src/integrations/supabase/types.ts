@@ -14,16 +14,236 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      care_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          pet_id: string
+          student_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          pet_id: string
+          student_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          pet_id?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_logs_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "classroom_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classroom_pets: {
+        Row: {
+          accessories: string[] | null
+          classroom_id: string
+          cleanliness: number | null
+          created_at: string | null
+          energy: number | null
+          happiness: number | null
+          hunger: number | null
+          id: string
+          name: string
+          pet_type: Database["public"]["Enums"]["pet_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          accessories?: string[] | null
+          classroom_id: string
+          cleanliness?: number | null
+          created_at?: string | null
+          energy?: number | null
+          happiness?: number | null
+          hunger?: number | null
+          id?: string
+          name: string
+          pet_type?: Database["public"]["Enums"]["pet_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          accessories?: string[] | null
+          classroom_id?: string
+          cleanliness?: number | null
+          created_at?: string | null
+          energy?: number | null
+          happiness?: number | null
+          hunger?: number | null
+          id?: string
+          name?: string
+          pet_type?: Database["public"]["Enums"]["pet_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classroom_pets_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classrooms: {
+        Row: {
+          classroom_code: string
+          created_at: string | null
+          id: string
+          name: string
+          teacher_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          classroom_code: string
+          created_at?: string | null
+          id?: string
+          name: string
+          teacher_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          classroom_code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          teacher_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classrooms_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_helpers: {
+        Row: {
+          assigned_date: string | null
+          id: string
+          pet_id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          id?: string
+          pet_id: string
+          student_id: string
+        }
+        Update: {
+          assigned_date?: string | null
+          id?: string
+          pet_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_helpers_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "classroom_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_helpers_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          is_premium: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          avatar_emoji: string | null
+          classroom_id: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          classroom_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          avatar_emoji?: string | null
+          classroom_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_classroom_code: { Args: never; Returns: string }
+      is_classroom_owner: { Args: { _classroom_id: string }; Returns: boolean }
+      is_pet_owner: { Args: { _pet_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      pet_type: "bunny" | "fish" | "hamster" | "turtle" | "bird"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +370,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      pet_type: ["bunny", "fish", "hamster", "turtle", "bird"],
+    },
   },
 } as const
