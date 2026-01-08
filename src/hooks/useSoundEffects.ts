@@ -34,31 +34,38 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     return audioContextRef.current;
   }, []);
 
-  // Soft low thump for hopping
+  // Soft puff sound for hopping - like a gentle landing
   const playHop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // Soft air puff using filtered noise
+    const bufferSize = ctx.sampleRate * 0.08;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    
     const filter = ctx.createBiquadFilter();
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(60, time);
-    osc.frequency.exponentialRampToValueAtTime(30, time + 0.1);
-    
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(150, time);
+    filter.frequency.setValueAtTime(800, time);
+    filter.frequency.exponentialRampToValueAtTime(200, time + 0.06);
     
-    gain.gain.setValueAtTime(sfxVolume * 0.25, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(sfxVolume * 0.15, time);
+    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
     
-    osc.connect(filter);
+    noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
     
-    osc.start(time);
-    osc.stop(time + 0.15);
+    noise.start(time);
+    noise.stop(time + 0.1);
   }, [getAudioContext]);
 
   // Crunchy eating sound
