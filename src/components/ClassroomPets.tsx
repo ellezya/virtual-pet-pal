@@ -1011,7 +1011,23 @@ const ClassroomPets = () => {
                     {/* Blue eggs on top of nest */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 flex gap-0.5">
                       {[...Array(eggsRemaining)].map((_, i) => (
-                        <span key={i} className="text-xs sm:text-sm animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>🥚</span>
+                        <svg
+                          key={i}
+                          width="14"
+                          height="12"
+                          viewBox="0 0 14 12"
+                          className="animate-pulse"
+                          style={{ animationDelay: `${i * 0.2}s` }}
+                        >
+                          <defs>
+                            <linearGradient id={`egg-${i}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0" stopColor="hsl(var(--primary))" stopOpacity="0.95" />
+                              <stop offset="1" stopColor="hsl(var(--secondary))" stopOpacity="0.7" />
+                            </linearGradient>
+                          </defs>
+                          <ellipse cx="7" cy="6" rx="5" ry="4.5" fill={`url(#egg-${i})`} />
+                          <ellipse cx="5" cy="4" rx="2" ry="1.5" fill="hsl(var(--background))" opacity="0.22" />
+                        </svg>
                       ))}
                     </div>
                   </div>
