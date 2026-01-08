@@ -831,6 +831,27 @@ const ClassroomPets = () => {
             >
               <source src={lofiRoomVideo} type="video/mp4" />
             </video>
+            {/* Couch overlay */}
+            <div className="absolute bottom-[12%] left-[8%] z-[2]">
+              <svg width="180" height="90" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Couch base */}
+                <rect x="10" y="40" width="160" height="40" rx="8" fill="hsl(25 35% 35%)" />
+                {/* Couch seat cushions */}
+                <rect x="15" y="35" width="70" height="30" rx="6" fill="hsl(25 40% 45%)" />
+                <rect x="95" y="35" width="70" height="30" rx="6" fill="hsl(25 40% 45%)" />
+                {/* Couch back */}
+                <rect x="5" y="10" width="170" height="30" rx="6" fill="hsl(25 30% 30%)" />
+                {/* Armrests */}
+                <rect x="0" y="20" width="18" height="55" rx="5" fill="hsl(25 35% 38%)" />
+                <rect x="162" y="20" width="18" height="55" rx="5" fill="hsl(25 35% 38%)" />
+                {/* Legs */}
+                <rect x="20" y="78" width="8" height="12" rx="2" fill="hsl(25 20% 20%)" />
+                <rect x="152" y="78" width="8" height="12" rx="2" fill="hsl(25 20% 20%)" />
+                {/* Decorative pillows */}
+                <ellipse cx="35" cy="28" rx="15" ry="12" fill="hsl(200 50% 60%)" opacity="0.9" />
+                <ellipse cx="145" cy="28" rx="15" ry="12" fill="hsl(350 50% 60%)" opacity="0.9" />
+              </svg>
+            </div>
           </div>
         )}
 
@@ -1073,7 +1094,9 @@ const ClassroomPets = () => {
             <img 
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
-              className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl transition-all duration-500 ${
+              className={`object-contain drop-shadow-2xl transition-all duration-500 ${
+                currentScene === 'room' ? 'w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12' : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
+              } ${
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
