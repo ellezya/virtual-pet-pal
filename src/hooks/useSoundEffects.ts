@@ -7,18 +7,21 @@ interface SoundEffectsReturn {
   playClean: () => void;
   playPlay: () => void;
   playPoop: () => void;
-  toggleMusic: () => void;
-  isMusicPlaying: boolean;
-  setMusicVolume: (volume: number) => void;
-  setSfxVolume: (volume: number) => void;
+  toggleAmbient: () => void;
+  isAmbientPlaying: boolean;
 }
 
 export const useSoundEffects = (): SoundEffectsReturn => {
   const audioContextRef = useRef<AudioContext | null>(null);
-  const musicRef = useRef<HTMLAudioElement | null>(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const sfxVolumeRef = useRef(0.5);
-  const musicVolumeRef = useRef(0.3);
+  const ambientNodesRef = useRef<{
+    wind: OscillatorNode | null;
+    windGain: GainNode | null;
+    birdInterval: NodeJS.Timeout | null;
+    childrenInterval: NodeJS.Timeout | null;
+  }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null });
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+  const sfxVolume = 0.7;
+  const ambientVolume = 0.15;
 
   // Initialize audio context on first user interaction
   const getAudioContext = useCallback(() => {
@@ -31,7 +34,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     return audioContextRef.current;
   }, []);
 
-  // Soft thump for hopping
+  // Soft thump for hopping - deeper and more noticeable
   const playHop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
@@ -42,14 +45,14 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const filter = ctx.createBiquadFilter();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(80, time);
-    osc.frequency.exponentialRampToValueAtTime(40, time + 0.15);
+    osc.frequency.setValueAtTime(100, time);
+    osc.frequency.exponentialRampToValueAtTime(50, time + 0.12);
     
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(200, time);
+    filter.frequency.setValueAtTime(300, time);
     
-    gain.gain.setValueAtTime(sfxVolumeRef.current * 0.6, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+    gain.gain.setValueAtTime(sfxVolume * 0.8, time);
+    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
     
     osc.connect(filter);
     filter.connect(gain);
@@ -64,30 +67,29 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Multiple short crunchy sounds
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
       
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(800 + Math.random() * 400, time + i * 0.12);
-      osc.frequency.exponentialRampToValueAtTime(200, time + i * 0.12 + 0.05);
+      osc.frequency.setValueAtTime(600 + Math.random() * 300, time + i * 0.15);
+      osc.frequency.exponentialRampToValueAtTime(150, time + i * 0.15 + 0.06);
       
       filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(1200, time);
-      filter.Q.setValueAtTime(2, time);
+      filter.frequency.setValueAtTime(1000, time);
+      filter.Q.setValueAtTime(3, time);
       
-      gain.gain.setValueAtTime(0, time + i * 0.12);
-      gain.gain.linearRampToValueAtTime(sfxVolumeRef.current * 0.15, time + i * 0.12 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.12 + 0.06);
+      gain.gain.setValueAtTime(0, time + i * 0.15);
+      gain.gain.linearRampToValueAtTime(sfxVolume * 0.25, time + i * 0.15 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.15 + 0.08);
       
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(ctx.destination);
       
-      osc.start(time + i * 0.12);
-      osc.stop(time + i * 0.12 + 0.08);
+      osc.start(time + i * 0.15);
+      osc.stop(time + i * 0.15 + 0.1);
     }
   }, [getAudioContext]);
 
@@ -96,28 +98,28 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       const filter = ctx.createBiquadFilter();
       
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(400 + Math.random() * 100, time + i * 0.25);
-      osc.frequency.exponentialRampToValueAtTime(200, time + i * 0.25 + 0.1);
+      osc.frequency.setValueAtTime(350 + Math.random() * 80, time + i * 0.2);
+      osc.frequency.exponentialRampToValueAtTime(180, time + i * 0.2 + 0.08);
       
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, time);
+      filter.frequency.setValueAtTime(500, time);
       
-      gain.gain.setValueAtTime(0, time + i * 0.25);
-      gain.gain.linearRampToValueAtTime(sfxVolumeRef.current * 0.2, time + i * 0.25 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.25 + 0.15);
+      gain.gain.setValueAtTime(0, time + i * 0.2);
+      gain.gain.linearRampToValueAtTime(sfxVolume * 0.3, time + i * 0.2 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.2 + 0.12);
       
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(ctx.destination);
       
-      osc.start(time + i * 0.25);
-      osc.stop(time + i * 0.25 + 0.18);
+      osc.start(time + i * 0.2);
+      osc.stop(time + i * 0.2 + 0.15);
     }
   }, [getAudioContext]);
 
@@ -126,13 +128,12 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // White noise sweep
-    const bufferSize = ctx.sampleRate * 0.5;
+    const bufferSize = ctx.sampleRate * 0.6;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.3;
+      data[i] = (Math.random() * 2 - 1) * 0.4;
     }
     
     const noise = ctx.createBufferSource();
@@ -140,22 +141,22 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(2000, time);
-    filter.frequency.linearRampToValueAtTime(4000, time + 0.25);
-    filter.frequency.linearRampToValueAtTime(1500, time + 0.5);
-    filter.Q.setValueAtTime(1, time);
+    filter.frequency.setValueAtTime(1500, time);
+    filter.frequency.linearRampToValueAtTime(3500, time + 0.3);
+    filter.frequency.linearRampToValueAtTime(1200, time + 0.6);
+    filter.Q.setValueAtTime(1.5, time);
     
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(sfxVolumeRef.current * 0.25, time + 0.1);
-    gain.gain.linearRampToValueAtTime(0, time + 0.5);
+    gain.gain.linearRampToValueAtTime(sfxVolume * 0.35, time + 0.1);
+    gain.gain.linearRampToValueAtTime(0, time + 0.6);
     
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
     
     noise.start(time);
-    noise.stop(time + 0.5);
+    noise.stop(time + 0.6);
   }, [getAudioContext]);
 
   // Playful bouncy sound
@@ -163,24 +164,23 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Bouncy ball sound
-    const notes = [523, 659, 784, 659]; // C5, E5, G5, E5
+    const notes = [523, 659, 784, 880, 784];
     
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, time + i * 0.12);
+      osc.frequency.setValueAtTime(freq, time + i * 0.1);
       
-      gain.gain.setValueAtTime(sfxVolumeRef.current * 0.2, time + i * 0.12);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.12 + 0.1);
+      gain.gain.setValueAtTime(sfxVolume * 0.3, time + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.1 + 0.12);
       
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      osc.start(time + i * 0.12);
-      osc.stop(time + i * 0.12 + 0.12);
+      osc.start(time + i * 0.1);
+      osc.stop(time + i * 0.1 + 0.15);
     });
   }, [getAudioContext]);
 
@@ -193,11 +193,11 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const gain = ctx.createGain();
     
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(150, time);
-    osc.frequency.exponentialRampToValueAtTime(60, time + 0.15);
+    osc.frequency.setValueAtTime(180, time);
+    osc.frequency.exponentialRampToValueAtTime(70, time + 0.12);
     
-    gain.gain.setValueAtTime(sfxVolumeRef.current * 0.3, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+    gain.gain.setValueAtTime(sfxVolume * 0.4, time);
+    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
     
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -206,78 +206,178 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     osc.stop(time + 0.2);
   }, [getAudioContext]);
 
-  // Background music toggle using lo-fi ambient generation
-  const toggleMusic = useCallback(() => {
-    if (!musicRef.current) {
-      // Create ambient background music using oscillators
-      const ctx = getAudioContext();
+  // Play a single bird chirp
+  const playBirdChirp = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Random bird frequencies for variety
+    const baseFreq = 1800 + Math.random() * 800;
+    const chirpCount = 2 + Math.floor(Math.random() * 3);
+    
+    for (let i = 0; i < chirpCount; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       
-      // Simple ambient pad
-      const playAmbientLoop = () => {
-        if (!isMusicPlaying) return;
-        
-        const time = ctx.currentTime;
-        const notes = [261.63, 329.63, 392.00, 493.88]; // C4, E4, G4, B4
-        
-        notes.forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          const filter = ctx.createBiquadFilter();
-          
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, time);
-          
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(800, time);
-          
-          gain.gain.setValueAtTime(0, time);
-          gain.gain.linearRampToValueAtTime(musicVolumeRef.current * 0.08, time + 0.5);
-          gain.gain.setValueAtTime(musicVolumeRef.current * 0.08, time + 3);
-          gain.gain.linearRampToValueAtTime(0, time + 4);
-          
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start(time + i * 0.3);
-          osc.stop(time + 4 + i * 0.3);
-        });
-      };
+      osc.type = 'sine';
+      const startFreq = baseFreq + Math.random() * 400;
+      osc.frequency.setValueAtTime(startFreq, time + i * 0.08);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.3, time + i * 0.08 + 0.03);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 0.9, time + i * 0.08 + 0.06);
       
-      setIsMusicPlaying(true);
-      playAmbientLoop();
+      gain.gain.setValueAtTime(0, time + i * 0.08);
+      gain.gain.linearRampToValueAtTime(ambientVolume * 0.4, time + i * 0.08 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.08 + 0.07);
       
-      // Loop the ambient music
-      const musicInterval = setInterval(() => {
-        if (isMusicPlaying) {
-          playAmbientLoop();
-        } else {
-          clearInterval(musicInterval);
-        }
-      }, 4000);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
       
-      (musicRef as any).current = musicInterval;
-    } else {
-      // Stop music
-      clearInterval(musicRef.current as any);
-      musicRef.current = null;
-      setIsMusicPlaying(false);
+      osc.start(time + i * 0.08);
+      osc.stop(time + i * 0.08 + 0.1);
     }
-  }, [getAudioContext, isMusicPlaying]);
+  }, [getAudioContext]);
 
-  const setMusicVolume = useCallback((volume: number) => {
-    musicVolumeRef.current = Math.max(0, Math.min(1, volume));
-  }, []);
+  // Play distant children laughing/playing
+  const playChildrenSound = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Filtered noise to simulate distant voices
+    const bufferSize = ctx.sampleRate * 0.4;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(800 + Math.random() * 400, time);
+    filter.Q.setValueAtTime(4, time);
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(ambientVolume * 0.2, time + 0.05);
+    gain.gain.setValueAtTime(ambientVolume * 0.2, time + 0.2);
+    gain.gain.linearRampToValueAtTime(0, time + 0.4);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    
+    noise.start(time);
+    noise.stop(time + 0.4);
+  }, [getAudioContext]);
 
-  const setSfxVolume = useCallback((volume: number) => {
-    sfxVolumeRef.current = Math.max(0, Math.min(1, volume));
-  }, []);
+  // Start continuous wind/breeze sound
+  const startWindSound = useCallback(() => {
+    const ctx = getAudioContext();
+    
+    // Create wind using filtered noise
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+    
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+    
+    // LFO for wind variation
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.2, ctx.currentTime);
+    lfoGain.gain.setValueAtTime(100, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(ambientVolume * 0.5, ctx.currentTime);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    
+    lfo.start();
+    noise.start();
+    
+    ambientNodesRef.current.wind = lfo as any;
+    ambientNodesRef.current.windGain = gain;
+    
+    // Store references for cleanup
+    (noise as any)._source = noise;
+    (lfo as any)._lfo = lfo;
+    ambientNodesRef.current.wind = noise as any;
+  }, [getAudioContext]);
+
+  // Toggle ambient sounds
+  const toggleAmbient = useCallback(() => {
+    if (isAmbientPlaying) {
+      // Stop all ambient sounds
+      if (ambientNodesRef.current.wind) {
+        try {
+          (ambientNodesRef.current.wind as any).stop();
+        } catch {}
+        ambientNodesRef.current.wind = null;
+      }
+      if (ambientNodesRef.current.birdInterval) {
+        clearInterval(ambientNodesRef.current.birdInterval);
+        ambientNodesRef.current.birdInterval = null;
+      }
+      if (ambientNodesRef.current.childrenInterval) {
+        clearInterval(ambientNodesRef.current.childrenInterval);
+        ambientNodesRef.current.childrenInterval = null;
+      }
+      setIsAmbientPlaying(false);
+    } else {
+      // Start ambient sounds
+      startWindSound();
+      
+      // Random bird chirps
+      const birdInterval = setInterval(() => {
+        if (Math.random() < 0.5) {
+          playBirdChirp();
+        }
+      }, 2000 + Math.random() * 3000);
+      ambientNodesRef.current.birdInterval = birdInterval;
+      
+      // Random children sounds
+      const childrenInterval = setInterval(() => {
+        if (Math.random() < 0.3) {
+          playChildrenSound();
+        }
+      }, 4000 + Math.random() * 4000);
+      ambientNodesRef.current.childrenInterval = childrenInterval;
+      
+      setIsAmbientPlaying(true);
+    }
+  }, [isAmbientPlaying, startWindSound, playBirdChirp, playChildrenSound]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (musicRef.current) {
-        clearInterval(musicRef.current as any);
+      if (ambientNodesRef.current.wind) {
+        try {
+          (ambientNodesRef.current.wind as any).stop();
+        } catch {}
+      }
+      if (ambientNodesRef.current.birdInterval) {
+        clearInterval(ambientNodesRef.current.birdInterval);
+      }
+      if (ambientNodesRef.current.childrenInterval) {
+        clearInterval(ambientNodesRef.current.childrenInterval);
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -292,9 +392,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     playClean,
     playPlay,
     playPoop,
-    toggleMusic,
-    isMusicPlaying,
-    setMusicVolume,
-    setSfxVolume
+    toggleAmbient,
+    isAmbientPlaying,
   };
 };
