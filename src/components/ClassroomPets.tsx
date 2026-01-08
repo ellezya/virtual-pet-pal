@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { RotateCcw, Lock, Unlock, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
-
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
 import bunnySad from '@/assets/bunny-sad.png';
@@ -27,6 +27,10 @@ const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
   const [currentScene, setCurrentScene] = useState('habitat');
+  
+  // Sound effects
+  const { playHop, playEat, playDrink, playClean, playPlay, playPoop, toggleMusic, isMusicPlaying } = useSoundEffects();
+  const prevHoppingRef = useRef(false);
   
   const [bunnyState, setBunnyState] = useState({
     hunger: 80,
@@ -130,6 +134,14 @@ const ClassroomPets = () => {
     return () => clearInterval(interval);
   }, [currentPet]);
 
+  // Play hop sound when bunny starts hopping
+  useEffect(() => {
+    if (bunnyState.isHopping && !prevHoppingRef.current) {
+      playHop();
+    }
+    prevHoppingRef.current = bunnyState.isHopping;
+  }, [bunnyState.isHopping, playHop]);
+
   // Bunny occasionally poops
   useEffect(() => {
     if (currentPet !== 'bunny') return;
@@ -146,10 +158,11 @@ const ClassroomPets = () => {
           ...prev,
           cleanliness: Math.max(0, prev.cleanliness - 10)
         }));
+        playPoop();
       }
     }, 8000);
     return () => clearInterval(poopInterval);
-  }, [currentPet, poops.length]);
+  }, [currentPet, poops.length, playPoop]);
 
   // Fish decay
   useEffect(() => {
@@ -294,6 +307,7 @@ const ClassroomPets = () => {
       setBowlLevels(prev => ({ ...prev, food: 100 }));
       doAction('eating', 'food-bowl', 4000);
       setTimeout(() => {
+        playEat();
         setBunnyState(prev => ({ 
           ...prev, 
           hunger: Math.min(100, prev.hunger + 40), 
@@ -318,6 +332,7 @@ const ClassroomPets = () => {
     setBowlLevels(prev => ({ ...prev, water: 100 }));
     doAction('drinking', 'water-bowl', 3000);
     setTimeout(() => {
+      playDrink();
       setBunnyState(prev => ({ 
         ...prev, 
         hydration: Math.min(100, prev.hydration + 50), 
@@ -333,6 +348,7 @@ const ClassroomPets = () => {
     if (currentPet === 'bunny') {
       doAction('playing', 'toy-ball', 5000);
       setTimeout(() => {
+        playPlay();
         setBunnyState(prev => ({ 
           ...prev, 
           happiness: Math.min(100, prev.happiness + 25), 
@@ -350,6 +366,7 @@ const ClassroomPets = () => {
 
   const cleanHabitat = () => {
     if (gameState.locked) return;
+    playClean();
     if (currentPet === 'bunny') {
       // Clean all poops and restore cleanliness
       setPoops([]);
@@ -448,6 +465,13 @@ const ClassroomPets = () => {
             title="Reset pet"
           >
             <RotateCcw size={20} />
+          </button>
+          <button 
+            onClick={toggleMusic} 
+            className={`control-button ${isMusicPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            title={isMusicPlaying ? 'Mute music' : 'Play music'}
+          >
+            {isMusicPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
         </div>
         <div className="flex items-center gap-3">
