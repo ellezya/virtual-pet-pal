@@ -738,9 +738,9 @@ const ClassroomPets = () => {
 
 
   return (
-    <div className="w-full min-h-[100dvh] h-[100dvh] bg-background flex flex-col overflow-hidden">
+    <div className="w-full min-h-[100dvh] bg-background flex flex-col overflow-y-auto">
       {/* Header - Same size as toy menu */}
-      <header className="bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
+      <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1 items-center">
           <h1 className="text-sm font-extrabold text-foreground">🐰 Lola</h1>
           <button 
@@ -784,7 +784,7 @@ const ClassroomPets = () => {
       </header>
 
       {/* Pet/Scene Selector - Same size as toy menu */}
-      <nav className="flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
+      <nav className="shrink-0 flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
         <button 
           onClick={() => setCurrentPet('bunny')} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
@@ -825,7 +825,7 @@ const ClassroomPets = () => {
       </nav>
 
       {/* Main Scene */}
-      <main className="flex-1 relative overflow-hidden">
+      <main className="flex-1 min-h-0 relative overflow-hidden">
         {/* Background based on pet/scene */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 z-0 bg-room-wall">
@@ -1212,7 +1212,7 @@ const ClassroomPets = () => {
       </main>
 
       {/* Controls Panel - Same size as toy menu */}
-      <footer className="bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-strong rounded-xl">
+      <footer className="shrink-0 bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 px-2 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-strong rounded-xl">
         {/* Status Bars - 2 rows of 3 on mobile */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
           {currentPet === 'bunny' ? (
