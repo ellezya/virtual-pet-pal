@@ -11,7 +11,10 @@ interface SoundEffectsReturn {
   playFlutter: () => void;
   toggleAmbient: () => void;
   isAmbientPlaying: boolean;
+  /** 0..1 wind loudness estimate for UI effects (curtains, particles, etc.) */
+  windIntensity: number;
 }
+
 
 export const useSoundEffects = (): SoundEffectsReturn => {
   /**
@@ -22,12 +25,25 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   const ambientNodesRef = useRef<{
     wind: AudioBufferSourceNode | null;
     windGain: GainNode | null;
+    windAnalyser: AnalyserNode | null;
+    windLfo: OscillatorNode | null;
     birdInterval: ReturnType<typeof setInterval> | null;
     childrenInterval: ReturnType<typeof setInterval> | null;
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
-  }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null, musicOscillators: [], musicGain: null, musicInterval: null });
+  }>({
+    wind: null,
+    windGain: null,
+    windAnalyser: null,
+    windLfo: null,
+    birdInterval: null,
+    childrenInterval: null,
+    musicOscillators: [],
+    musicGain: null,
+    musicInterval: null,
+  });
+
 
   // Track if audio has been unlocked by user gesture
   const hasUnlockedRef = useRef(false);
@@ -43,6 +59,10 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       return true;
     }
   });
+
+  // Expose a small (0..1) proxy value to drive UI animations.
+  const [windIntensity, setWindIntensity] = useState(0);
+  const windMeterRafRef = useRef<number | null>(null);
 
   const musicVolume = 0.12;
   const sfxVolume = 0.8;
@@ -508,23 +528,24 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
     const ctx = getAudioContext();
-    
+
     const bufferSize = ctx.sampleRate * 2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
-    
+
     for (let i = 0; i < bufferSize; i++) {
       data[i] = (Math.random() * 2 - 1) * 0.5;
     }
-    
+
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
     noise.loop = true;
-    
+
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(400, ctx.currentTime);
-    
+
+    // Slow gust movement: modulate filter cutoff
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
@@ -532,28 +553,54 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     lfoGain.gain.setValueAtTime(100, ctx.currentTime);
     lfo.connect(lfoGain);
     lfoGain.connect(filter.frequency);
-    
+
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(ambientVolume, ctx.currentTime);
-    
+
+    // Analyser to drive curtains (UI only)
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    
+    gain.connect(analyser);
+
     lfo.start();
     noise.start();
-    
+
     ambientNodesRef.current.wind = noise as any;
     ambientNodesRef.current.windGain = gain;
+    ambientNodesRef.current.windAnalyser = analyser;
+    ambientNodesRef.current.windLfo = lfo;
   }, [getAudioContext, ambientVolume]);
 
+
   const stopAmbient = useCallback(() => {
+    if (windMeterRafRef.current) {
+      cancelAnimationFrame(windMeterRafRef.current);
+      windMeterRafRef.current = null;
+    }
+    setWindIntensity(0);
+
     if (ambientNodesRef.current.wind) {
       try {
         (ambientNodesRef.current.wind as any).stop();
       } catch {}
       ambientNodesRef.current.wind = null;
     }
+    if (ambientNodesRef.current.windLfo) {
+      try {
+        ambientNodesRef.current.windLfo.stop();
+      } catch {}
+      try {
+        ambientNodesRef.current.windLfo.disconnect();
+      } catch {}
+      ambientNodesRef.current.windLfo = null;
+    }
+    ambientNodesRef.current.windGain = null;
+    ambientNodesRef.current.windAnalyser = null;
+
     if (ambientNodesRef.current.birdInterval) {
       clearInterval(ambientNodesRef.current.birdInterval);
       ambientNodesRef.current.birdInterval = null;
@@ -567,6 +614,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       ambientNodesRef.current.musicInterval = null;
     }
   }, []);
+
 
   const startAmbient = useCallback(() => {
     // Guard: don't double-start
@@ -615,6 +663,42 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       return next;
     });
   }, [startAmbient, stopAmbient, unlockAudio]);
+
+  // Measure wind loudness (proxy) from WebAudio analyser so visuals can match the breeze.
+  useEffect(() => {
+    if (!isAmbientPlaying) {
+      setWindIntensity(0);
+      return;
+    }
+
+    const tick = () => {
+      const analyser = ambientNodesRef.current.windAnalyser;
+      if (analyser) {
+        const buf = new Uint8Array(analyser.fftSize);
+        analyser.getByteTimeDomainData(buf);
+
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) {
+          const v = (buf[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / buf.length); // ~0..0.25
+        const normalized = Math.max(0, Math.min(1, (rms - 0.05) / 0.15));
+        setWindIntensity(normalized);
+      }
+
+      windMeterRafRef.current = requestAnimationFrame(tick);
+    };
+
+    windMeterRafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (windMeterRafRef.current) {
+        cancelAnimationFrame(windMeterRafRef.current);
+        windMeterRafRef.current = null;
+      }
+    };
+  }, [isAmbientPlaying]);
 
   // Unlock audio on first user interaction and start ambient if enabled
   useEffect(() => {
@@ -665,7 +749,8 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       window.removeEventListener('pointerdown', onAnyPointerDown);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [unlockAudio, startAmbient]);
+  }, [unlockAudio, startAmbient, stopAmbient]);
+
 
   // Cleanup on unmount
   useEffect(() => {
@@ -701,5 +786,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     playFlutter,
     toggleAmbient,
     isAmbientPlaying,
+    windIntensity,
   };
+
 };
