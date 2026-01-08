@@ -580,4 +580,37 @@
   .animate-dream-bubble {
     animation: dream-bubble 4s ease-in-out infinite;
   }
+
+  /* Sleep cycle animations - alternating Z's and dreams */
+  @keyframes sleep-cycle-zs {
+    0%, 45% {
+      opacity: 1;
+    }
+    50%, 95% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes sleep-cycle-dreams {
+    0%, 45% {
+      opacity: 0;
+    }
+    50%, 95% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-sleep-cycle-zs {
+    animation: sleep-cycle-zs 8s ease-in-out infinite;
+  }
+
+  .animate-sleep-cycle-dreams {
+    animation: sleep-cycle-dreams 8s ease-in-out infinite;
+  }
 }

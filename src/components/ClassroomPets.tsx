@@ -1319,38 +1319,40 @@ const ClassroomPets = () => {
               </div>
             )}
             
-            {/* Sleep Z's and Dream Bubbles when napping */}
+            {/* Sleep Z's and Dream Bubbles - alternating */}
             {currentPet === 'bunny' && bunnyState.isNapping && (
-              <>
-                {/* Floating Z's */}
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={`z-${i}`}
-                    className="absolute -top-4 left-1/2 text-amber-200 font-bold animate-sleep-z"
-                    style={{
-                      animationDelay: `${i * 0.7}s`,
-                      animationIterationCount: 'infinite',
-                      fontSize: `${14 + i * 4}px`,
-                      marginLeft: `${i * 8}px`,
-                    }}
-                  >
-                    Z
-                  </div>
-                ))}
+              <div className="relative">
+                {/* Floating Z's - visible first 4s, hidden next 4s */}
+                <div className="animate-sleep-cycle-zs">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={`z-${i}`}
+                      className="absolute -top-4 left-1/2 text-amber-200 font-bold animate-sleep-z"
+                      style={{
+                        animationDelay: `${i * 0.7}s`,
+                        animationIterationCount: 'infinite',
+                        fontSize: `${14 + i * 4}px`,
+                        marginLeft: `${i * 8}px`,
+                      }}
+                    >
+                      Z
+                    </div>
+                  ))}
+                </div>
                 
-                {/* Dream bubble with carrot */}
-                <div 
-                  className="absolute -top-16 -right-8 animate-dream-bubble"
-                  style={{ animationDelay: '1s' }}
-                >
-                  <div className="relative bg-white/90 rounded-full p-2 shadow-lg">
-                    <span className="text-2xl">🥕</span>
-                    {/* Bubble trail */}
-                    <div className="absolute -bottom-2 -left-1 w-2 h-2 bg-white/80 rounded-full" />
-                    <div className="absolute -bottom-4 -left-2 w-1.5 h-1.5 bg-white/70 rounded-full" />
+                {/* Dream bubble - hidden first 4s, visible next 4s */}
+                <div className="animate-sleep-cycle-dreams">
+                  <div 
+                    className="absolute -top-16 -right-8 animate-dream-bubble"
+                  >
+                    <div className="relative bg-white/90 rounded-full p-2 shadow-lg">
+                      <span className="text-2xl">🥕</span>
+                      {/* Bubble trail */}
+                      <div className="absolute -bottom-2 -left-1 w-2 h-2 bg-white/80 rounded-full" />
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
             
             {/* Speech Bubbles */}
