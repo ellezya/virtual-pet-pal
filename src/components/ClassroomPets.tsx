@@ -840,40 +840,41 @@ const ClassroomPets = () => {
             
             {/* Window curtain blowing in breeze - positioned over left window */}
             <div
-              className="absolute pointer-events-none z-[4]"
-              style={{ left: '5%', top: '8%', width: '28%', height: '50%' }}
+              className="absolute pointer-events-none z-[6]"
+              style={{ left: '7%', top: '10%', width: '34%', height: '56%' }}
             >
               {/* Left curtain panel */}
-              <svg 
-                className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow" 
-                viewBox="0 0 50 100" 
+              <svg
+                className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow"
+                viewBox="0 0 50 100"
                 preserveAspectRatio="none"
-                style={{ transformOrigin: 'top left' }}
+                style={{ transformOrigin: 'top left', filter: 'drop-shadow(0 10px 18px hsl(var(--foreground) / 0.08))' }}
               >
                 <defs>
                   <linearGradient id="curtainGradL" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(35 40% 85%)" stopOpacity="0.7" />
-                    <stop offset="60%" stopColor="hsl(35 35% 80%)" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="hsl(35 30% 75%)" stopOpacity="0" />
+                    <stop offset="0%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.28 }} />
+                    <stop offset="55%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.16 }} />
+                    <stop offset="100%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0 }} />
                   </linearGradient>
                 </defs>
-                <path d="M0,0 Q15,20 10,50 Q5,80 0,100 L50,100 Q45,80 48,50 Q50,20 50,0 Z" fill="url(#curtainGradL)" />
+                <path d="M0,0 Q15,18 10,50 Q5,82 0,100 L50,100 Q45,82 48,50 Q50,18 50,0 Z" fill="url(#curtainGradL)" />
               </svg>
+
               {/* Right curtain panel */}
-              <svg 
-                className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow" 
-                viewBox="0 0 50 100" 
+              <svg
+                className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow"
+                viewBox="0 0 50 100"
                 preserveAspectRatio="none"
-                style={{ transformOrigin: 'top right', animationDelay: '0.5s' }}
+                style={{ transformOrigin: 'top right', animationDelay: '0.5s', filter: 'drop-shadow(0 10px 18px hsl(var(--foreground) / 0.08))' }}
               >
                 <defs>
                   <linearGradient id="curtainGradR" x1="100%" y1="0%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(35 40% 85%)" stopOpacity="0.7" />
-                    <stop offset="60%" stopColor="hsl(35 35% 80%)" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="hsl(35 30% 75%)" stopOpacity="0" />
+                    <stop offset="0%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.26 }} />
+                    <stop offset="55%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0.14 }} />
+                    <stop offset="100%" style={{ stopColor: 'hsl(var(--foreground))', stopOpacity: 0 }} />
                   </linearGradient>
                 </defs>
-                <path d="M50,0 Q35,20 40,50 Q45,80 50,100 L0,100 Q5,80 2,50 Q0,20 0,0 Z" fill="url(#curtainGradR)" />
+                <path d="M50,0 Q35,18 40,50 Q45,82 50,100 L0,100 Q5,82 2,50 Q0,18 0,0 Z" fill="url(#curtainGradR)" />
               </svg>
             </div>
 
