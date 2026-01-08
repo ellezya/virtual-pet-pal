@@ -529,27 +529,37 @@ const ClassroomPets = () => {
       }
       
       doAction('playing', 'toy-area' as any, 5000);
+
+      const playDelayMs = toy.id === 'hayPile' ? 300 : 800;
+
       setTimeout(() => {
         // Play hay sound for hay pile, otherwise normal play sound
         if (toy.id === 'hayPile') {
           playHay();
-          // Hatch a baby bird and fly away
-          if (eggsRemaining > 0) {
-            const birdId = Date.now();
-            setFlyingBirds(prev => [...prev, { id: birdId, startX: 65, startY: 85 }]);
-            setEggsRemaining(prev => prev - 1);
-            // Remove bird after animation
+
+          // Hatch birds faster (one at a time in quick sequence)
+          const hatchCount = Math.min(eggsRemaining, 3);
+          for (let i = 0; i < hatchCount; i++) {
             setTimeout(() => {
-              setFlyingBirds(prev => prev.filter(b => b.id !== birdId));
-            }, 3000);
-            // Reset eggs after all have flown
-            if (eggsRemaining === 1) {
-              setTimeout(() => setEggsRemaining(3), 5000);
-            }
+              const birdId = Date.now() + i;
+              setFlyingBirds((prev) => [...prev, { id: birdId, startX: 65, startY: 85 }]);
+              setEggsRemaining((prev) => Math.max(0, prev - 1));
+
+              // Remove bird after animation
+              setTimeout(() => {
+                setFlyingBirds((prev) => prev.filter((b) => b.id !== birdId));
+              }, 2200);
+            }, i * 650);
+          }
+
+          // Reset eggs sooner after all have flown
+          if (hatchCount > 0 && hatchCount === eggsRemaining) {
+            setTimeout(() => setEggsRemaining(3), 2600);
           }
         } else {
           playPlay();
         }
+
         // Happiness boost is higher at the park
         const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
         const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
@@ -559,7 +569,7 @@ const ClassroomPets = () => {
           happiness: Math.min(100, prev.happiness + happinessBoost), 
           energy: Math.max(0, prev.energy - energyDrain) 
         }));
-      }, 800);
+      }, playDelayMs);
     } else {
       doAction('playing', null, 3000);
       setFishState(prev => ({ 

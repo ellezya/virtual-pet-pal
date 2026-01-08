@@ -13,6 +13,10 @@ interface SoundEffectsReturn {
 }
 
 export const useSoundEffects = (): SoundEffectsReturn => {
+  /**
+   * CRITICAL: WebAudio sound engine for Lola.
+   * Keep this hook stable and self-contained (UI should only call the exported functions).
+   */
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientNodesRef = useRef<{
     wind: AudioBufferSourceNode | null;
@@ -23,21 +27,36 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     musicGain: GainNode | null;
     musicInterval: NodeJS.Timeout | null;
   }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null, musicOscillators: [], musicGain: null, musicInterval: null });
-  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+
+  // Default ON so “music and sounds are back” after the first user interaction unlocks audio.
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState(true);
+
   const musicVolume = 0.12;
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
-  // Initialize audio context on first user interaction
+  // Initialize audio context and attempt resume (resume may be ignored until a real user gesture).
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
-    if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
+    const ctx = audioContextRef.current;
+    if (ctx.state === 'suspended') {
+      void ctx.resume().catch(() => {
+        // Autoplay policy: resume can fail until a user gesture.
+      });
     }
-    return audioContextRef.current;
+    return ctx;
   }, []);
+
+  const unlockAudio = useCallback(() => {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      void ctx.resume().catch(() => {
+        // ignore
+      });
+    }
+  }, [getAudioContext]);
 
   // Soft puff sound for hopping - like a gentle landing
   const playHop = useCallback(() => {
@@ -479,69 +498,90 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     console.log('Wind sound started');
   }, [getAudioContext, ambientVolume]);
 
-  // Toggle ambient sounds
-  const toggleAmbient = useCallback(() => {
-    console.log('Toggle ambient called, currently playing:', isAmbientPlaying);
-    
-    if (isAmbientPlaying) {
-      // Stop all ambient sounds
-      if (ambientNodesRef.current.wind) {
-        try {
-          (ambientNodesRef.current.wind as any).stop();
-          console.log('Wind stopped');
-        } catch (e) {
-          console.log('Error stopping wind:', e);
-        }
-        ambientNodesRef.current.wind = null;
+  const stopAmbient = useCallback(() => {
+    if (ambientNodesRef.current.wind) {
+      try {
+        (ambientNodesRef.current.wind as any).stop();
+      } catch {
+        // ignore
       }
-      if (ambientNodesRef.current.birdInterval) {
-        clearInterval(ambientNodesRef.current.birdInterval);
-        ambientNodesRef.current.birdInterval = null;
-      }
-      if (ambientNodesRef.current.childrenInterval) {
-        clearInterval(ambientNodesRef.current.childrenInterval);
-        ambientNodesRef.current.childrenInterval = null;
-      }
-      if (ambientNodesRef.current.musicInterval) {
-        clearInterval(ambientNodesRef.current.musicInterval);
-        ambientNodesRef.current.musicInterval = null;
-      }
-      setIsAmbientPlaying(false);
-    } else {
-      // Initialize audio context first
-      const ctx = getAudioContext();
-      console.log('Audio context state:', ctx.state);
-      
-      // Start ambient sounds
-      startWindSound();
-      
-      // Start lofi music
-      startLofiMusic();
-      
-      // Random bird chirps every 2-4 seconds
-      const birdInterval = setInterval(() => {
-        if (Math.random() < 0.6) {
-          playBirdChirp();
-        }
-      }, 2000);
-      ambientNodesRef.current.birdInterval = birdInterval;
-      
-      // Random children sounds every 4-6 seconds
-      const childrenInterval = setInterval(() => {
-        if (Math.random() < 0.4) {
-          playChildrenSound();
-        }
-      }, 4000);
-      ambientNodesRef.current.childrenInterval = childrenInterval;
-      
-      // Play initial sounds immediately
-      playBirdChirp();
-      setTimeout(() => playChildrenSound(), 1000);
-      
-      setIsAmbientPlaying(true);
-      console.log('Ambient sounds started with music');
+      ambientNodesRef.current.wind = null;
     }
-  }, [isAmbientPlaying, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound, getAudioContext]);
+    if (ambientNodesRef.current.birdInterval) {
+      clearInterval(ambientNodesRef.current.birdInterval);
+      ambientNodesRef.current.birdInterval = null;
+    }
+    if (ambientNodesRef.current.childrenInterval) {
+      clearInterval(ambientNodesRef.current.childrenInterval);
+      ambientNodesRef.current.childrenInterval = null;
+    }
+    if (ambientNodesRef.current.musicInterval) {
+      clearInterval(ambientNodesRef.current.musicInterval);
+      ambientNodesRef.current.musicInterval = null;
+    }
+  }, []);
+
+  const startAmbient = useCallback(() => {
+    // Guard: don't double-start intervals/sources
+    if (
+      ambientNodesRef.current.wind ||
+      ambientNodesRef.current.birdInterval ||
+      ambientNodesRef.current.childrenInterval ||
+      ambientNodesRef.current.musicInterval
+    ) {
+      return;
+    }
+
+    // Must be called after a user gesture (or after audio has been unlocked)
+    unlockAudio();
+
+    // Start ambient layers
+    startWindSound();
+    startLofiMusic();
+
+    // Random bird chirps every ~2s
+    ambientNodesRef.current.birdInterval = setInterval(() => {
+      if (Math.random() < 0.6) playBirdChirp();
+    }, 2000);
+
+    // Random children sounds every ~4s
+    ambientNodesRef.current.childrenInterval = setInterval(() => {
+      if (Math.random() < 0.4) playChildrenSound();
+    }, 4000);
+
+    // Kick off a bit of life immediately
+    playBirdChirp();
+    setTimeout(() => playChildrenSound(), 900);
+  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound]);
+
+  // Toggle ambient sounds (music + ambience)
+  const toggleAmbient = useCallback(() => {
+    setIsAmbientPlaying((prev) => {
+      const next = !prev;
+      if (next) startAmbient();
+      else stopAmbient();
+      return next;
+    });
+  }, [startAmbient, stopAmbient]);
+
+  // IMPORTANT: reliably unlock audio on *any* first interaction.
+  // This makes SFX work even if the first “sound” is triggered by a timer.
+  useEffect(() => {
+    const onFirstInteraction = () => {
+      unlockAudio();
+      if (isAmbientPlaying) startAmbient();
+    };
+
+    window.addEventListener('pointerdown', onFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
+    window.addEventListener('keydown', onFirstInteraction);
+
+    return () => {
+      window.removeEventListener('pointerdown', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+      window.removeEventListener('keydown', onFirstInteraction);
+    };
+  }, [unlockAudio, isAmbientPlaying, startAmbient]);
 
   // Cleanup on unmount
   useEffect(() => {
