@@ -24,6 +24,7 @@ import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
 // Animated video backgrounds
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
+import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -973,15 +974,24 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Room scene */}
+        {/* Room scene - cozy bedroom with animated video */}
         {currentPet !== 'fish' && currentScene === 'room' && (
-          <div className="absolute inset-0 z-0 bg-room-floor">
-            <img 
-              src={habitatRoom} 
-              alt="Room" 
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-full h-full object-cover"
-              loading="eager"
-            />
+              style={{
+                transform: 'scale(1.2)',
+                transformOrigin: 'right center',
+              }}
+            >
+              <source src={lofiBedroomBg} type="video/mp4" />
+            </video>
+            {/* Cozy warm overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
           </div>
         )}
 
