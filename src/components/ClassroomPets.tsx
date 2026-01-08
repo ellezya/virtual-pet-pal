@@ -73,7 +73,7 @@ const ClassroomPets = () => {
   // Higher y = lower on screen = closer = larger scale
   const parkZones = {
     grass: { xMin: 30, xMax: 70, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass - full size
-    bench: { xMin: 72, xMax: 90, y: 72, scale: 0.75, label: '🪑 Park Bench' },       // Elevated on bench - slightly smaller (mid-ground)
+    bench: { xMin: 72, xMax: 90, y: 66, scale: 0.75, label: '🪑 Park Bench' },       // Elevated on bench - slightly smaller (mid-ground)
     tree: { xMin: 10, xMax: 30, y: 60, scale: 0.55, label: '🌳 Under the Tree' },    // Background near trees - smaller (far away)
   };
   
