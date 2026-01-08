@@ -1075,10 +1075,10 @@ const ClassroomPets = () => {
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
               className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl transition-all duration-500 ${
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${bunnyState.isNapping ? 'scale-75 rounded-full' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
+              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
                 filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
-                transform: `${currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'} ${bunnyState.isNapping ? 'rotate(15deg) scaleY(0.7)' : ''}`
+                transform: `${currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'} ${bunnyState.isNapping ? 'rotate(90deg) translateX(-30%)' : ''}`
               }}
             />
             
