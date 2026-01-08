@@ -32,6 +32,13 @@ const ClassroomPets = () => {
   const { playHop, playEat, playDrink, playClean, playPlay, playPoop, toggleAmbient, isAmbientPlaying } = useSoundEffects();
   const prevHoppingRef = useRef(false);
   
+  // Get ground Y position based on current scene
+  const getGroundY = (scene: string) => {
+    if (scene === 'park') return 78;
+    if (scene === 'room') return 84;
+    return 88; // habitat
+  };
+  
   const [bunnyState, setBunnyState] = useState({
     hunger: 80,
     happiness: 85,
@@ -48,6 +55,16 @@ const ClassroomPets = () => {
     facingRight: true,
     isNapping: false
   });
+  
+  // Update bunny position when scene changes
+  useEffect(() => {
+    if (currentPet === 'bunny') {
+      setBunnyState(prev => ({
+        ...prev,
+        position: { x: prev.position.x, y: getGroundY(currentScene) }
+      }));
+    }
+  }, [currentScene, currentPet]);
 
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
@@ -213,6 +230,15 @@ const ClassroomPets = () => {
   useEffect(() => {
     if (currentPet !== 'bunny' || bunnyState.action !== 'idle') return;
     
+    // Different Y positions based on scene (where the ground is visible)
+    const getGroundY = () => {
+      if (currentScene === 'park') return { min: 75, max: 82 };
+      if (currentScene === 'room') return { min: 80, max: 88 };
+      return { min: 86, max: 92 }; // habitat
+    };
+    
+    const ground = getGroundY();
+    
     const moveInterval = setInterval(() => {
       // If bunny has a target object, hop towards it
       if (bunnyState.targetObject) {
@@ -225,16 +251,16 @@ const ClassroomPets = () => {
           setBunnyState(prev => ({
             ...prev,
             isHopping: false,
-            position: { x: target.x, y: target.y }
+            position: { x: target.x, y: ground.max }
           }));
         }, 600);
         return;
       }
       
-      // Random idle wandering - keep bunny on floor near bowls (30-70% X, 86-92% Y)
+      // Random idle wandering
       const deltaX = (Math.random() - 0.5) * 12;
       const newX = Math.max(30, Math.min(70, bunnyState.position.x + deltaX));
-      const newY = Math.max(86, Math.min(92, bunnyState.position.y + (Math.random() - 0.5) * 3));
+      const newY = Math.max(ground.min, Math.min(ground.max, bunnyState.position.y + (Math.random() - 0.5) * 3));
       const movingRight = deltaX > 0;
       
       setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -777,12 +803,12 @@ const ClassroomPets = () => {
             <img 
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
-              className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl transition-all duration-300 ${
+              className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl transition-all duration-500 ${
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
+              } ${bunnyState.isNapping ? 'scale-75 rounded-full' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
                 filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
-                transform: currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
+                transform: `${currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'} ${bunnyState.isNapping ? 'rotate(15deg) scaleY(0.7)' : ''}`
               }}
             />
             
