@@ -268,11 +268,18 @@ const ClassroomPets = () => {
   // Bowl station position and toy position - toys now placed on couch
   const bowlStationPosition = { x: 15, y: 96 };
   
-  // Toy area position dynamically follows current zone (couch or bed)
+  // Toy area position dynamically follows current zone (couch, bed, or park)
   const activeZones = getActiveZones();
+  const getCurrentZoneData = () => {
+    if (currentScene === 'park') {
+      return parkZones[currentParkZone];
+    }
+    return activeZones[currentCouchZone];
+  };
+  const currentZoneData = getCurrentZoneData();
   const toyAreaPosition = {
-    x: activeZones[currentCouchZone].xMin + 12,
-    y: activeZones[currentCouchZone].y + 4
+    x: currentZoneData.xMin + 12,
+    y: currentZoneData.y + 4
   };
   
   const envObjects = {
