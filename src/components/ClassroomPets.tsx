@@ -285,10 +285,15 @@ const ClassroomPets = () => {
     return activeZones[currentCouchZone];
   };
   const currentZoneData = getCurrentZoneData();
+  
+  // Toys only appear on grass in park scene
   const toyAreaPosition = {
-    x: currentZoneData.xMin + 12,
-    y: currentZoneData.y + 4
+    x: currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12,
+    y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
+  
+  // Check if toys should be visible (grass only in park)
+  const showToys = currentScene !== 'park' || currentParkZone === 'grass';
   
   const envObjects = {
     'food-bowl': { x: 13, y: 94 },
@@ -399,14 +404,20 @@ const ClassroomPets = () => {
     prevHoppingRef.current = bunnyState.isHopping;
   }, [bunnyState.isHopping, playHop]);
 
-  // Bunny occasionally poops - constrained to couch zones, near Lola's position
+  // Bunny occasionally poops - constrained to grass only in park, couch zones in habitat/room
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const poopInterval = setInterval(() => {
+      // In park, only poop on grass zone
+      if (currentScene === 'park' && currentParkZone !== 'grass') return;
+      
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
-        // Poop appears on the couch near where Lola currently is
-        const zone = getActiveZones()[currentCouchZone];
+        // Get the appropriate zone for poop placement
+        const zone = currentScene === 'park' 
+          ? parkZones.grass 
+          : getActiveZones()[currentCouchZone];
+        
         // Clamp poop near Lola's X position with small random offset
         const poopX = Math.max(
           zone.xMin,
@@ -415,7 +426,7 @@ const ClassroomPets = () => {
         const newPoop = {
           id: Date.now(),
           x: poopX,
-          y: zone.y + 6 // Just below the cushion surface
+          y: zone.y + 6 // Just below the surface
         };
         setPoops(prev => [...prev, newPoop]);
         setBunnyState(prev => ({
@@ -426,7 +437,7 @@ const ClassroomPets = () => {
       }
     }, 12000);
     return () => clearInterval(poopInterval);
-  }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x]);
+  }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x, currentScene, currentParkZone]);
 
   // Fish decay
   useEffect(() => {
@@ -1210,8 +1221,8 @@ const ClassroomPets = () => {
               />
             </div>
             
-            {/* Selected Toy Display - with special handling for trampoline and balloon */}
-            {!isTrampolineBouncing && (
+            {/* Selected Toy Display - only visible on grass in park, with special handling for trampoline and balloon */}
+            {!isTrampolineBouncing && showToys && (
               <div 
                 className={`absolute transition-transform duration-200 ${
                   bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
@@ -1285,8 +1296,8 @@ const ClassroomPets = () => {
               </div>
             ))}
             
-            {/* Poops */}
-            {poops.map((poop) => (
+            {/* Poops - only visible on grass in park */}
+            {showToys && poops.map((poop) => (
               <div
                 key={poop.id}
                 className="absolute transition-all duration-300 animate-fade-in"
