@@ -645,6 +645,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       if (hasUnlockedRef.current) {
         setTimeout(() => {
           unlockAudio();
+          stopAmbient();
           startAmbient();
         }, 0);
       }
