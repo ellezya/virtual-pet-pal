@@ -53,11 +53,10 @@ const ClassroomPets = () => {
 
 
   // Couch zones for the habitat scene (couch on right side of screen)
-  // Based on screenshot: couch spans roughly 55-92% horizontally
-  // Two Y levels: seat cushions (lower) and back cushions (upper)
+  // Tight bounds to prevent Lola from "stepping off" the couch in this cropped video.
   const couchZones = {
-    seat: { xMin: 58, xMax: 88, y: 82 },    // Lower seat cushions
-    back: { xMin: 58, xMax: 88, y: 62 },    // Upper back cushions
+    seat: { xMin: 66, xMax: 94, y: 78 },    // Seat cushions
+    back: { xMin: 66, xMax: 94, y: 64 },    // Back cushions
   };
   
   // Track which couch zone Lola is on
@@ -400,18 +399,27 @@ const ClassroomPets = () => {
     const isOnCouch = currentScene === 'habitat' || currentScene === 'room';
     
     const moveInterval = setInterval(() => {
-      // If bunny has a target object, hop towards it
+      // If bunny has a target object, hop towards it (clamped to couch when needed)
       if (bunnyState.targetObject) {
-        const target = envObjects[bunnyState.targetObject];
+        const rawTarget = envObjects[bunnyState.targetObject];
+        const zone = couchZones[currentCouchZone];
+
+        const target = isOnCouch
+          ? {
+              x: Math.max(zone.xMin, Math.min(zone.xMax, rawTarget.x)),
+              y: zone.y,
+            }
+          : rawTarget;
+
         const movingRight = target.x > bunnyState.position.x;
-        
-        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
-        
+
+        setBunnyState((prev) => ({ ...prev, isHopping: true, facingRight: movingRight }));
+
         setTimeout(() => {
-          setBunnyState(prev => ({
+          setBunnyState((prev) => ({
             ...prev,
             isHopping: false,
-            position: { x: target.x, y: couchZones[currentCouchZone].y }
+            position: { x: target.x, y: target.y },
           }));
         }, 600);
         return;
