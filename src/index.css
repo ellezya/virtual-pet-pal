@@ -635,54 +635,53 @@
     animation: float-butterfly 12s ease-in-out infinite;
   }
 
-  /* Swaying tree branches */
-  @keyframes sway-branch {
+  /* Swaying tree silhouettes - gentle background movement */
+  @keyframes sway-tree {
     0%, 100% {
-      transform: rotate(-2deg);
+      transform: rotate(-0.5deg);
     }
     50% {
-      transform: rotate(2deg);
+      transform: rotate(0.5deg);
     }
   }
 
-  .animate-sway-branch {
-    animation: sway-branch 6s ease-in-out infinite;
-    transform-origin: bottom center;
+  .animate-sway-tree {
+    animation: sway-tree 8s ease-in-out infinite;
   }
 
-  /* Flying birds across screen */
+  /* Flying birds across screen - slower */
   @keyframes fly-bird {
     0% {
       transform: translate(0, 0);
     }
     100% {
-      transform: translate(120vw, -20px);
+      transform: translate(120vw, -10px);
     }
   }
 
   .animate-fly-bird {
-    animation: fly-bird 14s linear infinite;
+    animation: fly-bird 20s linear infinite;
   }
 
-  /* Falling flower blossoms */
+  /* Falling flower blossoms - slower, gentler */
   @keyframes fall-blossom {
     0% {
       transform: translate(0, 0) rotate(0deg);
       opacity: 0;
     }
-    10% {
-      opacity: 0.4;
-    }
-    90% {
+    5% {
       opacity: 0.3;
     }
+    95% {
+      opacity: 0.2;
+    }
     100% {
-      transform: translate(30px, 120vh) rotate(360deg);
+      transform: translate(20px, 120vh) rotate(180deg);
       opacity: 0;
     }
   }
 
   .animate-fall-blossom {
-    animation: fall-blossom 12s linear infinite;
+    animation: fall-blossom 18s linear infinite;
   }
 }
