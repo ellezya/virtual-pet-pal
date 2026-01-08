@@ -1056,27 +1056,67 @@ const ClassroomPets = () => {
               <source src={lofiParkBg} type="video/mp4" />
             </video>
             {/* Sunny warm overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-200/15 via-transparent to-green-200/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-green-200/5 pointer-events-none" />
             
             {/* Sun glow */}
             <div 
-              className="absolute top-[5%] right-[20%] w-40 h-40 rounded-full bg-gradient-radial from-amber-300/50 via-yellow-200/20 to-transparent blur-2xl animate-pulse-soft pointer-events-none"
-              style={{ animationDuration: '5s' }}
+              className="absolute top-[5%] right-[20%] w-40 h-40 rounded-full bg-gradient-radial from-amber-300/30 via-yellow-200/10 to-transparent blur-2xl animate-pulse-soft pointer-events-none"
+              style={{ animationDuration: '6s' }}
             />
             
-            {/* Floating butterflies */}
-            {[...Array(5)].map((_, i) => (
+            {/* Swaying tree branches overlay */}
+            <div className="absolute top-0 left-[5%] w-32 h-48 pointer-events-none animate-sway-branch" style={{ animationDelay: '0s' }}>
+              <div className="text-4xl opacity-60">🌳</div>
+            </div>
+            <div className="absolute top-0 right-[10%] w-32 h-48 pointer-events-none animate-sway-branch" style={{ animationDelay: '1.5s' }}>
+              <div className="text-4xl opacity-60">🌸</div>
+            </div>
+            
+            {/* Flying birds */}
+            {[...Array(2)].map((_, i) => (
+              <div
+                key={`bird-${i}`}
+                className="absolute animate-fly-bird pointer-events-none z-10"
+                style={{
+                  left: `${-10 + (i * 5)}%`,
+                  top: `${15 + (i * 8)}%`,
+                  animationDelay: `${i * 4}s`,
+                  animationDuration: `${14 + i * 2}s`,
+                }}
+              >
+                <span className="text-sm opacity-50">🐦</span>
+              </div>
+            ))}
+            
+            {/* Floating flower blossoms */}
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={`blossom-${i}`}
+                className="absolute animate-fall-blossom pointer-events-none z-10"
+                style={{
+                  left: `${5 + (i * 12)}%`,
+                  top: '-5%',
+                  animationDelay: `${i * 1.5}s`,
+                  animationDuration: `${10 + (i % 3) * 3}s`,
+                }}
+              >
+                <span className="text-xs opacity-40">🌸</span>
+              </div>
+            ))}
+            
+            {/* Subtle butterflies - reduced count, slower, dimmer */}
+            {[...Array(2)].map((_, i) => (
               <div
                 key={`butterfly-${i}`}
                 className="absolute animate-float-butterfly pointer-events-none z-10"
                 style={{
-                  left: `${15 + (i * 18)}%`,
-                  top: `${30 + (i % 3) * 20}%`,
-                  animationDelay: `${i * 1.2}s`,
-                  animationDuration: `${6 + (i % 3) * 2}s`,
+                  left: `${25 + (i * 40)}%`,
+                  top: `${40 + (i * 15)}%`,
+                  animationDelay: `${i * 3}s`,
+                  animationDuration: `${12 + i * 4}s`,
                 }}
               >
-                <span className="text-lg drop-shadow-sm" style={{ fontSize: `${14 + (i % 3) * 4}px` }}>🦋</span>
+                <span className="text-sm opacity-40">🦋</span>
               </div>
             ))}
           </div>
