@@ -838,6 +838,29 @@ const ClassroomPets = () => {
             {/* Cozy warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
             
+            {/* Window curtains (blowing in the breeze) */}
+            <div
+              className="absolute pointer-events-none z-[4]"
+              style={{ left: "7%", top: "18%", width: "30%", height: "55%" }}
+            >
+              {/* Left panel */}
+              <div
+                className="absolute left-0 top-0 h-full w-[52%] bg-gradient-to-r from-foreground/25 via-foreground/10 to-transparent rounded-r-[28px] animate-curtain-blow"
+                style={{ transformOrigin: "top left" }}
+              />
+              {/* Right panel */}
+              <div
+                className="absolute right-0 top-0 h-full w-[48%] bg-gradient-to-l from-foreground/20 via-foreground/8 to-transparent rounded-l-[28px] animate-curtain-blow"
+                style={{ transformOrigin: "top right", animationDelay: "0.6s" }}
+              />
+              {/* Soft folds */}
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute left-[18%] top-0 h-full w-px bg-foreground/30 animate-curtain-blow" style={{ animationDelay: "0.2s" }} />
+                <div className="absolute left-[34%] top-0 h-full w-px bg-foreground/20 animate-curtain-blow" style={{ animationDelay: "0.4s" }} />
+                <div className="absolute right-[22%] top-0 h-full w-px bg-foreground/25 animate-curtain-blow" style={{ animationDelay: "0.8s" }} />
+              </div>
+            </div>
+
             {/* Animated curtain on the left */}
             <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 pointer-events-none z-[2]">
               <div 

@@ -257,6 +257,11 @@
     animation: sway 6s ease-in-out infinite;
   }
 
+  .animate-curtain-blow {
+    animation: curtain-blow 4.8s ease-in-out infinite;
+    will-change: transform;
+  }
+
   .animate-bubble {
     animation: bubble-rise 4s ease-in-out infinite;
   }
@@ -333,6 +338,17 @@
     10% { opacity: 0.6; }
     90% { opacity: 0.6; }
     100% { transform: translateY(-100%) translateX(20px); opacity: 0; }
+  }
+
+  @keyframes curtain-blow {
+    0%, 100% {
+      transform: translateX(0) skewY(-1deg) scaleX(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateX(10px) skewY(1deg) scaleX(1.06);
+      opacity: 1;
+    }
   }
 
   @keyframes sway {
