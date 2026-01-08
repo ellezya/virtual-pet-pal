@@ -281,6 +281,7 @@ const ClassroomPets = () => {
     eating: string;
     drinking: string;
     playing: string;
+    sleeping: string;
   } | null>(null);
 
   useEffect(() => {
@@ -288,16 +289,17 @@ const ClassroomPets = () => {
 
     (async () => {
       try {
-        const [happy, sad, eating, drinking, playing] = await Promise.all([
+        const [happy, sad, eating, drinking, playing, sleeping] = await Promise.all([
           removeSolidBackgroundToDataUrl(bunnyHappy),
           removeSolidBackgroundToDataUrl(bunnySad),
           removeSolidBackgroundToDataUrl(bunnyEating),
           removeSolidBackgroundToDataUrl(bunnyDrinking),
           removeSolidBackgroundToDataUrl(bunnyPlaying),
+          removeSolidBackgroundToDataUrl(bunnySleeping),
         ]);
 
         if (!cancelled) {
-          setBunnySpriteAlpha({ happy, sad, eating, drinking, playing });
+          setBunnySpriteAlpha({ happy, sad, eating, drinking, playing, sleeping });
         }
       } catch {
         // If anything fails, we just fall back to original sprites.
@@ -833,7 +835,7 @@ const ClassroomPets = () => {
   const getBunnyImage = () => {
     const alpha = bunnySpriteAlpha;
 
-    if (bunnyState.isNapping) return bunnySleeping;
+    if (bunnyState.isNapping) return alpha?.sleeping ?? bunnySleeping;
     if (bunnyState.action === 'eating') return alpha?.eating ?? bunnyEating;
     if (bunnyState.action === 'drinking') return alpha?.drinking ?? bunnyDrinking;
     if (bunnyState.action === 'playing') return alpha?.playing ?? bunnyPlaying;
