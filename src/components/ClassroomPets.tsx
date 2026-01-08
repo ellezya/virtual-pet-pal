@@ -1315,7 +1315,7 @@ const ClassroomPets = () => {
                   currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
                 } ${
                   bunnyState.isNapping
-                    ? 'rotate(80deg) scaleY(0.85) translateX(-25%) translateY(10%)'
+                    ? 'rotate(15deg) scaleY(0.9) scaleX(0.95) translateY(15%)'
                     : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
                     ? 'rotate(-5deg) translateY(-5%)'
                     : ''
