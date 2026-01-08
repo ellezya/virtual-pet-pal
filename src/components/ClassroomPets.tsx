@@ -627,15 +627,6 @@ const ClassroomPets = () => {
               }}
             />
             
-            {/* Ground shadow that grows/shrinks with hop */}
-            {currentPet === 'bunny' && (
-              <div 
-                className={`absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-foreground/15 blur-sm transition-all duration-300 ${
-                  bunnyState.isHopping ? 'w-8 h-1.5 opacity-30' : 'w-10 h-2 opacity-50'
-                }`}
-              />
-            )}
-            
             {/* Idle behavior indicators */}
             {currentPet === 'bunny' && bunnyState.idleBehavior !== 'none' && bunnyState.action === 'idle' && (
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-base animate-bounce-slow">
