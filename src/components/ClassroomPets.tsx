@@ -1003,17 +1003,18 @@ const ClassroomPets = () => {
             />
             
             {/* Floating sparkles */}
-            {[...Array(12)].map((_, i) => (
+            {[...Array(15)].map((_, i) => (
               <div
                 key={`sparkle-${i}`}
-                className="absolute animate-sparkle-float pointer-events-none"
+                className="absolute animate-sparkle-float pointer-events-none z-10"
                 style={{
-                  left: `${15 + Math.random() * 70}%`,
-                  animationDelay: `${i * 0.8}s`,
-                  animationDuration: `${6 + Math.random() * 4}s`,
+                  left: `${10 + (i * 6)}%`,
+                  top: `${20 + (i % 5) * 15}%`,
+                  animationDelay: `${i * 0.5}s`,
+                  animationDuration: `${4 + (i % 3) * 2}s`,
                 }}
               >
-                <span className="text-amber-200/70" style={{ fontSize: `${8 + Math.random() * 8}px` }}>✦</span>
+                <span className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" style={{ fontSize: `${10 + (i % 4) * 4}px` }}>✦</span>
               </div>
             ))}
           </div>
