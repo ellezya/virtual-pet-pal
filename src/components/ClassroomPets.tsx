@@ -787,9 +787,12 @@ const ClassroomPets = () => {
       <nav className="shrink-0 flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
         <button 
           onClick={() => setCurrentPet('bunny')} 
-          className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+          className={`p-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1 ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
         >
           🐰
+          <span className="text-sm">
+            {((bunnyState.hunger + bunnyState.hydration + bunnyState.happiness + bunnyState.energy + bunnyState.rest + bunnyState.cleanliness) / 6) > 50 ? '💕' : '💔'}
+          </span>
         </button>
         <button 
           onClick={() => { setCurrentPet('fish'); setCurrentScene('tank'); }} 
