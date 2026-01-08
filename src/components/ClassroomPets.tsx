@@ -880,6 +880,98 @@ const ClassroomPets = () => {
                 />
               ))}
             </div>
+            
+            {/* Fairy string lights across the top */}
+            <div className="absolute top-[8%] left-[10%] right-[10%] pointer-events-none z-[4]">
+              {/* Main string/wire */}
+              <svg className="w-full h-12" viewBox="0 0 100 12" preserveAspectRatio="none">
+                <path 
+                  d="M0 2 Q25 8 50 4 Q75 0 100 6" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeWidth="0.3" 
+                  fill="none"
+                  className="animate-sway"
+                  style={{ transformOrigin: 'center' }}
+                />
+              </svg>
+              {/* Fairy lights */}
+              <div className="absolute inset-0 flex justify-between items-start px-2">
+                {[...Array(12)].map((_, i) => {
+                  const colors = ['primary', 'warning', 'accent', 'secondary'];
+                  const color = colors[i % colors.length];
+                  const topOffset = [2, 6, 4, 7, 3, 5, 6, 3, 5, 7, 4, 6][i];
+                  return (
+                    <div
+                      key={`light-${i}`}
+                      className="relative"
+                      style={{ top: `${topOffset}px` }}
+                    >
+                      {/* Light bulb glow */}
+                      <div 
+                        className={`absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-${color}/40 blur-sm animate-twinkle`}
+                        style={{ 
+                          animationDelay: `${i * 0.3}s`,
+                          animationDuration: `${1.5 + (i % 3) * 0.5}s`
+                        }}
+                      />
+                      {/* Light bulb */}
+                      <div 
+                        className={`w-2 h-2.5 rounded-full bg-gradient-to-b from-${color} to-${color}/70 shadow-lg animate-twinkle`}
+                        style={{ 
+                          animationDelay: `${i * 0.3}s`,
+                          animationDuration: `${1.5 + (i % 3) * 0.5}s`,
+                          boxShadow: `0 0 6px 2px hsl(var(--${color}) / 0.5)`
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Second string of lights lower */}
+            <div className="absolute top-[18%] left-[5%] right-[15%] pointer-events-none z-[4]">
+              <svg className="w-full h-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                <path 
+                  d="M0 5 Q30 2 60 6 Q85 9 100 4" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeWidth="0.3" 
+                  fill="none"
+                  className="animate-sway"
+                  style={{ transformOrigin: 'center', animationDelay: '0.3s' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex justify-between items-start px-4">
+                {[...Array(9)].map((_, i) => {
+                  const colors = ['warning', 'primary', 'accent', 'secondary'];
+                  const color = colors[i % colors.length];
+                  const topOffset = [4, 2, 5, 3, 6, 4, 5, 3, 4][i];
+                  return (
+                    <div
+                      key={`light2-${i}`}
+                      className="relative"
+                      style={{ top: `${topOffset}px` }}
+                    >
+                      <div 
+                        className={`absolute w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-${color}/30 blur-sm animate-twinkle`}
+                        style={{ 
+                          animationDelay: `${0.5 + i * 0.4}s`,
+                          animationDuration: `${2 + (i % 2) * 0.5}s`
+                        }}
+                      />
+                      <div 
+                        className={`w-1.5 h-2 rounded-full bg-gradient-to-b from-${color} to-${color}/60 animate-twinkle`}
+                        style={{ 
+                          animationDelay: `${0.5 + i * 0.4}s`,
+                          animationDuration: `${2 + (i % 2) * 0.5}s`,
+                          boxShadow: `0 0 4px 1px hsl(var(--${color}) / 0.4)`
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
