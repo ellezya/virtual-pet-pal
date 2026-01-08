@@ -60,13 +60,25 @@ const ClassroomPets = () => {
     back: { xMin: 66, xMax: 94, y: 64 },    // Back cushions
   };
   
+  // Bed zones for the room/bedroom scene (bed centered-left in video)
+  const bedZones = {
+    seat: { xMin: 20, xMax: 55, y: 75 },    // Bed surface
+    back: { xMin: 20, xMax: 55, y: 62 },    // Pillows area
+  };
+  
   // Track which couch zone Lola is on
   const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
+  
+  // Get the active zones based on current scene
+  const getActiveZones = () => {
+    if (currentScene === 'room') return bedZones;
+    return couchZones;
+  };
 
   // Get ground Y position based on current scene
   const getGroundY = (scene: string) => {
     if (scene === 'park') return 78;
-    if (scene === 'room') return couchZones[currentCouchZone].y;
+    if (scene === 'room') return bedZones[currentCouchZone].y;
     return couchZones[currentCouchZone].y; // habitat uses couch zones
   };
   
@@ -92,7 +104,7 @@ const ClassroomPets = () => {
     if (currentPet === 'bunny') {
       const isOnCouch = currentScene === 'habitat' || currentScene === 'room';
       if (isOnCouch) {
-        const zone = couchZones[currentCouchZone];
+        const zone = getActiveZones()[currentCouchZone];
         setBunnyState(prev => ({
           ...prev,
           position: { 
@@ -235,10 +247,11 @@ const ClassroomPets = () => {
   // Bowl station position and toy position - toys now placed on couch
   const bowlStationPosition = { x: 15, y: 96 };
   
-  // Toy area position dynamically follows current couch zone
+  // Toy area position dynamically follows current zone (couch or bed)
+  const activeZones = getActiveZones();
   const toyAreaPosition = {
-    x: couchZones[currentCouchZone].xMin + 12,
-    y: couchZones[currentCouchZone].y + 4
+    x: activeZones[currentCouchZone].xMin + 12,
+    y: activeZones[currentCouchZone].y + 4
   };
   
   const envObjects = {
@@ -355,7 +368,7 @@ const ClassroomPets = () => {
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
         // Poop appears on the couch near where Lola currently is
-        const zone = couchZones[currentCouchZone];
+        const zone = getActiveZones()[currentCouchZone];
         // Clamp poop near Lola's X position with small random offset
         const poopX = Math.max(
           zone.xMin,
@@ -408,7 +421,7 @@ const ClassroomPets = () => {
       // If bunny has a target object, hop towards it (clamped to couch when needed)
       if (bunnyState.targetObject) {
         const rawTarget = envObjects[bunnyState.targetObject];
-        const zone = couchZones[currentCouchZone];
+        const zone = getActiveZones()[currentCouchZone];
 
         const target = isOnCouch
           ? {
@@ -435,8 +448,8 @@ const ClassroomPets = () => {
         // 20% chance to hop between seat and back cushions
         if (Math.random() < 0.2) {
           const newZone = currentCouchZone === 'seat' ? 'back' : 'seat';
-          const targetY = couchZones[newZone].y;
-          const currentZoneData = couchZones[currentCouchZone];
+          const targetY = getActiveZones()[newZone].y;
+          const currentZoneData = getActiveZones()[currentCouchZone];
           
           // Small horizontal movement while changing zones
           const deltaX = (Math.random() - 0.5) * 8;
@@ -457,7 +470,7 @@ const ClassroomPets = () => {
         }
         
         // Regular horizontal movement within current zone
-        const zone = couchZones[currentCouchZone];
+        const zone = getActiveZones()[currentCouchZone];
         const deltaX = (Math.random() - 0.5) * 10;
         const newX = Math.max(zone.xMin, Math.min(zone.xMax, bunnyState.position.x + deltaX));
         const movingRight = deltaX > 0;
