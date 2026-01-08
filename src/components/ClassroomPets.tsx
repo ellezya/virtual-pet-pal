@@ -68,18 +68,29 @@ const ClassroomPets = () => {
     back: { xMin: 20, xMax: 55, y: 62 },    // Pillows area
   };
   
+  // Park zones - interactive play areas in the park scene
+  const parkZones = {
+    grass: { xMin: 25, xMax: 75, y: 82, label: '🌿 Grassy Field' },      // Main grass area center
+    bench: { xMin: 70, xMax: 88, y: 78, label: '🪑 Park Bench' },        // Near bench on right
+    tree: { xMin: 8, xMax: 28, y: 80, label: '🌳 Under the Tree' },      // Under tree on left
+  };
+  
+  // Track which park zone Lola is in
+  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'bench' | 'tree'>('grass');
+  
   // Track which couch zone Lola is on
   const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
   
   // Get the active zones based on current scene
   const getActiveZones = () => {
+    if (currentScene === 'park') return parkZones;
     if (currentScene === 'room') return bedZones;
     return couchZones;
   };
 
   // Get ground Y position based on current scene
   const getGroundY = (scene: string) => {
-    if (scene === 'park') return 78;
+    if (scene === 'park') return parkZones[currentParkZone].y;
     if (scene === 'room') return bedZones[currentCouchZone].y;
     return couchZones[currentCouchZone].y; // habitat uses couch zones
   };
@@ -101,11 +112,19 @@ const ClassroomPets = () => {
     isNapping: false
   });
   
-  // Update bunny position when scene or couch zone changes
+  // Update bunny position when scene or zone changes
   useEffect(() => {
     if (currentPet === 'bunny') {
-      const isOnCouch = currentScene === 'habitat' || currentScene === 'room';
-      if (isOnCouch) {
+      if (currentScene === 'park') {
+        const zone = parkZones[currentParkZone];
+        setBunnyState(prev => ({
+          ...prev,
+          position: { 
+            x: Math.max(zone.xMin, Math.min(zone.xMax, prev.position.x)), 
+            y: zone.y 
+          }
+        }));
+      } else if (currentScene === 'habitat' || currentScene === 'room') {
         const zone = getActiveZones()[currentCouchZone];
         setBunnyState(prev => ({
           ...prev,
@@ -121,7 +140,7 @@ const ClassroomPets = () => {
         }));
       }
     }
-  }, [currentScene, currentPet, currentCouchZone]);
+  }, [currentScene, currentPet, currentCouchZone, currentParkZone]);
 
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
@@ -488,12 +507,34 @@ const ClassroomPets = () => {
             position: { x: newX, y: zone.y }
           }));
         }, 600);
-      } else {
-        // Park scene - original behavior
-        const ground = { min: 75, max: 82 };
-        const deltaX = (Math.random() - 0.5) * 12;
-        const newX = Math.max(30, Math.min(70, bunnyState.position.x + deltaX));
-        const newY = Math.max(ground.min, Math.min(ground.max, bunnyState.position.y + (Math.random() - 0.5) * 3));
+      } else if (currentScene === 'park') {
+        // Park scene - move within current park zone, with chance to change zones
+        if (Math.random() < 0.15) {
+          // 15% chance to hop to a different park zone
+          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'bench' | 'tree'>;
+          const otherZones = zoneKeys.filter(z => z !== currentParkZone);
+          const newZone = otherZones[Math.floor(Math.random() * otherZones.length)];
+          const targetZone = parkZones[newZone];
+          const targetX = (targetZone.xMin + targetZone.xMax) / 2;
+          const movingRight = targetX > bunnyState.position.x;
+          
+          setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+          setCurrentParkZone(newZone);
+          
+          setTimeout(() => {
+            setBunnyState(prev => ({
+              ...prev,
+              isHopping: false,
+              position: { x: targetX, y: targetZone.y }
+            }));
+          }, 800);
+          return;
+        }
+        
+        // Regular movement within current park zone
+        const zone = parkZones[currentParkZone];
+        const deltaX = (Math.random() - 0.5) * 10;
+        const newX = Math.max(zone.xMin, Math.min(zone.xMax, bunnyState.position.x + deltaX));
         const movingRight = deltaX > 0;
         
         setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -502,13 +543,13 @@ const ClassroomPets = () => {
           setBunnyState(prev => ({
             ...prev,
             isHopping: false,
-            position: { x: newX, y: newY }
+            position: { x: newX, y: zone.y }
           }));
         }, 600);
       }
     }, 3750);
     return () => clearInterval(moveInterval);
-  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject, currentScene, currentCouchZone]);
+  }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject, currentScene, currentCouchZone, currentParkZone]);
 
   // Idle behaviors (sniffing, scratching, looking around)
   useEffect(() => {
@@ -1057,6 +1098,64 @@ const ClassroomPets = () => {
             </video>
             {/* Sunny warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-green-200/5 pointer-events-none" />
+            
+            {/* Park zone indicators - subtle ground markers */}
+            <div className="absolute inset-0 pointer-events-none z-10">
+              {/* Tree zone indicator */}
+              <div 
+                className={`absolute bottom-[18%] left-[8%] w-[20%] h-[8%] rounded-full transition-all duration-500 ${
+                  currentParkZone === 'tree' 
+                    ? 'bg-green-900/20 border-2 border-green-600/30' 
+                    : 'bg-transparent'
+                }`}
+              />
+              {/* Grass zone indicator */}
+              <div 
+                className={`absolute bottom-[15%] left-[30%] w-[35%] h-[10%] rounded-full transition-all duration-500 ${
+                  currentParkZone === 'grass' 
+                    ? 'bg-green-500/15 border-2 border-green-400/25' 
+                    : 'bg-transparent'
+                }`}
+              />
+              {/* Bench zone indicator */}
+              <div 
+                className={`absolute bottom-[20%] right-[8%] w-[18%] h-[8%] rounded-full transition-all duration-500 ${
+                  currentParkZone === 'bench' 
+                    ? 'bg-amber-700/20 border-2 border-amber-500/30' 
+                    : 'bg-transparent'
+                }`}
+              />
+            </div>
+            
+            {/* Park zone selector UI */}
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex gap-2 bg-background/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
+              {(Object.keys(parkZones) as Array<'grass' | 'bench' | 'tree'>).map((zone) => (
+                <button
+                  key={zone}
+                  onClick={() => {
+                    const targetZone = parkZones[zone];
+                    const targetX = (targetZone.xMin + targetZone.xMax) / 2;
+                    const movingRight = targetX > bunnyState.position.x;
+                    setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+                    setCurrentParkZone(zone);
+                    setTimeout(() => {
+                      setBunnyState(prev => ({
+                        ...prev,
+                        isHopping: false,
+                        position: { x: targetX, y: targetZone.y }
+                      }));
+                    }, 800);
+                  }}
+                  className={`px-2 py-1 text-xs rounded-full transition-all duration-200 ${
+                    currentParkZone === zone 
+                      ? 'bg-success text-success-foreground scale-105 shadow-md' 
+                      : 'bg-muted/50 hover:bg-muted hover:scale-105'
+                  }`}
+                >
+                  {parkZones[zone].label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
