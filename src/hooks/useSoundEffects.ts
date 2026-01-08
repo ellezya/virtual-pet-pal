@@ -14,12 +14,16 @@ interface SoundEffectsReturn {
 export const useSoundEffects = (): SoundEffectsReturn => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientNodesRef = useRef<{
-    wind: OscillatorNode | null;
+    wind: AudioBufferSourceNode | null;
     windGain: GainNode | null;
     birdInterval: NodeJS.Timeout | null;
     childrenInterval: NodeJS.Timeout | null;
-  }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null });
+    musicOscillators: OscillatorNode[];
+    musicGain: GainNode | null;
+    musicInterval: NodeJS.Timeout | null;
+  }>({ wind: null, windGain: null, birdInterval: null, childrenInterval: null, musicOscillators: [], musicGain: null, musicInterval: null });
   const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+  const musicVolume = 0.12;
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
@@ -279,6 +283,68 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     noise.stop(time + 0.4);
   }, [getAudioContext]);
 
+  // Play a lofi music chord
+  const playLofiChord = useCallback((frequencies: number[], duration: number) => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(musicVolume, time);
+    masterGain.gain.linearRampToValueAtTime(musicVolume * 0.8, time + duration * 0.7);
+    masterGain.gain.linearRampToValueAtTime(0, time + duration);
+    masterGain.connect(ctx.destination);
+    
+    frequencies.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+      
+      // Warm lowpass filter
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, time);
+      filter.Q.setValueAtTime(1, time);
+      
+      oscGain.gain.setValueAtTime(0.15, time);
+      
+      osc.connect(filter);
+      filter.connect(oscGain);
+      oscGain.connect(masterGain);
+      
+      osc.start(time);
+      osc.stop(time + duration);
+    });
+  }, [getAudioContext, musicVolume]);
+
+  // Start lofi background music
+  const startLofiMusic = useCallback(() => {
+    console.log('Starting lofi music...');
+    
+    // Lofi chord progression (Cmaj7 - Am7 - Fmaj7 - G7)
+    const chords = [
+      [261.63, 329.63, 392.00, 493.88], // Cmaj7
+      [220.00, 261.63, 329.63, 392.00], // Am7
+      [174.61, 220.00, 261.63, 329.63], // Fmaj7
+      [196.00, 246.94, 293.66, 349.23], // G7
+    ];
+    
+    let chordIndex = 0;
+    
+    // Play first chord immediately
+    playLofiChord(chords[chordIndex], 3.5);
+    chordIndex = 1;
+    
+    // Play chords in sequence
+    const musicInterval = setInterval(() => {
+      playLofiChord(chords[chordIndex], 3.5);
+      chordIndex = (chordIndex + 1) % chords.length;
+    }, 4000);
+    
+    ambientNodesRef.current.musicInterval = musicInterval;
+  }, [playLofiChord]);
+
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
     const ctx = getAudioContext();
@@ -350,6 +416,10 @@ export const useSoundEffects = (): SoundEffectsReturn => {
         clearInterval(ambientNodesRef.current.childrenInterval);
         ambientNodesRef.current.childrenInterval = null;
       }
+      if (ambientNodesRef.current.musicInterval) {
+        clearInterval(ambientNodesRef.current.musicInterval);
+        ambientNodesRef.current.musicInterval = null;
+      }
       setIsAmbientPlaying(false);
     } else {
       // Initialize audio context first
@@ -359,10 +429,12 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       // Start ambient sounds
       startWindSound();
       
+      // Start lofi music
+      startLofiMusic();
+      
       // Random bird chirps every 2-4 seconds
       const birdInterval = setInterval(() => {
         if (Math.random() < 0.6) {
-          console.log('Playing bird chirp');
           playBirdChirp();
         }
       }, 2000);
@@ -371,7 +443,6 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       // Random children sounds every 4-6 seconds
       const childrenInterval = setInterval(() => {
         if (Math.random() < 0.4) {
-          console.log('Playing children sound');
           playChildrenSound();
         }
       }, 4000);
@@ -382,9 +453,9 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       setTimeout(() => playChildrenSound(), 1000);
       
       setIsAmbientPlaying(true);
-      console.log('Ambient sounds started');
+      console.log('Ambient sounds started with music');
     }
-  }, [isAmbientPlaying, startWindSound, playBirdChirp, playChildrenSound, getAudioContext]);
+  }, [isAmbientPlaying, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound, getAudioContext]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -399,6 +470,9 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       }
       if (ambientNodesRef.current.childrenInterval) {
         clearInterval(ambientNodesRef.current.childrenInterval);
+      }
+      if (ambientNodesRef.current.musicInterval) {
+        clearInterval(ambientNodesRef.current.musicInterval);
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
