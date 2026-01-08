@@ -782,14 +782,29 @@ const ClassroomPets = () => {
               />
             </div>
             
-            {/* Selected Toy Display */}
+            {/* Selected Toy Display - with balloon string when bunny is floating */}
             <div 
               className={`absolute transition-transform duration-200 ${
                 bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
               } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
               style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              {selectedToy.component ? (
+              {bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? (
+                // Show balloon with string when bunny is floating
+                <div className="relative">
+                  <div className="text-3xl sm:text-4xl md:text-5xl animate-balloon-sway">🎈</div>
+                  {/* Balloon string going down */}
+                  <svg className="absolute top-full left-1/2 -translate-x-1/2 w-4 h-24" viewBox="0 0 16 96">
+                    <path 
+                      d="M8 0 Q12 24 4 48 Q12 72 8 96" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      strokeWidth="1.5" 
+                      fill="none"
+                      className="animate-string-wave"
+                    />
+                  </svg>
+                </div>
+              ) : selectedToy.component ? (
                 <selectedToy.component />
               ) : (
                 <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
@@ -813,13 +828,14 @@ const ClassroomPets = () => {
           </div>
         )}
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
+        {/* When playing with balloon, bunny floats up! */}
         <div 
           className={`absolute z-10 transition-all ease-out ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
-          }`}
+          } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''}`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
-            top: `${currentPet === 'bunny' ? bunnyState.position.y : fishState.position.y}%`,
+            top: `${currentPet === 'bunny' ? (bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 25 : bunnyState.position.y) : fishState.position.y}%`,
             transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)'
           }}
         >
@@ -869,7 +885,7 @@ const ClassroomPets = () => {
                 <span className="text-sm font-bold">
                   {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
                   {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
-                  {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy.emoji} Wheee!`}
+                  {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy.emoji || '🎪'} Wheee!`}
                   {currentPet === 'bunny' && bunnyState.action === 'napping' && '💤 Zzz...'}
                   {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
                   {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
