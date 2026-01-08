@@ -343,15 +343,27 @@ const ClassroomPets = () => {
 
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
-        {/* Background Habitat */}
-        <div className="absolute inset-0">
+        {/* Background Habitat with Fallback */}
+        <div className={`absolute inset-0 ${
+          currentPet === 'fish' 
+            ? 'bg-gradient-to-b from-tank-water via-tank-water to-tank-deep' 
+            : currentScene === 'park'
+            ? 'bg-gradient-to-b from-habitat-sky to-habitat-grass'
+            : currentScene === 'room'
+            ? 'bg-gradient-to-b from-room-wall to-room-floor'
+            : 'bg-gradient-to-b from-primary/20 to-primary/40'
+        }`}>
           <img 
             src={getHabitatImage()} 
             alt="Pet habitat" 
             className="w-full h-full object-cover transition-opacity duration-500"
+            onError={(e) => {
+              // Hide image on error, fallback gradient will show
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
           />
           {/* Overlay for better pet visibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
         </div>
 
         {/* Animated Bubbles for Fish Tank */}
