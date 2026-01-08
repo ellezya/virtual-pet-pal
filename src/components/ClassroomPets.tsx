@@ -68,11 +68,13 @@ const ClassroomPets = () => {
     back: { xMin: 20, xMax: 55, y: 62 },    // Pillows area
   };
   
-  // Park zones - interactive play areas in the park scene
+  // Park zones - interactive play areas with depth perception
+  // Lower y = higher on screen = further away = smaller scale
+  // Higher y = lower on screen = closer = larger scale
   const parkZones = {
-    grass: { xMin: 25, xMax: 75, y: 82, label: '🌿 Grassy Field' },      // Main grass area center
-    bench: { xMin: 70, xMax: 88, y: 78, label: '🪑 Park Bench' },        // Near bench on right
-    tree: { xMin: 8, xMax: 28, y: 80, label: '🌳 Under the Tree' },      // Under tree on left
+    grass: { xMin: 30, xMax: 70, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass - full size
+    bench: { xMin: 72, xMax: 90, y: 72, scale: 0.75, label: '🪑 Park Bench' },       // Elevated on bench - slightly smaller (mid-ground)
+    tree: { xMin: 10, xMax: 30, y: 60, scale: 0.55, label: '🌳 Under the Tree' },    // Background near trees - smaller (far away)
   };
   
   // Track which park zone Lola is in
@@ -93,6 +95,12 @@ const ClassroomPets = () => {
     if (scene === 'park') return parkZones[currentParkZone].y;
     if (scene === 'room') return bedZones[currentCouchZone].y;
     return couchZones[currentCouchZone].y; // habitat uses couch zones
+  };
+  
+  // Get depth scale for park scene (smaller = further away)
+  const getParkDepthScale = () => {
+    if (currentScene !== 'park') return 1;
+    return parkZones[currentParkZone].scale;
   };
   
   const [bunnyState, setBunnyState] = useState({
@@ -1310,7 +1318,7 @@ const ClassroomPets = () => {
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
         {/* When playing with balloon, bunny floats up hanging from the string! */}
         <div 
-          className={`absolute z-10 transition-all ease-out ${
+          className={`absolute transition-all ease-out ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
           } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''} ${
             isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
@@ -1322,8 +1330,10 @@ const ClassroomPets = () => {
               isTrampolineBouncing ? bunnyState.position.y - 2 : 
               bunnyState.position.y
             ) : fishState.position.y}%`,
-            transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
-            transition: isHoppingThroughTunnel ? 'left 0.6s ease-out, top 0.6s ease-out, opacity 0.2s ease-out' : undefined
+            transform: `translate(-50%, ${currentPet === 'bunny' ? '-100%' : '-50%'}) scale(${currentPet === 'bunny' && currentScene === 'park' ? getParkDepthScale() : 1})`,
+            transition: isHoppingThroughTunnel ? 'left 0.6s ease-out, top 0.6s ease-out, opacity 0.2s ease-out, transform 0.8s ease-out' : 'transform 0.8s ease-out',
+            // Depth-based z-index: foreground = 10, mid = 8, background = 5
+            zIndex: currentScene === 'park' ? (currentParkZone === 'grass' ? 10 : currentParkZone === 'bench' ? 8 : 5) : 10
           }}
         >
           {/* Balloon with string above bunny when playing */}
