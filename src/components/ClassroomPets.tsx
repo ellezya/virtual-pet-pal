@@ -854,7 +854,7 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 z-0 bg-room-wall">
             <img
-              src={habitatIndoorCouch}
+              src={habitatIndoor}
               alt="Habitat"
               className="w-full h-full object-cover"
               loading="eager"
@@ -863,62 +863,6 @@ const ClassroomPets = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
           </div>
         )}
-
-        {/* Animated SVG trailing vines that sway with wind (positioned below background pots) */}
-        {currentPet !== 'fish' && currentScene === 'habitat' && (
-          <div
-            className="absolute pointer-events-none z-[6]"
-            style={{ left: 0, top: 0, width: '100%', height: '100%' }}
-            aria-hidden="true"
-          >
-            {/* Vine strands hanging from the pot areas */}
-            {[
-              { x: '72%', top: '12%', delay: 0, height: 120 },
-              { x: '76%', top: '14%', delay: 0.3, height: 100 },
-              { x: '80%', top: '10%', delay: 0.6, height: 130 },
-              { x: '84%', top: '8%', delay: 0.2, height: 110 },
-              { x: '88%', top: '12%', delay: 0.5, height: 95 },
-            ].map((vine, idx) => (
-              <svg
-                key={`vine-${idx}`}
-                className="absolute"
-                style={{
-                  left: vine.x,
-                  top: vine.top,
-                  width: '30px',
-                  height: `${vine.height}px`,
-                  transformOrigin: 'top center',
-                  animation: `plantSway ${plantDuration}s ease-in-out infinite`,
-                  animationDelay: `${vine.delay}s`,
-                  ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
-                }}
-                viewBox="0 0 30 120"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Vine stem with natural curve */}
-                <path
-                  d={`M15 0 Q${12 + idx * 2} 40, 15 60 Q${18 - idx} 90, ${13 + idx} 120`}
-                  stroke="hsl(100, 40%, 35%)"
-                  strokeWidth="2.5"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-                {/* Heart-shaped leaves along the vine */}
-                {[20, 40, 60, 80, 100].map((y, leafIdx) => (
-                  <g key={leafIdx} transform={`translate(${leafIdx % 2 === 0 ? 5 : 20}, ${y})`}>
-                    <path
-                      d={`M0 5 C-3 0, -3 -3, 0 -5 C3 -3, 3 0, 0 5`}
-                      fill={`hsl(${105 + leafIdx * 3}, ${45 + leafIdx * 2}%, ${38 + leafIdx * 3}%)`}
-                      transform={`rotate(${leafIdx % 2 === 0 ? -25 : 25}) scale(${1.2 - leafIdx * 0.1})`}
-                    />
-                  </g>
-                ))}
-              </svg>
-            ))}
-          </div>
-        )}
-
 
         {/* Breeze/wind particles - also outside scene div */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
