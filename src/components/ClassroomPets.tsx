@@ -1107,62 +1107,6 @@ const ClassroomPets = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-green-200/5 pointer-events-none" />
             
             {/* Park zone indicators - subtle ground markers */}
-            <div className="absolute inset-0 pointer-events-none z-10">
-              {/* Tree zone indicator */}
-              <div 
-                className={`absolute bottom-[18%] left-[8%] w-[20%] h-[8%] rounded-full transition-all duration-500 ${
-                  currentParkZone === 'tree' 
-                    ? 'bg-green-900/20 border-2 border-green-600/30' 
-                    : 'bg-transparent'
-                }`}
-              />
-              {/* Grass zone indicator */}
-              <div 
-                className={`absolute bottom-[15%] left-[30%] w-[35%] h-[10%] rounded-full transition-all duration-500 ${
-                  currentParkZone === 'grass' 
-                    ? 'bg-green-500/15 border-2 border-green-400/25' 
-                    : 'bg-transparent'
-                }`}
-              />
-              {/* Bench zone indicator */}
-              <div 
-                className={`absolute bottom-[20%] right-[8%] w-[18%] h-[8%] rounded-full transition-all duration-500 ${
-                  currentParkZone === 'bench' 
-                    ? 'bg-amber-700/20 border-2 border-amber-500/30' 
-                    : 'bg-transparent'
-                }`}
-              />
-            </div>
-            
-            {/* Park zone selector UI */}
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex gap-2 bg-background/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-border/50">
-              {(Object.keys(parkZones) as Array<'grass' | 'bench' | 'tree'>).map((zone) => (
-                <button
-                  key={zone}
-                  onClick={() => {
-                    const targetZone = parkZones[zone];
-                    const targetX = (targetZone.xMin + targetZone.xMax) / 2;
-                    const movingRight = targetX > bunnyState.position.x;
-                    setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
-                    setCurrentParkZone(zone);
-                    setTimeout(() => {
-                      setBunnyState(prev => ({
-                        ...prev,
-                        isHopping: false,
-                        position: { x: targetX, y: targetZone.y }
-                      }));
-                    }, 800);
-                  }}
-                  className={`px-2 py-1 text-xs rounded-full transition-all duration-200 ${
-                    currentParkZone === zone 
-                      ? 'bg-success text-success-foreground scale-105 shadow-md' 
-                      : 'bg-muted/50 hover:bg-muted hover:scale-105'
-                  }`}
-                >
-                  {parkZones[zone].label}
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
