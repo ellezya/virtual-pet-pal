@@ -840,52 +840,54 @@ const ClassroomPets = () => {
             />
             {/* Cozy warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
-            
-            {/* Window curtain blowing in breeze - positioned over left window */}
-            <div
-              className="absolute pointer-events-none z-[6]"
-              style={{ left: '6%', top: '6%', width: '36%', height: '58%' }}
-            >
-              {/* Left curtain panel */}
-              <div
-                className="absolute left-0 top-0 h-full w-[60%] animate-curtain-blow"
-                style={{
-                  transformOrigin: 'top left',
-                  background: 'linear-gradient(to right, rgba(245,235,220,0.9) 0%, rgba(250,245,235,0.75) 40%, rgba(255,250,240,0.4) 80%, transparent 100%)',
-                  borderRadius: '0 20px 20px 0',
-                  boxShadow: '6px 0 24px rgba(139,90,43,0.15)',
-                  borderRight: '1px solid rgba(200,180,150,0.3)',
-                }}
-              />
-              {/* Right curtain panel */}
-              <div
-                className="absolute right-0 top-0 h-full w-[55%] animate-curtain-blow"
-                style={{
-                  transformOrigin: 'top right',
-                  animationDelay: '0.6s',
-                  background: 'linear-gradient(to left, rgba(245,235,220,0.85) 0%, rgba(250,245,235,0.7) 40%, rgba(255,250,240,0.35) 80%, transparent 100%)',
-                  borderRadius: '20px 0 0 20px',
-                  boxShadow: '-6px 0 24px rgba(139,90,43,0.15)',
-                  borderLeft: '1px solid rgba(200,180,150,0.3)',
-                }}
-              />
-            </div>
+          </div>
+        )}
 
-            {/* Breeze/wind particles floating across */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={`breeze-${i}`}
-                  className="absolute w-12 h-0.5 bg-gradient-to-r from-transparent via-foreground/8 to-transparent rounded-full"
-                  style={{
-                    top: `${20 + (i * 12)}%`,
-                    left: '-10%',
-                    animation: `breeze ${5 + i * 0.6}s ease-in-out infinite`,
-                    animationDelay: `${i * 1}s`,
-                  }}
-                />
-              ))}
-            </div>
+        {/* Window curtains - rendered OUTSIDE scene divs so z-index works properly */}
+        {currentPet !== 'fish' && (currentScene === 'habitat' || currentScene === 'room') && (
+          <div
+            className="absolute pointer-events-none z-[15]"
+            style={{ left: '6%', top: '8%', width: '34%', height: '52%' }}
+          >
+            {/* Left curtain panel */}
+            <div
+              className="absolute left-0 top-0 h-full w-[55%] animate-curtain-blow"
+              style={{
+                transformOrigin: 'top left',
+                background: 'linear-gradient(to right, rgba(255,248,235,0.95) 0%, rgba(255,250,240,0.8) 35%, rgba(255,252,245,0.5) 70%, transparent 100%)',
+                borderRadius: '0 16px 16px 0',
+                boxShadow: '8px 0 30px rgba(139,90,43,0.2)',
+              }}
+            />
+            {/* Right curtain panel */}
+            <div
+              className="absolute right-0 top-0 h-full w-[50%] animate-curtain-blow"
+              style={{
+                transformOrigin: 'top right',
+                animationDelay: '0.6s',
+                background: 'linear-gradient(to left, rgba(255,248,235,0.9) 0%, rgba(255,250,240,0.75) 35%, rgba(255,252,245,0.45) 70%, transparent 100%)',
+                borderRadius: '16px 0 0 16px',
+                boxShadow: '-8px 0 30px rgba(139,90,43,0.2)',
+              }}
+            />
+          </div>
+        )}
+
+        {/* Breeze/wind particles - also outside scene div */}
+        {currentPet !== 'fish' && currentScene === 'habitat' && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={`breeze-${i}`}
+                className="absolute w-12 h-0.5 bg-gradient-to-r from-transparent via-foreground/8 to-transparent rounded-full"
+                style={{
+                  top: `${20 + (i * 12)}%`,
+                  left: '-10%',
+                  animation: `breeze ${5 + i * 0.6}s ease-in-out infinite`,
+                  animationDelay: `${i * 1}s`,
+                }}
+              />
+            ))}
           </div>
         )}
 
