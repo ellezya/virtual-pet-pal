@@ -633,6 +633,8 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       // Helps when mobile browsers suspend audio after being backgrounded
       if (!shouldStartAmbientRef.current) return;
       unlockAudio();
+      // Force-restart ambient to recover from suspended/ended nodes
+      stopAmbient();
       startAmbient();
     };
 
