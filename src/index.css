@@ -2,87 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 35 100% 96%;
+    --foreground: 25 50% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 25 50% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 25 50% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 35 92% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 60% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 35 30% 90%;
+    --muted-foreground: 25 30% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 60% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+    --warning: 45 93% 55%;
+    --warning-foreground: 25 50% 20%;
+
+    --border: 35 30% 85%;
+    --input: 35 30% 85%;
+    --ring: 35 92% 50%;
+
+    --radius: 1rem;
+
+    /* Pet-specific colors */
+    --bunny-happy: 35 50% 85%;
+    --bunny-neutral: 30 45% 80%;
+    --bunny-sad: 25 25% 55%;
+    --bunny-pink: 350 80% 75%;
+
+    --fish-orange: 25 95% 55%;
+    --fish-yellow: 45 95% 60%;
+    --fish-tail: 15 90% 50%;
+
+    --tank-water: 200 70% 55%;
+    --tank-deep: 210 75% 45%;
+    --tank-sand: 35 60% 50%;
+
+    --habitat-sky: 200 80% 80%;
+    --habitat-grass: 120 50% 50%;
+    --habitat-ground: 35 60% 70%;
+
+    --park-sky: 200 70% 65%;
+    --park-grass: 120 55% 45%;
+    --park-path: 35 55% 55%;
+
+    --room-wall: 280 40% 85%;
+    --room-floor: 30 50% 45%;
+
+    /* Status bar colors */
+    --status-good: 142 70% 50%;
+    --status-medium: 45 93% 55%;
+    --status-low: 0 84% 55%;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(25 50% 20% / 0.15);
+    --shadow-medium: 0 8px 30px -6px hsl(25 50% 20% / 0.2);
+    --shadow-strong: 0 12px 40px -8px hsl(25 50% 20% / 0.25);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 25 30% 10%;
+    --foreground: 35 30% 90%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 25 25% 15%;
+    --card-foreground: 35 30% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 25 25% 15%;
+    --popover-foreground: 35 30% 90%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 35 92% 55%;
+    --primary-foreground: 25 50% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 55% 50%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 25 20% 20%;
+    --muted-foreground: 35 20% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 280 55% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 25 20% 25%;
+    --input: 25 20% 25%;
+    --ring: 35 92% 55%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +133,115 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-nunito;
+  }
+}
+
+@layer components {
+  .pet-button {
+    @apply font-bold py-3 px-5 rounded-xl shadow-md transition-all duration-200 
+           hover:scale-105 hover:shadow-lg active:scale-95 disabled:opacity-50 
+           disabled:cursor-not-allowed disabled:hover:scale-100;
+  }
+
+  .pet-button-feed {
+    @apply pet-button bg-primary text-primary-foreground hover:brightness-110;
+  }
+
+  .pet-button-water {
+    @apply pet-button bg-secondary text-secondary-foreground hover:brightness-110;
+  }
+
+  .pet-button-play {
+    @apply pet-button bg-accent text-accent-foreground hover:brightness-110;
+  }
+
+  .pet-button-clean {
+    @apply pet-button bg-warning text-warning-foreground hover:brightness-110;
+  }
+
+  .scene-button {
+    @apply px-4 py-2 rounded-xl font-bold transition-all duration-200 
+           hover:scale-105 active:scale-95;
+  }
+
+  .scene-button-active {
+    @apply scene-button shadow-md;
+  }
+
+  .scene-button-inactive {
+    @apply scene-button bg-muted text-muted-foreground hover:bg-muted/80;
+  }
+
+  .status-bar {
+    @apply w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner;
+  }
+
+  .status-bar-fill {
+    @apply h-4 rounded-full transition-all duration-500;
+  }
+
+  .notification-badge {
+    @apply bg-warning/90 border-2 border-warning px-4 py-2 rounded-xl 
+           text-sm font-bold animate-bounce shadow-md;
+  }
+
+  .control-button {
+    @apply p-2.5 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95;
+  }
+
+  .speech-bubble {
+    @apply absolute -top-20 left-1/2 -translate-x-1/2 bg-card px-4 py-2 
+           rounded-2xl shadow-lg text-sm font-bold border-4 border-primary
+           animate-bounce-slow;
+  }
+}
+
+@layer utilities {
+  .animate-bounce-slow {
+    animation: bounce-slow 2s ease-in-out infinite;
+  }
+
+  .animate-swim {
+    animation: swim 3s ease-in-out infinite;
+  }
+
+  .animate-hop {
+    animation: hop 0.5s ease-in-out;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.3s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+
+  @keyframes swim {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+    25% { transform: translate(-50%, -50%) rotate(5deg); }
+    75% { transform: translate(-50%, -50%) rotate(-5deg); }
+  }
+
+  @keyframes hop {
+    0%, 100% { transform: translate(-50%, 50%) scale(1); }
+    50% { transform: translate(-50%, 30%) scale(1.05); }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
   }
 }
