@@ -72,12 +72,11 @@ const ClassroomPets = () => {
   // Lower y = higher on screen = further away = smaller scale
   // Higher y = lower on screen = closer = larger scale
   const parkZones = {
-    grass: { xMin: 30, xMax: 70, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass - full size
-    flowers: { xMin: 72, xMax: 90, y: 86, scale: 0.9, label: '🌸 Flower Garden' },   // Flower garden area - ground level, slightly smaller
+    grass: { xMin: 25, xMax: 65, y: 88, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass only - away from bench
   };
   
-  // Track which park zone Lola is in
-  const [currentParkZone, setCurrentParkZone] = useState<'grass' | 'flowers'>('grass');
+  // Track which park zone Lola is in (only grass now)
+  const [currentParkZone, setCurrentParkZone] = useState<'grass'>('grass');
   
   // Track which couch zone Lola is on
   const [currentCouchZone, setCurrentCouchZone] = useState<'seat' | 'back'>('seat');
@@ -532,42 +531,19 @@ const ClassroomPets = () => {
           }));
         }, 600);
       } else if (currentScene === 'park') {
-        // Park scene - move within current park zone, with chance to change zones
-        if (Math.random() < 0.15) {
-          // 15% chance to hop to a different park zone
-          const zoneKeys = Object.keys(parkZones) as Array<'grass' | 'flowers'>;
-          const otherZones = zoneKeys.filter(z => z !== currentParkZone);
-          const newZone = otherZones[Math.floor(Math.random() * otherZones.length)];
-          const targetZone = parkZones[newZone];
-          const targetX = (targetZone.xMin + targetZone.xMax) / 2;
-          const movingRight = targetX > bunnyState.position.x;
-          
-          setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
-          setCurrentParkZone(newZone);
-          
-          setTimeout(() => {
-            setBunnyState(prev => ({
-              ...prev,
-              isHopping: false,
-              position: { x: targetX, y: targetZone.y }
-            }));
-          }, 800);
-          return;
-        }
+        // Park scene - only grass zone, just move within it
+        const parkZone = parkZones.grass;
+        const parkDeltaX = (Math.random() - 0.5) * 10;
+        const parkNewX = Math.max(parkZone.xMin, Math.min(parkZone.xMax, bunnyState.position.x + parkDeltaX));
+        const parkMovingRight = parkDeltaX > 0;
         
-        // Regular movement within current park zone
-        const zone = parkZones[currentParkZone];
-        const deltaX = (Math.random() - 0.5) * 10;
-        const newX = Math.max(zone.xMin, Math.min(zone.xMax, bunnyState.position.x + deltaX));
-        const movingRight = deltaX > 0;
-        
-        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
+        setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: parkMovingRight }));
         
         setTimeout(() => {
           setBunnyState(prev => ({
             ...prev,
             isHopping: false,
-            position: { x: newX, y: zone.y }
+            position: { x: parkNewX, y: parkZone.y }
           }));
         }, 600);
       }
