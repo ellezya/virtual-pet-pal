@@ -1058,65 +1058,45 @@ const ClassroomPets = () => {
             {/* Sunny warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-200/10 via-transparent to-green-200/5 pointer-events-none" />
             
-            {/* Sun glow */}
-            <div 
-              className="absolute top-[5%] right-[20%] w-40 h-40 rounded-full bg-gradient-radial from-amber-300/30 via-yellow-200/10 to-transparent blur-2xl animate-pulse-soft pointer-events-none"
-              style={{ animationDuration: '6s' }}
-            />
-            
-            {/* Swaying tree branches overlay */}
-            <div className="absolute top-0 left-[5%] w-32 h-48 pointer-events-none animate-sway-branch" style={{ animationDelay: '0s' }}>
-              <div className="text-4xl opacity-60">🌳</div>
+            {/* Swaying tree silhouettes - background movement */}
+            <div className="absolute bottom-0 left-[2%] w-24 h-[45%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '0s' }}>
+              <div className="w-full h-full bg-gradient-to-t from-green-900/20 via-green-800/15 to-transparent rounded-t-full blur-sm" />
             </div>
-            <div className="absolute top-0 right-[10%] w-32 h-48 pointer-events-none animate-sway-branch" style={{ animationDelay: '1.5s' }}>
-              <div className="text-4xl opacity-60">🌸</div>
+            <div className="absolute bottom-0 left-[12%] w-32 h-[55%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '2s' }}>
+              <div className="w-full h-full bg-gradient-to-t from-green-900/25 via-green-800/18 to-transparent rounded-t-full blur-sm" />
+            </div>
+            <div className="absolute bottom-0 right-[5%] w-28 h-[50%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '1s' }}>
+              <div className="w-full h-full bg-gradient-to-t from-green-900/22 via-green-800/16 to-transparent rounded-t-full blur-sm" />
+            </div>
+            <div className="absolute bottom-0 right-[18%] w-20 h-[40%] pointer-events-none animate-sway-tree origin-bottom" style={{ animationDelay: '3s' }}>
+              <div className="w-full h-full bg-gradient-to-t from-green-900/18 via-green-800/12 to-transparent rounded-t-full blur-sm" />
             </div>
             
-            {/* Flying birds */}
-            {[...Array(2)].map((_, i) => (
-              <div
-                key={`bird-${i}`}
-                className="absolute animate-fly-bird pointer-events-none z-10"
-                style={{
-                  left: `${-10 + (i * 5)}%`,
-                  top: `${15 + (i * 8)}%`,
-                  animationDelay: `${i * 4}s`,
-                  animationDuration: `${14 + i * 2}s`,
-                }}
-              >
-                <span className="text-sm opacity-50">🐦</span>
-              </div>
-            ))}
+            {/* Single distant bird */}
+            <div
+              className="absolute animate-fly-bird pointer-events-none z-10"
+              style={{
+                left: '-5%',
+                top: '12%',
+                animationDuration: '20s',
+              }}
+            >
+              <span className="text-xs opacity-35">🐦</span>
+            </div>
             
-            {/* Floating flower blossoms */}
-            {[...Array(8)].map((_, i) => (
+            {/* Sparse falling blossoms - only 3 */}
+            {[...Array(3)].map((_, i) => (
               <div
                 key={`blossom-${i}`}
                 className="absolute animate-fall-blossom pointer-events-none z-10"
                 style={{
-                  left: `${5 + (i * 12)}%`,
+                  left: `${15 + (i * 30)}%`,
                   top: '-5%',
-                  animationDelay: `${i * 1.5}s`,
-                  animationDuration: `${10 + (i % 3) * 3}s`,
+                  animationDelay: `${i * 6}s`,
+                  animationDuration: `${18 + (i * 4)}s`,
                 }}
               >
-                <span className="text-xs opacity-40">🌸</span>
-              </div>
-            ))}
-            
-            {/* Subtle butterflies - reduced count, slower, dimmer */}
-            {[...Array(2)].map((_, i) => (
-              <div
-                key={`butterfly-${i}`}
-                className="absolute animate-float-butterfly pointer-events-none z-10"
-                style={{
-                  left: `${25 + (i * 40)}%`,
-                  top: `${40 + (i * 15)}%`,
-                  animationDelay: `${i * 3}s`,
-                  animationDuration: `${12 + i * 4}s`,
-                }}
-              >
-                <span className="text-sm opacity-40">🦋</span>
+                <span className="text-xs opacity-30">🌸</span>
               </div>
             ))}
           </div>
