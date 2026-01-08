@@ -43,13 +43,11 @@ const ClassroomPets = () => {
   } = useSoundEffects();
   const prevHoppingRef = useRef(false);
 
-  // Curtains react to wind audio (0..1) with a gentle baseline.
-  // (Made intentionally more noticeable so changes are obvious.)
-  const curtainStrength = Math.min(1, (isAmbientPlaying ? 0.35 : 0.12) + windIntensity * 1.0);
-  const curtainSwayX = 14 + curtainStrength * 22; // px
-  const curtainSkew = 0.8 + curtainStrength * 1.6; // deg
-  const curtainScaleX = 1.03 + curtainStrength * 0.07; // unitless
-  const curtainDuration = 6.0 - curtainStrength * 2.4; // seconds
+  // Hanging plants react to wind audio (0..1) with a gentle baseline.
+  const plantStrength = Math.min(1, (isAmbientPlaying ? 0.3 : 0.1) + windIntensity * 1.0);
+  const plantSwayDeg = 2 + plantStrength * 6; // degrees
+  const plantDuration = 5.5 - plantStrength * 2.0; // seconds
+
 
   // Get ground Y position based on current scene
   const getGroundY = (scene: string) => {
@@ -864,96 +862,59 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Animated window curtains (sway intensity follows wind sound) - cream/yellow to match image */}
+        {/* Animated hanging plants that sway with wind */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[6]"
-            style={{ left: '52%', top: '2%', width: '46%', height: '68%', mixBlendMode: 'soft-light' }}
+            style={{ left: 0, top: 0, width: '100%', height: '55%' }}
             aria-hidden="true"
           >
-            {/* Left curtain - cream/yellow sheer */}
-            <svg
-              className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              style={{
-                transformOrigin: 'top left',
-                filter: 'drop-shadow(2px 8px 12px hsla(40, 30%, 20%, 0.15))',
-                ['--curtain-sway-x' as any]: `${curtainSwayX}px`,
-                ['--curtain-skew-start' as any]: `${-curtainSkew}deg`,
-                ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
-                ['--curtain-scale-x' as any]: `${curtainScaleX}`,
-                ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.62 + curtainStrength * 0.12}`,
-                ['--curtain-opacity-max' as any]: `${0.84 + curtainStrength * 0.12}`,
-              }}
-            >
-              <defs>
-                <linearGradient id="curtainGradL" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="hsla(45, 60%, 92%, 0.45)" />
-                  <stop offset="55%" stopColor="hsla(45, 55%, 88%, 0.25)" />
-                  <stop offset="100%" stopColor="hsla(45, 50%, 85%, 0.05)" />
-                </linearGradient>
-                <linearGradient id="curtainFoldsL" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsla(40, 30%, 60%, 0.12)" />
-                  <stop offset="100%" stopColor="hsla(40, 30%, 60%, 0.00)" />
-                </linearGradient>
-              </defs>
-
-              {/* Sheer body */}
-              <path
-                d="M0,0 L0,100 L78,100 C64,82 90,66 76,50 C62,34 92,18 78,0 Z"
-                fill="url(#curtainGradL)"
-              />
-              {/* Folds */}
-              <path d="M18,0 L18,100" stroke="url(#curtainFoldsL)" strokeWidth="2" opacity="0.6" />
-              <path d="M34,0 L34,100" stroke="url(#curtainFoldsL)" strokeWidth="1.6" opacity="0.45" />
-              <path d="M50,0 L50,100" stroke="url(#curtainFoldsL)" strokeWidth="1.3" opacity="0.35" />
-              <path d="M66,0 L66,100" stroke="url(#curtainFoldsL)" strokeWidth="1" opacity="0.25" />
-            </svg>
-
-            {/* Right curtain - cream/yellow sheer */}
-            <svg
-              className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              style={{
-                transformOrigin: 'top right',
-                animationDelay: '0.6s',
-                filter: 'drop-shadow(-2px 8px 12px hsla(40, 30%, 20%, 0.15))',
-                // move opposite direction for a more obvious sway
-                ['--curtain-sway-x' as any]: `${-curtainSwayX}px`,
-                ['--curtain-skew-start' as any]: `${-curtainSkew}deg`,
-                ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
-                ['--curtain-scale-x' as any]: `${curtainScaleX}`,
-                ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.58 + curtainStrength * 0.12}`,
-                ['--curtain-opacity-max' as any]: `${0.84 + curtainStrength * 0.12}`,
-              }}
-            >
-              <defs>
-                <linearGradient id="curtainGradR" x1="1" y1="0" x2="0" y2="0">
-                  <stop offset="0%" stopColor="hsla(45, 60%, 92%, 0.42)" />
-                  <stop offset="55%" stopColor="hsla(45, 55%, 88%, 0.22)" />
-                  <stop offset="100%" stopColor="hsla(45, 50%, 85%, 0.05)" />
-                </linearGradient>
-                <linearGradient id="curtainFoldsR" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsla(40, 30%, 60%, 0.12)" />
-                  <stop offset="100%" stopColor="hsla(40, 30%, 60%, 0.00)" />
-                </linearGradient>
-              </defs>
-
-              {/* Sheer body */}
-              <path
-                d="M100,0 L100,100 L22,100 C36,82 10,66 24,50 C38,34 8,18 22,0 Z"
-                fill="url(#curtainGradR)"
-              />
-              {/* Folds */}
-              <path d="M82,0 L82,100" stroke="url(#curtainFoldsR)" strokeWidth="2" opacity="0.6" />
-              <path d="M66,0 L66,100" stroke="url(#curtainFoldsR)" strokeWidth="1.6" opacity="0.45" />
-              <path d="M50,0 L50,100" stroke="url(#curtainFoldsR)" strokeWidth="1.3" opacity="0.35" />
-              <path d="M34,0 L34,100" stroke="url(#curtainFoldsR)" strokeWidth="1" opacity="0.25" />
-            </svg>
+            {/* Multiple hanging vine strands */}
+            {[
+              { x: '58%', delay: 0, length: 90 },
+              { x: '64%', delay: 0.4, length: 75 },
+              { x: '70%', delay: 0.8, length: 100 },
+              { x: '76%', delay: 0.2, length: 85 },
+              { x: '82%', delay: 0.6, length: 70 },
+              { x: '88%', delay: 1.0, length: 95 },
+            ].map((vine, idx) => (
+              <svg
+                key={`vine-${idx}`}
+                className="absolute top-0"
+                style={{
+                  left: vine.x,
+                  width: '28px',
+                  height: `${vine.length}%`,
+                  transformOrigin: 'top center',
+                  animation: `plantSway ${plantDuration}s ease-in-out infinite`,
+                  animationDelay: `${vine.delay}s`,
+                  ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
+                }}
+                viewBox="0 0 28 100"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Main vine stem */}
+                <path
+                  d={`M14 0 Q${10 + idx * 2} 30, 14 50 Q${18 - idx} 70, 14 100`}
+                  stroke="hsla(95, 45%, 35%, 0.7)"
+                  strokeWidth="2"
+                  fill="none"
+                />
+                {/* Leaves along the vine */}
+                {[15, 30, 45, 60, 75, 90].map((y, leafIdx) => (
+                  <ellipse
+                    key={leafIdx}
+                    cx={leafIdx % 2 === 0 ? 8 : 20}
+                    cy={y}
+                    rx="6"
+                    ry="3"
+                    fill={`hsla(${90 + leafIdx * 5}, ${40 + leafIdx * 3}%, ${32 + leafIdx * 2}%, 0.8)`}
+                    transform={`rotate(${leafIdx % 2 === 0 ? -30 : 30} ${leafIdx % 2 === 0 ? 8 : 20} ${y})`}
+                  />
+                ))}
+              </svg>
+            ))}
           </div>
         )}
 
