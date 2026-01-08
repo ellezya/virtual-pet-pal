@@ -262,6 +262,11 @@
     will-change: transform;
   }
 
+  .animate-plant-sway {
+    animation: plantSway var(--plant-duration, 4s) ease-in-out infinite;
+    will-change: transform;
+  }
+
 
   .animate-bubble {
     animation: bubble-rise 4s ease-in-out infinite;
@@ -351,6 +356,16 @@
       opacity: var(--curtain-opacity-max, 1);
     }
   }
+
+  @keyframes plantSway {
+    0%, 100% {
+      transform: rotate(calc(-1 * var(--plant-sway-deg, 3deg)));
+    }
+    50% {
+      transform: rotate(var(--plant-sway-deg, 3deg));
+    }
+  }
+
 
 
   @keyframes sway {
