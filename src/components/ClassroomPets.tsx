@@ -335,7 +335,7 @@ const ClassroomPets = () => {
         else newState.mood = 'neutral';
         return newState;
       });
-    }, 2000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [currentPet, currentScene]);
 
@@ -372,7 +372,7 @@ const ClassroomPets = () => {
         }));
         playPoop();
       }
-    }, 8000);
+    }, 12000);
     return () => clearInterval(poopInterval);
   }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x]);
 
@@ -488,7 +488,7 @@ const ClassroomPets = () => {
           }));
         }, 600);
       }
-    }, 2500);
+    }, 3750);
     return () => clearInterval(moveInterval);
   }, [currentPet, bunnyState.action, bunnyState.position.x, bunnyState.position.y, bunnyState.targetObject, currentScene, currentCouchZone]);
 
@@ -506,7 +506,7 @@ const ClassroomPets = () => {
       setTimeout(() => {
         setBunnyState(prev => ({ ...prev, idleBehavior: 'none' }));
       }, randomBehavior === 'nibbling' ? 2000 : 1200);
-    }, 4000);
+    }, 6000);
     
     return () => clearInterval(idleInterval);
   }, [currentPet, bunnyState.action]);
