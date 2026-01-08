@@ -1005,9 +1005,15 @@ const ClassroomPets = () => {
                     </svg>
                   </div>
                 ) : selectedToy.id === 'hayPile' ? (
-                  // Nest - eggs are already visible in the nest emoji
+                  // Nest with visible blue eggs
                   <div className="relative">
                     <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🪺</div>
+                    {/* Blue eggs on top of nest */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      {[...Array(eggsRemaining)].map((_, i) => (
+                        <span key={i} className="text-xs sm:text-sm animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>🥚</span>
+                      ))}
+                    </div>
                   </div>
                 ) : selectedToy.id === 'tunnel' && selectedToy.component ? (
                   // Hollow tree trunk - larger display
