@@ -1311,6 +1311,7 @@ const ClassroomPets = () => {
                   ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36'
                   : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
               } ${
+                bunnyState.isNapping ? 'scale-75' :
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
