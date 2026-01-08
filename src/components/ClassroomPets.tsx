@@ -22,9 +22,9 @@ import habitatPark from '@/assets/habitat-park.png';
 import habitatRoom from '@/assets/habitat-room.png';
 import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 
-// Animated overlay plants
-import hangingPlant1 from '@/assets/hanging-plant-1.png';
-import hangingPlant2 from '@/assets/hanging-plant-2.png';
+// Animated overlay vines (just the trailing vines, no pots)
+import trailingVine1 from '@/assets/trailing-vine-1.png';
+import trailingVine2 from '@/assets/trailing-vine-2.png';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -866,38 +866,38 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Animated hanging plants that sway with wind */}
+        {/* Animated trailing vines that sway with wind (pots stay in background) */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[6]"
             style={{ left: 0, top: 0, width: '100%', height: '100%' }}
             aria-hidden="true"
           >
-            {/* Hanging plant 1 - positioned to match background */}
+            {/* Trailing vine 1 - positioned below where pot is in background */}
             <img
-              src={hangingPlant1}
+              src={trailingVine1}
               alt=""
-              className="absolute"
+              className="absolute mix-blend-multiply"
               style={{
-                right: '18%',
-                top: '-5%',
-                width: '18%',
-                maxWidth: '140px',
+                right: '15%',
+                top: '8%',
+                width: '14%',
+                maxWidth: '110px',
                 transformOrigin: 'top center',
                 animation: `plantSway ${plantDuration}s ease-in-out infinite`,
                 ['--plant-sway-deg' as any]: `${plantSwayDeg}deg`,
               }}
             />
-            {/* Hanging plant 2 - positioned to match background */}
+            {/* Trailing vine 2 - positioned below where pot is in background */}
             <img
-              src={hangingPlant2}
+              src={trailingVine2}
               alt=""
-              className="absolute"
+              className="absolute mix-blend-multiply"
               style={{
-                right: '5%',
-                top: '-3%',
-                width: '16%',
-                maxWidth: '120px',
+                right: '3%',
+                top: '5%',
+                width: '12%',
+                maxWidth: '100px',
                 transformOrigin: 'top center',
                 animation: `plantSway ${plantDuration}s ease-in-out infinite`,
                 animationDelay: '0.5s',
