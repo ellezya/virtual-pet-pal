@@ -400,22 +400,22 @@
     0%, 100% { 
       transform: translate(-50%, -100%) translateY(0);
     }
-    20% { 
-      transform: translate(-50%, -100%) translateY(-40px);
+    15% { 
+      transform: translate(-50%, -100%) translateY(-18px);
     }
-    40% { 
+    30% { 
       transform: translate(-50%, -100%) translateY(0);
     }
-    55% { 
-      transform: translate(-50%, -100%) translateY(-35px);
+    45% { 
+      transform: translate(-50%, -100%) translateY(-15px);
     }
-    70% { 
+    60% { 
       transform: translate(-50%, -100%) translateY(0);
     }
-    82% { 
-      transform: translate(-50%, -100%) translateY(-30px);
+    75% { 
+      transform: translate(-50%, -100%) translateY(-12px);
     }
-    94% { 
+    90% { 
       transform: translate(-50%, -100%) translateY(0);
     }
   }
