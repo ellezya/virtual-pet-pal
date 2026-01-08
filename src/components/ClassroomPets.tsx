@@ -838,67 +838,56 @@ const ClassroomPets = () => {
             {/* Cozy warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
             
-            {/* Window curtains (blowing in the breeze) */}
+            {/* Window curtain blowing in breeze - positioned over left window */}
             <div
               className="absolute pointer-events-none z-[4]"
-              style={{ left: "7%", top: "18%", width: "30%", height: "55%" }}
+              style={{ left: '5%', top: '8%', width: '28%', height: '50%' }}
             >
-              {/* Left panel */}
-              <div
-                className="absolute left-0 top-0 h-full w-[52%] bg-gradient-to-r from-foreground/25 via-foreground/10 to-transparent rounded-r-[28px] animate-curtain-blow"
-                style={{ transformOrigin: "top left" }}
-              />
-              {/* Right panel */}
-              <div
-                className="absolute right-0 top-0 h-full w-[48%] bg-gradient-to-l from-foreground/20 via-foreground/8 to-transparent rounded-l-[28px] animate-curtain-blow"
-                style={{ transformOrigin: "top right", animationDelay: "0.6s" }}
-              />
-              {/* Soft folds */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute left-[18%] top-0 h-full w-px bg-foreground/30 animate-curtain-blow" style={{ animationDelay: "0.2s" }} />
-                <div className="absolute left-[34%] top-0 h-full w-px bg-foreground/20 animate-curtain-blow" style={{ animationDelay: "0.4s" }} />
-                <div className="absolute right-[22%] top-0 h-full w-px bg-foreground/25 animate-curtain-blow" style={{ animationDelay: "0.8s" }} />
-              </div>
+              {/* Left curtain panel */}
+              <svg 
+                className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow" 
+                viewBox="0 0 50 100" 
+                preserveAspectRatio="none"
+                style={{ transformOrigin: 'top left' }}
+              >
+                <defs>
+                  <linearGradient id="curtainGradL" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(35 40% 85%)" stopOpacity="0.7" />
+                    <stop offset="60%" stopColor="hsl(35 35% 80%)" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="hsl(35 30% 75%)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M0,0 Q15,20 10,50 Q5,80 0,100 L50,100 Q45,80 48,50 Q50,20 50,0 Z" fill="url(#curtainGradL)" />
+              </svg>
+              {/* Right curtain panel */}
+              <svg 
+                className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow" 
+                viewBox="0 0 50 100" 
+                preserveAspectRatio="none"
+                style={{ transformOrigin: 'top right', animationDelay: '0.5s' }}
+              >
+                <defs>
+                  <linearGradient id="curtainGradR" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(35 40% 85%)" stopOpacity="0.7" />
+                    <stop offset="60%" stopColor="hsl(35 35% 80%)" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="hsl(35 30% 75%)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M50,0 Q35,20 40,50 Q45,80 50,100 L0,100 Q5,80 2,50 Q0,20 0,0 Z" fill="url(#curtainGradR)" />
+              </svg>
             </div>
 
-            {/* Animated curtain on the left */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 pointer-events-none z-[2]">
-              <div 
-                className="w-full h-full bg-gradient-to-r from-accent/40 via-accent/20 to-transparent animate-sway"
-                style={{ transformOrigin: 'top center' }}
-              />
-              {/* Curtain folds */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute left-2 top-0 bottom-0 w-1 bg-accent/30 animate-sway" style={{ animationDelay: '0.2s' }} />
-                <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-accent/20 animate-sway" style={{ animationDelay: '0.4s' }} />
-                <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-accent/15 animate-sway" style={{ animationDelay: '0.6s' }} />
-              </div>
-            </div>
-            
-            {/* Animated curtain on the right */}
-            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 pointer-events-none z-[2]">
-              <div 
-                className="w-full h-full bg-gradient-to-l from-accent/40 via-accent/20 to-transparent animate-sway"
-                style={{ transformOrigin: 'top center', animationDelay: '0.5s' }}
-              />
-              {/* Curtain folds */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute right-2 top-0 bottom-0 w-1 bg-accent/30 animate-sway" style={{ animationDelay: '0.7s' }} />
-                <div className="absolute right-6 top-0 bottom-0 w-0.5 bg-accent/20 animate-sway" style={{ animationDelay: '0.9s' }} />
-              </div>
-            </div>
-            
             {/* Breeze/wind particles floating across */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
-              {[...Array(8)].map((_, i) => (
+              {[...Array(6)].map((_, i) => (
                 <div
                   key={`breeze-${i}`}
-                  className="absolute w-8 h-0.5 bg-gradient-to-r from-transparent via-foreground/10 to-transparent rounded-full"
+                  className="absolute w-12 h-0.5 bg-gradient-to-r from-transparent via-foreground/8 to-transparent rounded-full"
                   style={{
-                    top: `${15 + (i * 10)}%`,
+                    top: `${20 + (i * 12)}%`,
                     left: '-10%',
-                    animation: `breeze ${4 + i * 0.5}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.8}s`,
+                    animation: `breeze ${5 + i * 0.6}s ease-in-out infinite`,
+                    animationDelay: `${i * 1}s`,
                   }}
                 />
               ))}
