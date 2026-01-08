@@ -1346,57 +1346,57 @@ const ClassroomPets = () => {
           <button 
             onClick={feedPet} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-feed text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl"
+            className="pet-button-feed text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl"
           >
             🥕
-            <span className="text-[10px] font-medium mt-0.5">Feed</span>
+            <span className="text-[9px] font-medium">Feed</span>
           </button>
           {currentPet === 'bunny' ? (
             <button 
               onClick={waterBunny} 
               disabled={gameState.locked || bunnyState.action !== 'idle'} 
-              className="pet-button-water text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl"
+              className="pet-button-water text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl"
             >
               💧
-              <span className="text-[10px] font-medium mt-0.5">Water</span>
+              <span className="text-[9px] font-medium">Water</span>
             </button>
           ) : (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked} 
-              className="pet-button-clean text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl"
+              className="pet-button-clean text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl"
             >
               🧽
-              <span className="text-[10px] font-medium mt-0.5">Clean</span>
+              <span className="text-[9px] font-medium">Clean</span>
             </button>
           )}
           <button 
             onClick={() => playWithToy(selectedToy)} 
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')} 
-            className="pet-button-play text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl"
+            className="pet-button-play text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl"
           >
             {selectedToy.emoji || '🎪'}
-            <span className="text-[10px] font-medium mt-0.5">Play</span>
+            <span className="text-[9px] font-medium">Play</span>
           </button>
           {currentPet === 'bunny' && (
             <button 
               onClick={takeNap} 
               disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping} 
-              className={`pet-button-play text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              className={`pet-button-play text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl ${currentScene !== 'room' ? 'opacity-50' : ''}`}
               title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
             >
               😴
-              <span className="text-[10px] font-medium mt-0.5">Nap</span>
+              <span className="text-[9px] font-medium">Nap</span>
             </button>
           )}
           {currentPet === 'bunny' && (
             <button 
               onClick={cleanHabitat} 
               disabled={gameState.locked || poops.length === 0} 
-              className="pet-button-clean text-2xl p-3 min-w-[56px] shrink-0 flex flex-col items-center rounded-2xl"
+              className="pet-button-clean text-xl p-2 min-w-[50px] shrink-0 flex flex-col items-center rounded-xl"
             >
-              🧹{poops.length > 0 && <span className="ml-0.5 text-sm">{poops.length}</span>}
-              <span className="text-[10px] font-medium mt-0.5">Clean</span>
+              🧹{poops.length > 0 && <span className="ml-0.5 text-xs">{poops.length}</span>}
+              <span className="text-[9px] font-medium">Clean</span>
             </button>
           )}
         </div>
