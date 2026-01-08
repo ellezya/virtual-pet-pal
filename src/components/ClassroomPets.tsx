@@ -847,27 +847,27 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && (currentScene === 'habitat' || currentScene === 'room') && (
           <div
             className="absolute pointer-events-none z-[15]"
-            style={{ left: '6%', top: '8%', width: '34%', height: '52%' }}
+            style={{ left: '5%', top: '5%', width: '32%', height: '48%' }}
           >
-            {/* Left curtain panel */}
+            {/* Left curtain panel - sheer fabric effect */}
             <div
-              className="absolute left-0 top-0 h-full w-[55%] animate-curtain-blow"
+              className="absolute left-0 top-0 h-full w-[45%] animate-curtain-blow"
               style={{
                 transformOrigin: 'top left',
-                background: 'linear-gradient(to right, rgba(255,248,235,0.95) 0%, rgba(255,250,240,0.8) 35%, rgba(255,252,245,0.5) 70%, transparent 100%)',
-                borderRadius: '0 16px 16px 0',
-                boxShadow: '8px 0 30px rgba(139,90,43,0.2)',
+                background: 'linear-gradient(135deg, rgba(255,250,245,0.35) 0%, rgba(255,248,240,0.2) 50%, rgba(255,255,255,0.08) 100%)',
+                backdropFilter: 'blur(1px)',
+                borderRight: '1px solid rgba(255,255,255,0.3)',
               }}
             />
-            {/* Right curtain panel */}
+            {/* Right curtain panel - sheer fabric effect */}
             <div
-              className="absolute right-0 top-0 h-full w-[50%] animate-curtain-blow"
+              className="absolute right-0 top-0 h-full w-[45%] animate-curtain-blow"
               style={{
                 transformOrigin: 'top right',
                 animationDelay: '0.6s',
-                background: 'linear-gradient(to left, rgba(255,248,235,0.9) 0%, rgba(255,250,240,0.75) 35%, rgba(255,252,245,0.45) 70%, transparent 100%)',
-                borderRadius: '16px 0 0 16px',
-                boxShadow: '-8px 0 30px rgba(139,90,43,0.2)',
+                background: 'linear-gradient(225deg, rgba(255,250,245,0.35) 0%, rgba(255,248,240,0.2) 50%, rgba(255,255,255,0.08) 100%)',
+                backdropFilter: 'blur(1px)',
+                borderLeft: '1px solid rgba(255,255,255,0.3)',
               }}
             />
           </div>
