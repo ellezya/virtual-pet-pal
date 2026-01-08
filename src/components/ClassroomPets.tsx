@@ -992,6 +992,30 @@ const ClassroomPets = () => {
             </video>
             {/* Cozy warm overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
+            
+            {/* Flickering lamp glow */}
+            <div 
+              className="absolute top-[20%] left-[15%] w-32 h-32 rounded-full bg-gradient-radial from-amber-400/40 via-orange-300/20 to-transparent blur-2xl animate-flicker-glow pointer-events-none"
+            />
+            <div 
+              className="absolute top-[25%] left-[18%] w-20 h-20 rounded-full bg-amber-300/30 blur-xl animate-flicker-glow pointer-events-none"
+              style={{ animationDelay: '0.5s' }}
+            />
+            
+            {/* Floating sparkles */}
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={`sparkle-${i}`}
+                className="absolute animate-sparkle-float pointer-events-none"
+                style={{
+                  left: `${15 + Math.random() * 70}%`,
+                  animationDelay: `${i * 0.8}s`,
+                  animationDuration: `${6 + Math.random() * 4}s`,
+                }}
+              >
+                <span className="text-amber-200/70" style={{ fontSize: `${8 + Math.random() * 8}px` }}>✦</span>
+              </div>
+            ))}
           </div>
         )}
 
@@ -1295,14 +1319,47 @@ const ClassroomPets = () => {
               </div>
             )}
             
+            {/* Sleep Z's and Dream Bubbles when napping */}
+            {currentPet === 'bunny' && bunnyState.isNapping && (
+              <>
+                {/* Floating Z's */}
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={`z-${i}`}
+                    className="absolute -top-4 left-1/2 text-amber-200 font-bold animate-sleep-z"
+                    style={{
+                      animationDelay: `${i * 0.7}s`,
+                      animationIterationCount: 'infinite',
+                      fontSize: `${14 + i * 4}px`,
+                      marginLeft: `${i * 8}px`,
+                    }}
+                  >
+                    Z
+                  </div>
+                ))}
+                
+                {/* Dream bubble with carrot */}
+                <div 
+                  className="absolute -top-16 -right-8 animate-dream-bubble"
+                  style={{ animationDelay: '1s' }}
+                >
+                  <div className="relative bg-white/90 rounded-full p-2 shadow-lg">
+                    <span className="text-2xl">🥕</span>
+                    {/* Bubble trail */}
+                    <div className="absolute -bottom-2 -left-1 w-2 h-2 bg-white/80 rounded-full" />
+                    <div className="absolute -bottom-4 -left-2 w-1.5 h-1.5 bg-white/70 rounded-full" />
+                  </div>
+                </div>
+              </>
+            )}
+            
             {/* Speech Bubbles */}
-            {(bunnyState.action !== 'idle' || fishState.action !== 'idle') && (
+            {(bunnyState.action !== 'idle' || fishState.action !== 'idle') && !bunnyState.isNapping && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card px-3 py-1.5 rounded-xl shadow-strong border-2 border-primary animate-bounce-slow whitespace-nowrap">
                 <span className="text-sm font-bold">
                   {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
                   {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
                   {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy.emoji || '🎪'} Wheee!`}
-                  {currentPet === 'bunny' && bunnyState.action === 'napping' && '💤 Zzz...'}
                   {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
                   {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
                 </span>
