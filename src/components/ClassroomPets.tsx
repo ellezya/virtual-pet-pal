@@ -1342,7 +1342,7 @@ const ClassroomPets = () => {
         </div>
 
         {/* Action Buttons - Same size as toy menu */}
-        <div className="mt-3 flex flex-nowrap gap-4 sm:gap-6 overflow-x-auto pb-2 justify-center px-3">
+        <div className="mt-3 flex flex-nowrap gap-6 sm:gap-8 overflow-x-auto pb-2 justify-center px-3">
           <button
             onClick={feedPet}
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')}
