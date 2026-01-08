@@ -6,124 +6,126 @@
 
 @layer base {
   :root {
-    --background: 35 100% 96%;
-    --foreground: 25 50% 20%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 25 50% 20%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 25 50% 20%;
-
-    --primary: 35 92% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 60% 55%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 35 30% 90%;
-    --muted-foreground: 25 30% 45%;
-
-    --accent: 280 60% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 45 93% 55%;
-    --warning-foreground: 25 50% 20%;
-
-    --border: 35 30% 85%;
-    --input: 35 30% 85%;
-    --ring: 35 92% 50%;
-
-    --radius: 1rem;
-
-    /* Pet-specific colors */
-    --bunny-happy: 35 50% 85%;
-    --bunny-neutral: 30 45% 80%;
-    --bunny-sad: 25 25% 55%;
-    --bunny-pink: 350 80% 75%;
-
-    --fish-orange: 25 95% 55%;
-    --fish-yellow: 45 95% 60%;
-    --fish-tail: 15 90% 50%;
-
-    --tank-water: 200 70% 55%;
-    --tank-deep: 210 75% 45%;
-    --tank-sand: 35 60% 50%;
-
-    --habitat-sky: 200 80% 80%;
-    --habitat-grass: 120 50% 50%;
-    --habitat-ground: 35 60% 70%;
-
-    --park-sky: 200 70% 65%;
-    --park-grass: 120 55% 45%;
-    --park-path: 35 55% 55%;
-
-    --room-wall: 280 40% 85%;
-    --room-floor: 30 50% 45%;
-
-    /* Status bar colors */
-    --status-good: 142 70% 50%;
-    --status-medium: 45 93% 55%;
-    --status-low: 0 84% 55%;
-
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(25 50% 20% / 0.15);
-    --shadow-medium: 0 8px 30px -6px hsl(25 50% 20% / 0.2);
-    --shadow-strong: 0 12px 40px -8px hsl(25 50% 20% / 0.25);
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 25 30% 10%;
+    /* Lofi warm color palette */
+    --background: 25 35% 12%;
     --foreground: 35 30% 90%;
 
-    --card: 25 25% 15%;
+    --card: 25 30% 18%;
     --card-foreground: 35 30% 90%;
 
-    --popover: 25 25% 15%;
+    --popover: 25 30% 18%;
     --popover-foreground: 35 30% 90%;
 
-    --primary: 35 92% 55%;
-    --primary-foreground: 25 50% 10%;
+    --primary: 30 85% 55%;
+    --primary-foreground: 25 40% 10%;
 
-    --secondary: 210 55% 50%;
+    --secondary: 200 50% 45%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 25 20% 20%;
-    --muted-foreground: 35 20% 60%;
+    --muted: 25 25% 22%;
+    --muted-foreground: 35 25% 65%;
 
-    --accent: 280 55% 50%;
+    --accent: 330 50% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 20% 25%;
-    --input: 25 20% 25%;
-    --ring: 35 92% 55%;
+    --success: 142 55% 40%;
+    --success-foreground: 0 0% 100%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --warning: 40 90% 50%;
+    --warning-foreground: 25 50% 10%;
+
+    --border: 25 25% 28%;
+    --input: 25 25% 25%;
+    --ring: 30 85% 55%;
+
+    --radius: 1rem;
+
+    /* Pet-specific colors - warm tones */
+    --bunny-happy: 35 45% 75%;
+    --bunny-neutral: 30 40% 70%;
+    --bunny-sad: 25 20% 50%;
+    --bunny-pink: 350 70% 70%;
+
+    --fish-orange: 25 90% 55%;
+    --fish-yellow: 40 90% 60%;
+    --fish-tail: 15 85% 50%;
+
+    --tank-water: 185 45% 40%;
+    --tank-deep: 195 50% 30%;
+    --tank-sand: 35 55% 45%;
+
+    --habitat-sky: 30 60% 75%;
+    --habitat-grass: 85 35% 40%;
+    --habitat-ground: 30 50% 35%;
+
+    --park-sky: 30 70% 70%;
+    --park-grass: 75 40% 35%;
+    --park-path: 30 45% 45%;
+
+    --room-wall: 25 35% 55%;
+    --room-floor: 25 45% 30%;
+
+    /* Status bar colors */
+    --status-good: 142 60% 45%;
+    --status-medium: 40 85% 50%;
+    --status-low: 0 75% 50%;
+
+    /* Lofi shadows - warm amber glow */
+    --shadow-soft: 0 4px 20px -4px hsl(30 60% 20% / 0.3);
+    --shadow-medium: 0 8px 30px -6px hsl(30 60% 15% / 0.4);
+    --shadow-strong: 0 12px 40px -8px hsl(30 60% 10% / 0.5);
+
+    --sidebar-background: 25 30% 15%;
+    --sidebar-foreground: 35 30% 90%;
+    --sidebar-primary: 30 85% 55%;
+    --sidebar-primary-foreground: 25 40% 10%;
+    --sidebar-accent: 25 25% 22%;
+    --sidebar-accent-foreground: 35 30% 90%;
+    --sidebar-border: 25 25% 28%;
+    --sidebar-ring: 30 85% 55%;
+  }
+
+  .dark {
+    /* Dark mode is same as base for lofi aesthetic */
+    --background: 25 35% 12%;
+    --foreground: 35 30% 90%;
+
+    --card: 25 30% 18%;
+    --card-foreground: 35 30% 90%;
+
+    --popover: 25 30% 18%;
+    --popover-foreground: 35 30% 90%;
+
+    --primary: 30 85% 55%;
+    --primary-foreground: 25 40% 10%;
+
+    --secondary: 200 50% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 25 25% 22%;
+    --muted-foreground: 35 25% 65%;
+
+    --accent: 330 50% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 25% 28%;
+    --input: 25 25% 25%;
+    --ring: 30 85% 55%;
+
+    --sidebar-background: 25 30% 15%;
+    --sidebar-foreground: 35 30% 90%;
+    --sidebar-primary: 30 85% 55%;
+    --sidebar-primary-foreground: 25 40% 10%;
+    --sidebar-accent: 25 25% 22%;
+    --sidebar-accent-foreground: 35 30% 90%;
+    --sidebar-border: 25 25% 28%;
+    --sidebar-ring: 30 85% 55%;
   }
 }
 
@@ -195,6 +197,31 @@
            rounded-2xl shadow-lg text-sm font-bold border-4 border-primary
            animate-bounce-slow;
   }
+
+  /* Lofi-specific components */
+  .lofi-overlay {
+    @apply pointer-events-none absolute inset-0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      hsl(30 60% 50% / 0.05) 50%,
+      hsl(25 50% 30% / 0.15) 100%
+    );
+  }
+
+  .lofi-vignette {
+    @apply pointer-events-none absolute inset-0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      hsl(25 40% 8% / 0.4) 100%
+    );
+  }
+
+  .lofi-grain {
+    @apply pointer-events-none absolute inset-0 opacity-[0.03];
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
 }
 
 @layer utilities {
@@ -216,6 +243,18 @@
 
   .animate-pulse-soft {
     animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .animate-breathe {
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  .animate-float-dust {
+    animation: float-dust 8s ease-in-out infinite;
+  }
+
+  .animate-sway {
+    animation: sway 6s ease-in-out infinite;
   }
 
   @keyframes bounce-slow {
@@ -243,5 +282,22 @@
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; }
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+
+  @keyframes float-dust {
+    0% { transform: translateY(100%) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100%) translateX(20px); opacity: 0; }
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
   }
 }
