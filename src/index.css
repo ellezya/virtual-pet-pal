@@ -365,8 +365,16 @@
       transform: rotate(var(--plant-sway-deg, 3deg));
     }
   }
-
-
+  @keyframes shimmer {
+    0%, 100% {
+      opacity: 0.5;
+      transform: scaleY(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scaleY(1.02);
+    }
+  }
 
   @keyframes sway {
     0%, 100% { transform: rotate(-1deg) translateX(0); }

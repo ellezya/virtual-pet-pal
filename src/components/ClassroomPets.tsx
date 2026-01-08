@@ -864,10 +864,50 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Breeze/wind particles - also outside scene div */}
+        {/* Shimmering light rays from window that pulse with wind */}
+        {currentPet !== 'fish' && currentScene === 'habitat' && (
+          <div 
+            className="absolute pointer-events-none z-[3]"
+            style={{ 
+              right: '5%', 
+              top: '5%', 
+              width: '45%', 
+              height: '70%',
+            }}
+            aria-hidden="true"
+          >
+            {/* Multiple light ray beams */}
+            {[
+              { rotation: -15, width: '25%', left: '10%', delay: 0 },
+              { rotation: -10, width: '20%', left: '30%', delay: 0.5 },
+              { rotation: -5, width: '30%', left: '50%', delay: 1 },
+              { rotation: 0, width: '22%', left: '75%', delay: 1.5 },
+            ].map((ray, idx) => (
+              <div
+                key={`ray-${idx}`}
+                className="absolute top-0 h-full"
+                style={{
+                  left: ray.left,
+                  width: ray.width,
+                  transform: `rotate(${ray.rotation}deg)`,
+                  transformOrigin: 'top center',
+                  background: `linear-gradient(180deg, 
+                    hsla(45, 90%, 85%, ${0.15 + windIntensity * 0.1}) 0%, 
+                    hsla(45, 80%, 80%, ${0.08 + windIntensity * 0.05}) 50%, 
+                    transparent 100%)`,
+                  animation: `shimmer ${3 + idx * 0.5}s ease-in-out infinite`,
+                  animationDelay: `${ray.delay}s`,
+                  opacity: 0.6 + windIntensity * 0.3,
+                  filter: 'blur(8px)',
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Breeze/wind particles */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-[3]">
-
             {[...Array(6)].map((_, i) => (
               <div
                 key={`breeze-${i}`}
