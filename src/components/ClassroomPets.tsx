@@ -863,40 +863,39 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Animated window curtains (sway intensity follows wind sound) */}
+        {/* Animated window curtains (sway intensity follows wind sound) - cream/yellow to match image */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div
             className="absolute pointer-events-none z-[6]"
-            style={{ left: '5%', top: '6%', width: '34%', height: '54%' }}
+            style={{ right: '8%', top: '5%', width: '28%', height: '52%' }}
             aria-hidden="true"
           >
-            {/* Left curtain */}
+            {/* Left curtain - cream/yellow sheer */}
             <svg
               className="absolute left-0 top-0 h-full w-1/2 animate-curtain-blow"
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
               style={{
                 transformOrigin: 'top left',
-                filter: 'drop-shadow(0 12px 18px hsl(var(--foreground) / 0.12))',
-                // CSS variables consumed by @keyframes curtain-blow
+                filter: 'drop-shadow(2px 8px 12px hsla(40, 30%, 20%, 0.15))',
                 ['--curtain-sway-x' as any]: `${curtainSwayX}px`,
                 ['--curtain-skew-start' as any]: `${-curtainSkew}deg`,
                 ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
                 ['--curtain-scale-x' as any]: `${curtainScaleX}`,
                 ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.72 + curtainStrength * 0.1}`,
-                ['--curtain-opacity-max' as any]: `${0.9 + curtainStrength * 0.1}`,
+                ['--curtain-opacity-min' as any]: `${0.5 + curtainStrength * 0.15}`,
+                ['--curtain-opacity-max' as any]: `${0.7 + curtainStrength * 0.15}`,
               }}
             >
               <defs>
                 <linearGradient id="curtainGradL" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--background) / 0.34)" />
-                  <stop offset="55%" stopColor="hsl(var(--background) / 0.18)" />
-                  <stop offset="100%" stopColor="hsl(var(--background) / 0.02)" />
+                  <stop offset="0%" stopColor="hsla(45, 60%, 92%, 0.45)" />
+                  <stop offset="55%" stopColor="hsla(45, 55%, 88%, 0.25)" />
+                  <stop offset="100%" stopColor="hsla(45, 50%, 85%, 0.05)" />
                 </linearGradient>
                 <linearGradient id="curtainFoldsL" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--foreground) / 0.06)" />
-                  <stop offset="100%" stopColor="hsl(var(--foreground) / 0.00)" />
+                  <stop offset="0%" stopColor="hsla(40, 30%, 60%, 0.12)" />
+                  <stop offset="100%" stopColor="hsla(40, 30%, 60%, 0.00)" />
                 </linearGradient>
               </defs>
 
@@ -912,7 +911,7 @@ const ClassroomPets = () => {
               <path d="M66,0 L66,100" stroke="url(#curtainFoldsL)" strokeWidth="1" opacity="0.25" />
             </svg>
 
-            {/* Right curtain */}
+            {/* Right curtain - cream/yellow sheer */}
             <svg
               className="absolute right-0 top-0 h-full w-1/2 animate-curtain-blow"
               viewBox="0 0 100 100"
@@ -920,25 +919,25 @@ const ClassroomPets = () => {
               style={{
                 transformOrigin: 'top right',
                 animationDelay: '0.6s',
-                filter: 'drop-shadow(0 12px 18px hsl(var(--foreground) / 0.12))',
+                filter: 'drop-shadow(-2px 8px 12px hsla(40, 30%, 20%, 0.15))',
                 ['--curtain-sway-x' as any]: `${curtainSwayX}px`,
                 ['--curtain-skew-start' as any]: `${-curtainSkew}deg`,
                 ['--curtain-skew-mid' as any]: `${curtainSkew}deg`,
                 ['--curtain-scale-x' as any]: `${curtainScaleX}`,
                 ['--curtain-duration' as any]: `${curtainDuration}s`,
-                ['--curtain-opacity-min' as any]: `${0.7 + curtainStrength * 0.1}`,
-                ['--curtain-opacity-max' as any]: `${0.9 + curtainStrength * 0.1}`,
+                ['--curtain-opacity-min' as any]: `${0.45 + curtainStrength * 0.15}`,
+                ['--curtain-opacity-max' as any]: `${0.7 + curtainStrength * 0.15}`,
               }}
             >
               <defs>
                 <linearGradient id="curtainGradR" x1="1" y1="0" x2="0" y2="0">
-                  <stop offset="0%" stopColor="hsl(var(--background) / 0.32)" />
-                  <stop offset="55%" stopColor="hsl(var(--background) / 0.17)" />
-                  <stop offset="100%" stopColor="hsl(var(--background) / 0.02)" />
+                  <stop offset="0%" stopColor="hsla(45, 60%, 92%, 0.42)" />
+                  <stop offset="55%" stopColor="hsla(45, 55%, 88%, 0.22)" />
+                  <stop offset="100%" stopColor="hsla(45, 50%, 85%, 0.05)" />
                 </linearGradient>
                 <linearGradient id="curtainFoldsR" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--foreground) / 0.06)" />
-                  <stop offset="100%" stopColor="hsl(var(--foreground) / 0.00)" />
+                  <stop offset="0%" stopColor="hsla(40, 30%, 60%, 0.12)" />
+                  <stop offset="100%" stopColor="hsla(40, 30%, 60%, 0.00)" />
                 </linearGradient>
               </defs>
 
@@ -955,6 +954,7 @@ const ClassroomPets = () => {
             </svg>
           </div>
         )}
+
 
         {/* Breeze/wind particles - also outside scene div */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
