@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RotateCcw, Lock, Unlock, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
@@ -51,6 +52,41 @@ const ClassroomPets = () => {
     locked: false,
     notifications: [] as string[]
   });
+
+  // Create truly transparent bunny sprites at runtime (removes baked-in white/checkerboard background)
+  const [bunnySpriteAlpha, setBunnySpriteAlpha] = useState<{
+    happy: string;
+    sad: string;
+    eating: string;
+    drinking: string;
+    playing: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [happy, sad, eating, drinking, playing] = await Promise.all([
+          removeSolidBackgroundToDataUrl(bunnyHappy),
+          removeSolidBackgroundToDataUrl(bunnySad),
+          removeSolidBackgroundToDataUrl(bunnyEating),
+          removeSolidBackgroundToDataUrl(bunnyDrinking),
+          removeSolidBackgroundToDataUrl(bunnyPlaying),
+        ]);
+
+        if (!cancelled) {
+          setBunnySpriteAlpha({ happy, sad, eating, drinking, playing });
+        }
+      } catch {
+        // If anything fails, we just fall back to original sprites.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Bunny decay
   useEffect(() => {
@@ -252,11 +288,13 @@ const ClassroomPets = () => {
   };
 
   const getBunnyImage = () => {
-    if (bunnyState.action === 'eating') return bunnyEating;
-    if (bunnyState.action === 'drinking') return bunnyDrinking;
-    if (bunnyState.action === 'playing') return bunnyPlaying;
-    if (bunnyState.mood === 'sad') return bunnySad;
-    return bunnyHappy;
+    const alpha = bunnySpriteAlpha;
+
+    if (bunnyState.action === 'eating') return alpha?.eating ?? bunnyEating;
+    if (bunnyState.action === 'drinking') return alpha?.drinking ?? bunnyDrinking;
+    if (bunnyState.action === 'playing') return alpha?.playing ?? bunnyPlaying;
+    if (bunnyState.mood === 'sad') return alpha?.sad ?? bunnySad;
+    return alpha?.happy ?? bunnyHappy;
   };
 
   const getFishImage = () => {
