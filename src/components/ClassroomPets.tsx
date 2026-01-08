@@ -1565,7 +1565,7 @@ const ClassroomPets = () => {
           {currentPet === 'bunny' && (
             <button
               onClick={cleanHabitat}
-              disabled={gameState.locked || poops.length === 0}
+              disabled={gameState.locked || (poops.length === 0 && bunnyState.cleanliness >= 40)}
               className="pet-button-clean w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
             >
               <span className="flex items-center gap-0.5 leading-none">
