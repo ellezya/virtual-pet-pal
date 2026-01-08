@@ -399,8 +399,35 @@ const ClassroomPets = () => {
             }}
           />
 
-          {/* Overlay for better pet visibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/10 to-transparent" />
+          {/* Lofi overlays */}
+          <div className="lofi-overlay" />
+          <div className="lofi-vignette" />
+          <div className="lofi-grain" />
+          
+          {/* Warm sunlight rays */}
+          <div className="absolute inset-0 pointer-events-none opacity-40">
+            <div 
+              className="absolute top-0 right-[20%] w-[200px] h-[120%] bg-gradient-to-b from-primary/30 via-primary/10 to-transparent rotate-[15deg] blur-xl"
+            />
+            <div 
+              className="absolute top-0 right-[35%] w-[100px] h-[100%] bg-gradient-to-b from-warning/20 via-warning/5 to-transparent rotate-[20deg] blur-lg"
+            />
+          </div>
+        </div>
+
+        {/* Floating dust particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-primary/40 animate-float-dust"
+              style={{
+                left: `${5 + i * 8}%`,
+                animationDelay: `${i * 0.7}s`,
+                animationDuration: `${6 + Math.random() * 4}s`,
+              }}
+            />
+          ))}
         </div>
 
         {/* Animated Bubbles for Fish Tank */}
@@ -409,7 +436,7 @@ const ClassroomPets = () => {
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="absolute bg-white/30 rounded-full animate-bounce"
+                className="absolute bg-secondary/30 rounded-full animate-bounce"
                 style={{
                   width: `${8 + Math.random() * 12}px`,
                   height: `${8 + Math.random() * 12}px`,
@@ -434,7 +461,7 @@ const ClassroomPets = () => {
             transform: 'translate(-50%, -50%)'
           }}
         >
-          <div className={`relative ${
+          <div className={`relative animate-breathe ${
             currentPet === 'fish' ? 'animate-swim' : ''
           } ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'animate-hop' : ''
