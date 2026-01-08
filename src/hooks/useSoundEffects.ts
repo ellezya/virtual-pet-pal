@@ -34,46 +34,31 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     return audioContextRef.current;
   }, []);
 
-  // Soft scratchy hop sound - like landing on hay/straw barn floor
+  // Soft low thump for hopping
   const playHop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Create scratchy noise for hay/straw texture
-    const bufferSize = ctx.sampleRate * 0.15;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.6;
-    }
-    
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    
-    // Bandpass filter for scratchy texture
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1200, time);
-    filter.Q.setValueAtTime(1.5, time);
-    
-    // Highpass to remove low rumble
-    const highpass = ctx.createBiquadFilter();
-    highpass.type = 'highpass';
-    highpass.frequency.setValueAtTime(200, time);
-    
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(sfxVolume * 0.25, time + 0.01);
+    const filter = ctx.createBiquadFilter();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(60, time);
+    osc.frequency.exponentialRampToValueAtTime(30, time + 0.1);
+    
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(150, time);
+    
+    gain.gain.setValueAtTime(sfxVolume * 0.25, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
     
-    noise.connect(filter);
-    filter.connect(highpass);
-    highpass.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
     
-    noise.start(time);
-    noise.stop(time + 0.15);
+    osc.start(time);
+    osc.stop(time + 0.15);
   }, [getAudioContext]);
 
   // Crunchy eating sound
