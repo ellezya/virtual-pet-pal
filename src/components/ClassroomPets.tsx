@@ -489,13 +489,13 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Park scene - uses park image */}
+        {/* Park scene - pulled back to show grass */}
         {currentPet !== 'fish' && currentScene === 'park' && (
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 bg-park-grass">
             <img 
               src={habitatPark} 
               alt="Park" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-bottom"
               loading="eager"
             />
           </div>
