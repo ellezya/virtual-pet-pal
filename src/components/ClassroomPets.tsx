@@ -477,13 +477,13 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Room scene - uses room image */}
+        {/* Room scene - pulled back to show floor */}
         {currentPet !== 'fish' && currentScene === 'room' && (
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 bg-room-floor">
             <img 
               src={habitatRoom} 
               alt="Room" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-bottom"
               loading="eager"
             />
           </div>
