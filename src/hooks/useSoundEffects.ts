@@ -194,26 +194,104 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     });
   }, [getAudioContext]);
 
-  // Subtle poop sound (plop)
+  // Magical squirty poop sound with glitter sparkle at the end
   const playPoop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // Initial magical whoosh buildup
+    const whooshOsc = ctx.createOscillator();
+    const whooshGain = ctx.createGain();
+    const whooshFilter = ctx.createBiquadFilter();
     
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(180, time);
-    osc.frequency.exponentialRampToValueAtTime(70, time + 0.12);
+    whooshOsc.type = 'sawtooth';
+    whooshOsc.frequency.setValueAtTime(200, time);
+    whooshOsc.frequency.exponentialRampToValueAtTime(600, time + 0.15);
     
-    gain.gain.setValueAtTime(sfxVolume * 0.4, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
+    whooshFilter.type = 'bandpass';
+    whooshFilter.frequency.setValueAtTime(400, time);
+    whooshFilter.frequency.exponentialRampToValueAtTime(1200, time + 0.15);
+    whooshFilter.Q.setValueAtTime(2, time);
     
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    whooshGain.gain.setValueAtTime(0, time);
+    whooshGain.gain.linearRampToValueAtTime(sfxVolume * 0.25, time + 0.05);
+    whooshGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
     
-    osc.start(time);
-    osc.stop(time + 0.2);
+    whooshOsc.connect(whooshFilter);
+    whooshFilter.connect(whooshGain);
+    whooshGain.connect(ctx.destination);
+    
+    whooshOsc.start(time);
+    whooshOsc.stop(time + 0.25);
+    
+    // Squirty bubble sounds (3-4 rapid bubbles)
+    for (let i = 0; i < 4; i++) {
+      const bubbleOsc = ctx.createOscillator();
+      const bubbleGain = ctx.createGain();
+      
+      bubbleOsc.type = 'sine';
+      const startFreq = 300 + Math.random() * 150;
+      bubbleOsc.frequency.setValueAtTime(startFreq, time + 0.1 + i * 0.06);
+      bubbleOsc.frequency.exponentialRampToValueAtTime(startFreq * 0.5, time + 0.1 + i * 0.06 + 0.08);
+      
+      bubbleGain.gain.setValueAtTime(0, time + 0.1 + i * 0.06);
+      bubbleGain.gain.linearRampToValueAtTime(sfxVolume * 0.3, time + 0.1 + i * 0.06 + 0.02);
+      bubbleGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1 + i * 0.06 + 0.1);
+      
+      bubbleOsc.connect(bubbleGain);
+      bubbleGain.connect(ctx.destination);
+      
+      bubbleOsc.start(time + 0.1 + i * 0.06);
+      bubbleOsc.stop(time + 0.1 + i * 0.06 + 0.12);
+    }
+    
+    // Magical glitter sparkle at the end (high-pitched chimes)
+    const sparkleNotes = [2400, 3200, 2800, 3600, 4000];
+    sparkleNotes.forEach((freq, i) => {
+      const sparkleOsc = ctx.createOscillator();
+      const sparkleGain = ctx.createGain();
+      
+      sparkleOsc.type = 'sine';
+      sparkleOsc.frequency.setValueAtTime(freq, time + 0.35 + i * 0.04);
+      
+      sparkleGain.gain.setValueAtTime(0, time + 0.35 + i * 0.04);
+      sparkleGain.gain.linearRampToValueAtTime(sfxVolume * 0.15, time + 0.35 + i * 0.04 + 0.01);
+      sparkleGain.gain.exponentialRampToValueAtTime(0.01, time + 0.35 + i * 0.04 + 0.15);
+      
+      sparkleOsc.connect(sparkleGain);
+      sparkleGain.connect(ctx.destination);
+      
+      sparkleOsc.start(time + 0.35 + i * 0.04);
+      sparkleOsc.stop(time + 0.35 + i * 0.04 + 0.2);
+    });
+    
+    // Final shimmer (filtered noise burst)
+    const shimmerBufferSize = ctx.sampleRate * 0.25;
+    const shimmerBuffer = ctx.createBuffer(1, shimmerBufferSize, ctx.sampleRate);
+    const shimmerData = shimmerBuffer.getChannelData(0);
+    
+    for (let i = 0; i < shimmerBufferSize; i++) {
+      shimmerData[i] = (Math.random() * 2 - 1) * 0.2;
+    }
+    
+    const shimmerNoise = ctx.createBufferSource();
+    shimmerNoise.buffer = shimmerBuffer;
+    
+    const shimmerFilter = ctx.createBiquadFilter();
+    shimmerFilter.type = 'highpass';
+    shimmerFilter.frequency.setValueAtTime(4000, time + 0.45);
+    
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.setValueAtTime(0, time + 0.45);
+    shimmerGain.gain.linearRampToValueAtTime(sfxVolume * 0.2, time + 0.5);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.01, time + 0.7);
+    
+    shimmerNoise.connect(shimmerFilter);
+    shimmerFilter.connect(shimmerGain);
+    shimmerGain.connect(ctx.destination);
+    
+    shimmerNoise.start(time + 0.45);
+    shimmerNoise.stop(time + 0.75);
   }, [getAudioContext]);
 
   // Play a single bird chirp

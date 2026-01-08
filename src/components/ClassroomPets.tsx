@@ -69,14 +69,33 @@ const ClassroomPets = () => {
   // Poop positions in the habitat
   const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
+  // Modern trampoline SVG component
+  const TrampolineSVG = () => (
+    <svg width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+      {/* Legs */}
+      <path d="M6 24L10 12" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M42 24L38 12" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"/>
+      {/* Frame */}
+      <ellipse cx="24" cy="12" rx="20" ry="4" fill="hsl(var(--primary))" opacity="0.2"/>
+      <ellipse cx="24" cy="12" rx="20" ry="4" stroke="hsl(var(--primary))" strokeWidth="2"/>
+      {/* Bouncing surface - mesh pattern */}
+      <ellipse cx="24" cy="12" rx="17" ry="3" fill="hsl(var(--secondary))" opacity="0.4"/>
+      {/* Cross pattern for mesh effect */}
+      <line x1="10" y1="12" x2="38" y2="12" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.5"/>
+      <line x1="24" y1="9" x2="24" y2="15" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.5"/>
+      <line x1="16" y1="10" x2="16" y2="14" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.3"/>
+      <line x1="32" y1="10" x2="32" y2="14" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" opacity="0.3"/>
+    </svg>
+  );
+
   // Toys configuration
   const toys = [
-    { id: 'trampoline', emoji: '🎪', name: 'Trampoline', energyCost: 25, happinessBoost: 30, lowEnergy: false },
-    { id: 'tunnel', emoji: '🪵', name: 'Tunnel', energyCost: 15, happinessBoost: 20, lowEnergy: false },
-    { id: 'hayPile', emoji: '🪺', name: 'Hay Pile', energyCost: 8, happinessBoost: 15, lowEnergy: true },
-    { id: 'balloon', emoji: '🎈', name: 'Balloon', energyCost: 5, happinessBoost: 12, lowEnergy: true },
-    { id: 'cardboard', emoji: '📦', name: 'Box', energyCost: 10, happinessBoost: 18, lowEnergy: true },
-    { id: 'yarn', emoji: '🧶', name: 'Yarn', energyCost: 6, happinessBoost: 14, lowEnergy: true },
+    { id: 'trampoline', emoji: null, component: TrampolineSVG, name: 'Trampoline', energyCost: 25, happinessBoost: 30, lowEnergy: false },
+    { id: 'tunnel', emoji: '🪵', component: null, name: 'Tunnel', energyCost: 15, happinessBoost: 20, lowEnergy: false },
+    { id: 'hayPile', emoji: '🪺', component: null, name: 'Hay Pile', energyCost: 8, happinessBoost: 15, lowEnergy: true },
+    { id: 'balloon', emoji: '🎈', component: null, name: 'Balloon', energyCost: 5, happinessBoost: 12, lowEnergy: true },
+    { id: 'cardboard', emoji: '📦', component: null, name: 'Box', energyCost: 10, happinessBoost: 18, lowEnergy: true },
+    { id: 'yarn', emoji: '🧶', component: null, name: 'Yarn', energyCost: 6, happinessBoost: 14, lowEnergy: true },
   ];
   
   const [selectedToy, setSelectedToy] = useState(toys[0]);
@@ -770,7 +789,11 @@ const ClassroomPets = () => {
               } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
               style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
+              {selectedToy.component ? (
+                <selectedToy.component />
+              ) : (
+                <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">{selectedToy.emoji}</div>
+              )}
             </div>
             
             {/* Poops */}
@@ -885,7 +908,16 @@ const ClassroomPets = () => {
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                 title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
               >
-                <span className="text-xl">{toy.emoji}</span>
+                {toy.component ? (
+                  <div className="w-6 h-4 flex items-center justify-center">
+                    <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
+                      <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                ) : (
+                  <span className="text-xl">{toy.emoji}</span>
+                )}
                 <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
                 <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
               </button>
