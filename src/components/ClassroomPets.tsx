@@ -33,19 +33,25 @@ const ClassroomPets = () => {
     hydration: 75,
     energy: 70,
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
-    action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing',
+    action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
-    position: { x: 50, y: 85 },
-    targetObject: null as null | 'food-bowl' | 'water-bottle' | 'toy-ball',
+    position: { x: 50, y: 88 },
+    targetObject: null as null | 'food-bowl' | 'water-bowl' | 'toy-ball',
     isHopping: false,
     facingRight: true
   });
 
-  // Interactive environment objects - positioned on the floor
+  // Bowl fill levels (0-100)
+  const [bowlLevels, setBowlLevels] = useState({
+    food: 0,
+    water: 0
+  });
+
+  // Stationary environment objects - positioned on the floor
   const envObjects = {
-    'food-bowl': { x: 20, y: 88, emoji: '🥕', label: 'Food Bowl' },
-    'water-bottle': { x: 80, y: 88, emoji: '💧', label: 'Water' },
-    'toy-ball': { x: 50, y: 90, emoji: '🎾', label: 'Toy' },
+    'food-bowl': { x: 25, y: 92 },
+    'water-bowl': { x: 75, y: 92 },
+    'toy-ball': { x: 50, y: 94 },
   };
 
   const [fishState, setFishState] = useState({
@@ -160,10 +166,10 @@ const ClassroomPets = () => {
         return;
       }
       
-      // Random idle wandering - keep bunny on floor area (25-75% X, 82-90% Y)
-      const deltaX = (Math.random() - 0.5) * 15;
-      const newX = Math.max(25, Math.min(75, bunnyState.position.x + deltaX));
-      const newY = Math.max(82, Math.min(90, bunnyState.position.y + (Math.random() - 0.5) * 4));
+      // Random idle wandering - keep bunny on floor near bowls (30-70% X, 86-92% Y)
+      const deltaX = (Math.random() - 0.5) * 12;
+      const newX = Math.max(30, Math.min(70, bunnyState.position.x + deltaX));
+      const newY = Math.max(86, Math.min(92, bunnyState.position.y + (Math.random() - 0.5) * 3));
       const movingRight = deltaX > 0;
       
       setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -230,7 +236,7 @@ const ClassroomPets = () => {
     return () => clearInterval(checkNeeds);
   }, [currentPet, bunnyState, fishState]);
 
-  const doAction = (actionType: 'eating' | 'drinking' | 'playing', targetObj: 'food-bowl' | 'water-bottle' | 'toy-ball' | null, duration = 3000) => {
+  const doAction = (actionType: 'eating' | 'drinking' | 'playing', targetObj: 'food-bowl' | 'water-bowl' | 'toy-ball' | null, duration = 3000) => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
       // Set target and start hopping towards it
@@ -256,6 +262,8 @@ const ClassroomPets = () => {
   const feedPet = () => {
     if (gameState.locked) return;
     if (currentPet === 'bunny') {
+      // Fill the food bowl first
+      setBowlLevels(prev => ({ ...prev, food: 100 }));
       doAction('eating', 'food-bowl', 4000);
       setTimeout(() => {
         setBunnyState(prev => ({ 
@@ -263,6 +271,8 @@ const ClassroomPets = () => {
           hunger: Math.min(100, prev.hunger + 40), 
           happiness: Math.min(100, prev.happiness + 10) 
         }));
+        // Drain the bowl as bunny eats
+        setBowlLevels(prev => ({ ...prev, food: Math.max(0, prev.food - 60) }));
       }, 800);
     } else {
       doAction('eating', null, 3000);
@@ -276,13 +286,17 @@ const ClassroomPets = () => {
 
   const waterBunny = () => {
     if (gameState.locked || currentPet !== 'bunny') return;
-    doAction('drinking', 'water-bottle', 3000);
+    // Fill the water bowl first
+    setBowlLevels(prev => ({ ...prev, water: 100 }));
+    doAction('drinking', 'water-bowl', 3000);
     setTimeout(() => {
       setBunnyState(prev => ({ 
         ...prev, 
         hydration: Math.min(100, prev.hydration + 50), 
         happiness: Math.min(100, prev.happiness + 5) 
       }));
+      // Drain the bowl as bunny drinks
+      setBowlLevels(prev => ({ ...prev, water: Math.max(0, prev.water - 50) }));
     }, 800);
   };
 
@@ -325,11 +339,12 @@ const ClassroomPets = () => {
         mood: 'happy',
         action: 'idle',
         idleBehavior: 'none',
-        position: { x: 50, y: 85 },
+        position: { x: 50, y: 88 },
         targetObject: null,
         isHopping: false,
         facingRight: true
       });
+      setBowlLevels({ food: 0, water: 0 });
     } else {
       setFishState({
         hunger: 70,
@@ -575,26 +590,56 @@ const ClassroomPets = () => {
         {/* Interactive Environment Objects for Bunny */}
         {currentPet === 'bunny' && (
           <div className="absolute inset-0 z-[5] pointer-events-none">
-            {/* Food Bowl */}
+            {/* Food Bowl - stationary with fill level */}
             <div 
               className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'food-bowl' ? 'scale-110' : ''
-              } ${bunnyState.action === 'eating' ? 'animate-wiggle' : ''}`}
-              style={{ left: `${envObjects['food-bowl'].x}%`, top: `${envObjects['food-bowl'].y}%`, transform: 'translate(-50%, -50%)' }}
+                bunnyState.targetObject === 'food-bowl' ? 'scale-105' : ''
+              }`}
+              style={{ left: `${envObjects['food-bowl'].x}%`, top: `${envObjects['food-bowl'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              <div className="text-2xl sm:text-3xl drop-shadow-lg">🥕</div>
-              <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-foreground/10 rounded-full blur-sm" />
+              {/* Bowl container */}
+              <div className="relative w-10 h-6 sm:w-12 sm:h-7">
+                {/* Bowl shape */}
+                <div className="absolute inset-0 bg-gradient-to-b from-amber-600 to-amber-800 rounded-b-full rounded-t-lg border-2 border-amber-900 overflow-hidden">
+                  {/* Food fill */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500 to-orange-400 transition-all duration-500"
+                    style={{ height: `${bowlLevels.food}%` }}
+                  />
+                  {/* Carrots on top when filled */}
+                  {bowlLevels.food > 50 && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 text-xs">🥕</div>
+                  )}
+                </div>
+              </div>
+              {/* Label */}
+              <div className="text-[10px] text-center text-foreground/60 font-bold mt-0.5">Food</div>
             </div>
             
-            {/* Water Bottle */}
+            {/* Water Bowl - stationary with fill level */}
             <div 
               className={`absolute transition-transform duration-200 ${
-                bunnyState.targetObject === 'water-bottle' ? 'scale-110' : ''
-              } ${bunnyState.action === 'drinking' ? 'animate-wiggle' : ''}`}
-              style={{ left: `${envObjects['water-bottle'].x}%`, top: `${envObjects['water-bottle'].y}%`, transform: 'translate(-50%, -50%)' }}
+                bunnyState.targetObject === 'water-bowl' ? 'scale-105' : ''
+              }`}
+              style={{ left: `${envObjects['water-bowl'].x}%`, top: `${envObjects['water-bowl'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
-              <div className="text-2xl sm:text-3xl drop-shadow-lg">💧</div>
-              <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-secondary/20 rounded-full blur-sm" />
+              {/* Bowl container */}
+              <div className="relative w-10 h-6 sm:w-12 sm:h-7">
+                {/* Bowl shape */}
+                <div className="absolute inset-0 bg-gradient-to-b from-sky-600 to-sky-800 rounded-b-full rounded-t-lg border-2 border-sky-900 overflow-hidden">
+                  {/* Water fill */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-cyan-400 to-cyan-300 transition-all duration-500"
+                    style={{ height: `${bowlLevels.water}%` }}
+                  />
+                  {/* Ripple effect when filled */}
+                  {bowlLevels.water > 30 && (
+                    <div className="absolute top-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-white/30 rounded-full animate-pulse" />
+                  )}
+                </div>
+              </div>
+              {/* Label */}
+              <div className="text-[10px] text-center text-foreground/60 font-bold mt-0.5">Water</div>
             </div>
             
             {/* Toy Ball */}
@@ -602,14 +647,12 @@ const ClassroomPets = () => {
               className={`absolute transition-transform duration-200 ${
                 bunnyState.targetObject === 'toy-ball' ? 'scale-110' : ''
               } ${bunnyState.action === 'playing' ? 'animate-bounce-slow' : ''}`}
-              style={{ left: `${envObjects['toy-ball'].x}%`, top: `${envObjects['toy-ball'].y}%`, transform: 'translate(-50%, -50%)' }}
+              style={{ left: `${envObjects['toy-ball'].x}%`, top: `${envObjects['toy-ball'].y}%`, transform: 'translate(-50%, -100%)' }}
             >
               <div className="text-xl sm:text-2xl drop-shadow-lg">🎾</div>
-              <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-1 bg-foreground/10 rounded-full blur-sm" />
             </div>
           </div>
         )}
-
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
         <div 
           className={`absolute z-10 transition-all ease-out ${
@@ -638,15 +681,15 @@ const ClassroomPets = () => {
             (currentPet === 'fish' && fishState.action === 'playing')
               ? 'animate-wiggle' : ''
           }`}>
-            {/* Pet Image - smaller size for room view */}
+            {/* Pet Image - scaled to fit room */}
             <img 
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
-              className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain drop-shadow-2xl transition-all duration-300 ${
-                bunnyState.action === 'eating' || fishState.action === 'eating' ? 'scale-110' : ''
+              className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl transition-all duration-300 ${
+                bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
-                filter: 'drop-shadow(0 8px 14px hsl(var(--foreground) / 0.25))',
+                filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
                 transform: currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
               }}
             />
