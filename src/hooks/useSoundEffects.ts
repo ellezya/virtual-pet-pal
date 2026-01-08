@@ -290,6 +290,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
     const ctx = getAudioContext();
+    console.log('Starting wind sound...');
     
     // Create wind using filtered noise
     const bufferSize = ctx.sampleRate * 2;
@@ -318,7 +319,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     lfoGain.connect(filter.frequency);
     
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(ambientVolume * 0.5, ctx.currentTime);
+    gain.gain.setValueAtTime(ambientVolume, ctx.currentTime);
     
     noise.connect(filter);
     filter.connect(gain);
@@ -327,23 +328,26 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     lfo.start();
     noise.start();
     
-    ambientNodesRef.current.wind = lfo as any;
+    // Store the noise source for later cleanup
+    ambientNodesRef.current.wind = noise as any;
     ambientNodesRef.current.windGain = gain;
     
-    // Store references for cleanup
-    (noise as any)._source = noise;
-    (lfo as any)._lfo = lfo;
-    ambientNodesRef.current.wind = noise as any;
-  }, [getAudioContext]);
+    console.log('Wind sound started');
+  }, [getAudioContext, ambientVolume]);
 
   // Toggle ambient sounds
   const toggleAmbient = useCallback(() => {
+    console.log('Toggle ambient called, currently playing:', isAmbientPlaying);
+    
     if (isAmbientPlaying) {
       // Stop all ambient sounds
       if (ambientNodesRef.current.wind) {
         try {
           (ambientNodesRef.current.wind as any).stop();
-        } catch {}
+          console.log('Wind stopped');
+        } catch (e) {
+          console.log('Error stopping wind:', e);
+        }
         ambientNodesRef.current.wind = null;
       }
       if (ambientNodesRef.current.birdInterval) {
@@ -356,28 +360,39 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       }
       setIsAmbientPlaying(false);
     } else {
+      // Initialize audio context first
+      const ctx = getAudioContext();
+      console.log('Audio context state:', ctx.state);
+      
       // Start ambient sounds
       startWindSound();
       
-      // Random bird chirps
+      // Random bird chirps every 2-4 seconds
       const birdInterval = setInterval(() => {
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.6) {
+          console.log('Playing bird chirp');
           playBirdChirp();
         }
-      }, 2000 + Math.random() * 3000);
+      }, 2000);
       ambientNodesRef.current.birdInterval = birdInterval;
       
-      // Random children sounds
+      // Random children sounds every 4-6 seconds
       const childrenInterval = setInterval(() => {
-        if (Math.random() < 0.3) {
+        if (Math.random() < 0.4) {
+          console.log('Playing children sound');
           playChildrenSound();
         }
-      }, 4000 + Math.random() * 4000);
+      }, 4000);
       ambientNodesRef.current.childrenInterval = childrenInterval;
       
+      // Play initial sounds immediately
+      playBirdChirp();
+      setTimeout(() => playChildrenSound(), 1000);
+      
       setIsAmbientPlaying(true);
+      console.log('Ambient sounds started');
     }
-  }, [isAmbientPlaying, startWindSound, playBirdChirp, playChildrenSound]);
+  }, [isAmbientPlaying, startWindSound, playBirdChirp, playChildrenSound, getAudioContext]);
 
   // Cleanup on unmount
   useEffect(() => {
