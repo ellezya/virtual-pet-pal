@@ -48,6 +48,8 @@ const ClassroomPets = () => {
   });
 
   const [bgImgFailed, setBgImgFailed] = useState(false);
+  const [bgImgStatus, setBgImgStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+  const [bgImgMeta, setBgImgMeta] = useState<{ w: number; h: number } | null>(null);
 
   // Bunny decay
   useEffect(() => {
@@ -262,6 +264,8 @@ const ClassroomPets = () => {
 
   useEffect(() => {
     setBgImgFailed(false);
+    setBgImgStatus('loading');
+    setBgImgMeta(null);
     // Debug: helps confirm which asset URL Vite is using
     console.log('[habitat] src', habitatSrc);
   }, [habitatSrc]);
@@ -354,7 +358,7 @@ const ClassroomPets = () => {
       {/* Main Scene */}
       <main className="flex-1 relative overflow-hidden">
         {/* Background Habitat with Fallback */}
-        <div className={`absolute inset-0 ${
+        <div className={`absolute inset-0 z-0 ${
           currentPet === 'fish' 
             ? 'bg-gradient-to-b from-tank-water via-tank-water to-tank-deep' 
             : currentScene === 'park'
@@ -364,15 +368,30 @@ const ClassroomPets = () => {
             : 'bg-gradient-to-b from-primary/20 to-primary/40'
         }`}>
           <img 
+            key={habitatSrc}
             src={habitatSrc} 
             alt="Pet habitat" 
             className={`w-full h-full object-cover transition-opacity duration-500 ${bgImgFailed ? 'opacity-0' : 'opacity-100'}`}
             loading="eager"
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              setBgImgStatus('loaded');
+              setBgImgMeta({ w: img.naturalWidth, h: img.naturalHeight });
+              console.log('[habitat] loaded', habitatSrc, img.naturalWidth, img.naturalHeight);
+            }}
             onError={() => {
               setBgImgFailed(true);
+              setBgImgStatus('error');
               console.log('[habitat] failed to load', habitatSrc);
             }}
           />
+
+          {/* On-screen debug so we don't rely on DevTools */}
+          <div className="absolute left-3 top-3 z-20 max-w-[85%] rounded-md border border-border bg-card/80 px-3 py-2 text-xs text-foreground backdrop-blur">
+            <div className="font-semibold">Background: {bgImgStatus}{bgImgMeta ? ` • ${bgImgMeta.w}×${bgImgMeta.h}` : ''}</div>
+            <div className="truncate text-muted-foreground">{habitatSrc}</div>
+          </div>
+
           {/* Overlay for better pet visibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
         </div>
