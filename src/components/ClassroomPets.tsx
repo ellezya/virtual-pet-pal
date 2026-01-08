@@ -33,6 +33,7 @@ const ClassroomPets = () => {
     happiness: 85,
     hydration: 75,
     energy: 70,
+    cleanliness: 90,
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing' | 'asking-food' | 'asking-water',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
@@ -41,6 +42,9 @@ const ClassroomPets = () => {
     isHopping: false,
     facingRight: true
   });
+
+  // Poop positions in the habitat
+  const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
   // Bowl fill levels (0-100)
   const [bowlLevels, setBowlLevels] = useState({
@@ -114,9 +118,10 @@ const ClassroomPets = () => {
           hunger: Math.max(0, prev.hunger - 0.5),
           hydration: Math.max(0, prev.hydration - 0.4),
           energy: Math.min(100, prev.energy - 0.2),
-          happiness: Math.max(0, prev.happiness - 0.3)
+          happiness: Math.max(0, prev.happiness - 0.3),
+          cleanliness: Math.max(0, prev.cleanliness - 0.15)
         };
-        if (newState.hunger < 30 || newState.hydration < 30) newState.mood = 'sad';
+        if (newState.hunger < 30 || newState.hydration < 30 || newState.cleanliness < 30) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'neutral';
         return newState;
@@ -124,6 +129,27 @@ const ClassroomPets = () => {
     }, 2000);
     return () => clearInterval(interval);
   }, [currentPet]);
+
+  // Bunny occasionally poops
+  useEffect(() => {
+    if (currentPet !== 'bunny') return;
+    const poopInterval = setInterval(() => {
+      // Random chance to poop (higher when recently fed)
+      if (Math.random() < 0.3 && poops.length < 5) {
+        const newPoop = {
+          id: Date.now(),
+          x: 25 + Math.random() * 50, // Random position in habitat
+          y: 90 + Math.random() * 6
+        };
+        setPoops(prev => [...prev, newPoop]);
+        setBunnyState(prev => ({
+          ...prev,
+          cleanliness: Math.max(0, prev.cleanliness - 10)
+        }));
+      }
+    }, 8000);
+    return () => clearInterval(poopInterval);
+  }, [currentPet, poops.length]);
 
   // Fish decay
   useEffect(() => {
@@ -227,6 +253,7 @@ const ClassroomPets = () => {
       if (currentPet === 'bunny') {
         if (bunnyState.hunger < 30) notifications.push('🥕 Lola is hungry!');
         if (bunnyState.hydration < 30) notifications.push('💧 Water low!');
+        if (bunnyState.cleanliness < 40) notifications.push('💩 Habitat needs cleaning!');
         if (bunnyState.happiness < 30) notifications.push('😢 Bunny is sad!');
       } else if (currentPet === 'fish') {
         if (fishState.hunger < 30) notifications.push('🐠 Fish hungry!');
@@ -322,12 +349,22 @@ const ClassroomPets = () => {
   };
 
   const cleanHabitat = () => {
-    if (gameState.locked || currentPet !== 'fish') return;
-    setFishState(prev => ({ 
-      ...prev, 
-      tankCleanliness: 100, 
-      happiness: Math.min(100, prev.happiness + 15) 
-    }));
+    if (gameState.locked) return;
+    if (currentPet === 'bunny') {
+      // Clean all poops and restore cleanliness
+      setPoops([]);
+      setBunnyState(prev => ({
+        ...prev,
+        cleanliness: 100,
+        happiness: Math.min(100, prev.happiness + 10)
+      }));
+    } else {
+      setFishState(prev => ({ 
+        ...prev, 
+        tankCleanliness: 100, 
+        happiness: Math.min(100, prev.happiness + 15) 
+      }));
+    }
   };
 
   const resetPet = () => {
@@ -337,6 +374,7 @@ const ClassroomPets = () => {
         happiness: 85,
         hydration: 75,
         energy: 70,
+        cleanliness: 90,
         mood: 'happy',
         action: 'idle',
         idleBehavior: 'none',
@@ -346,6 +384,7 @@ const ClassroomPets = () => {
         facingRight: true
       });
       setBowlLevels({ food: 0, water: 0 });
+      setPoops([]);
     } else {
       setFishState({
         hunger: 70,
@@ -618,6 +657,21 @@ const ClassroomPets = () => {
             >
               <div className="text-xl sm:text-2xl md:text-3xl drop-shadow-lg">🎾</div>
             </div>
+            
+            {/* Poops */}
+            {poops.map((poop) => (
+              <div
+                key={poop.id}
+                className="absolute transition-all duration-300 animate-fade-in"
+                style={{ 
+                  left: `${poop.x}%`, 
+                  top: `${poop.y}%`, 
+                  transform: 'translate(-50%, -100%)' 
+                }}
+              >
+                <div className="text-base sm:text-lg md:text-xl drop-shadow-md">💩</div>
+              </div>
+            ))}
           </div>
         )}
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
@@ -716,7 +770,7 @@ const ClassroomPets = () => {
       {/* Controls Panel */}
       <footer className="bg-card border-t-4 border-primary p-4 shadow-strong">
         {/* Status Bars */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
           {currentPet === 'bunny' ? (
             <>
               <div>
@@ -764,6 +818,18 @@ const ClassroomPets = () => {
                   <div 
                     className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} 
                     style={{ width: `${bunnyState.energy}%` }} 
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">✨</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Clean</span>
+                </div>
+                <div className="status-bar">
+                  <div 
+                    className={`status-bar-fill ${getStatusColor(bunnyState.cleanliness)}`} 
+                    style={{ width: `${bunnyState.cleanliness}%` }} 
                   />
                 </div>
               </div>
@@ -848,6 +914,15 @@ const ClassroomPets = () => {
           >
             🎾 Play
           </button>
+          {currentPet === 'bunny' && (
+            <button 
+              onClick={cleanHabitat} 
+              disabled={gameState.locked || poops.length === 0} 
+              className="pet-button-clean"
+            >
+              🧹 Clean {poops.length > 0 && `(${poops.length})`}
+            </button>
+          )}
           <div className="flex items-center justify-center text-3xl font-bold">
             {currentPet === 'bunny' 
               ? (bunnyState.mood === 'happy' ? '🐰💕' : bunnyState.mood === 'sad' ? '🐰😢' : '🐰')
