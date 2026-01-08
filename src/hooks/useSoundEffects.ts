@@ -714,24 +714,21 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     };
 
     const onAnyPointerDown = () => {
-      // Helps when mobile browsers suspend audio after being backgrounded
+      // Just unlock audio context if needed, don't restart ambient
       if (!shouldStartAmbientRef.current) return;
       unlockAudio();
-      // Force-restart ambient to recover from suspended/ended nodes
-      stopAmbient();
-      startAmbient();
     };
 
     const onVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return;
       if (!shouldStartAmbientRef.current) return;
-      // If audio was previously unlocked, try to resume + ensure ambient is running
+      // If audio was previously unlocked, just resume context
       if (hasUnlockedRef.current) {
-        setTimeout(() => {
-          unlockAudio();
-          stopAmbient();
+        unlockAudio();
+        // Only restart if ambient nodes are missing
+        if (!ambientNodesRef.current.wind && !ambientNodesRef.current.musicInterval) {
           startAmbient();
-        }, 0);
+        }
       }
     };
 
