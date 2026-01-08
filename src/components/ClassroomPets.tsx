@@ -1014,7 +1014,7 @@ const ClassroomPets = () => {
                   animationDuration: `${4 + (i % 3) * 2}s`,
                 }}
               >
-                <span className="text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" style={{ fontSize: `${10 + (i % 4) * 4}px` }}>✦</span>
+                <span className="text-amber-200/40 drop-shadow-[0_0_4px_rgba(251,191,36,0.3)]" style={{ fontSize: `${10 + (i % 4) * 4}px` }}>✦</span>
               </div>
             ))}
           </div>
