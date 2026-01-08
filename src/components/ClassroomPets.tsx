@@ -1043,10 +1043,10 @@ const ClassroomPets = () => {
         {/* Trampoline displayed under bunny when bouncing */}
         {isTrampolineBouncing && currentPet === 'bunny' && (
           <div 
-            className="absolute z-[9]"
+            className="absolute z-[11]"
             style={{ 
               left: `${bunnyState.position.x}%`, 
-              top: `${bunnyState.position.y + 2}%`,
+              top: `${bunnyState.position.y}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
@@ -1066,7 +1066,7 @@ const ClassroomPets = () => {
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
               bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 25 : 
-              isTrampolineBouncing ? bunnyState.position.y - 8 : 
+              isTrampolineBouncing ? bunnyState.position.y - 2 : 
               bunnyState.position.y
             ) : fishState.position.y}%`,
             transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
