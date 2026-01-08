@@ -35,17 +35,17 @@ const ClassroomPets = () => {
     mood: 'happy' as 'happy' | 'sad' | 'neutral',
     action: 'idle' as 'idle' | 'eating' | 'drinking' | 'playing',
     idleBehavior: 'none' as 'none' | 'sniffing' | 'ear-scratch' | 'nibbling' | 'looking',
-    position: { x: 50, y: 65 },
+    position: { x: 50, y: 85 },
     targetObject: null as null | 'food-bowl' | 'water-bottle' | 'toy-ball',
     isHopping: false,
     facingRight: true
   });
 
-  // Interactive environment objects - positioned within the room floor area
+  // Interactive environment objects - positioned on the floor
   const envObjects = {
-    'food-bowl': { x: 20, y: 78, emoji: '🥕', label: 'Food Bowl' },
-    'water-bottle': { x: 80, y: 78, emoji: '💧', label: 'Water' },
-    'toy-ball': { x: 50, y: 82, emoji: '🎾', label: 'Toy' },
+    'food-bowl': { x: 20, y: 88, emoji: '🥕', label: 'Food Bowl' },
+    'water-bottle': { x: 80, y: 88, emoji: '💧', label: 'Water' },
+    'toy-ball': { x: 50, y: 90, emoji: '🎾', label: 'Toy' },
   };
 
   const [fishState, setFishState] = useState({
@@ -154,16 +154,16 @@ const ClassroomPets = () => {
           setBunnyState(prev => ({
             ...prev,
             isHopping: false,
-            position: { x: target.x, y: target.y - 10 }
+            position: { x: target.x, y: target.y }
           }));
         }, 600);
         return;
       }
       
-      // Random idle wandering - keep bunny in center floor area (25-75% X, 60-75% Y)
+      // Random idle wandering - keep bunny on floor area (25-75% X, 82-90% Y)
       const deltaX = (Math.random() - 0.5) * 15;
       const newX = Math.max(25, Math.min(75, bunnyState.position.x + deltaX));
-      const newY = Math.max(60, Math.min(75, bunnyState.position.y + (Math.random() - 0.5) * 6));
+      const newY = Math.max(82, Math.min(90, bunnyState.position.y + (Math.random() - 0.5) * 4));
       const movingRight = deltaX > 0;
       
       setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -325,7 +325,7 @@ const ClassroomPets = () => {
         mood: 'happy',
         action: 'idle',
         idleBehavior: 'none',
-        position: { x: 50, y: 65 },
+        position: { x: 50, y: 85 },
         targetObject: null,
         isHopping: false,
         facingRight: true
@@ -586,7 +586,7 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Pet */}
+        {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
         <div 
           className={`absolute z-10 transition-all ease-out ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
@@ -594,7 +594,7 @@ const ClassroomPets = () => {
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? bunnyState.position.y : fishState.position.y}%`,
-            transform: 'translate(-50%, -50%)'
+            transform: currentPet === 'bunny' ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)'
           }}
         >
           <div className={`relative ${
