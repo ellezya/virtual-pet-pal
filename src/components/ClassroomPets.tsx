@@ -234,16 +234,16 @@ const ClassroomPets = () => {
   // Bowl station position and toy position - toys now placed on couch
   const bowlStationPosition = { x: 15, y: 96 };
   
-  // Get toy area position based on current couch zone
-  const getToyAreaPosition = () => {
-    const zone = couchZones[currentCouchZone];
-    return { x: zone.xMin + 15, y: zone.y + 2 };
+  // Toy area position dynamically follows current couch zone
+  const toyAreaPosition = {
+    x: couchZones[currentCouchZone].xMin + 12,
+    y: couchZones[currentCouchZone].y + 4
   };
   
   const envObjects = {
     'food-bowl': { x: 13, y: 94 },
     'water-bowl': { x: 19, y: 94 },
-    'toy-area': getToyAreaPosition(),
+    'toy-area': toyAreaPosition,
   };
   const [fishState, setFishState] = useState({
     hunger: 70,
@@ -347,18 +347,23 @@ const ClassroomPets = () => {
     prevHoppingRef.current = bunnyState.isHopping;
   }, [bunnyState.isHopping, playHop]);
 
-  // Bunny occasionally poops - constrained to couch zones
+  // Bunny occasionally poops - constrained to couch zones, near Lola's position
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const poopInterval = setInterval(() => {
       // Random chance to poop (higher when recently fed)
       if (Math.random() < 0.3 && poops.length < 5) {
-        // Poop appears on the couch near where Lola is
+        // Poop appears on the couch near where Lola currently is
         const zone = couchZones[currentCouchZone];
+        // Clamp poop near Lola's X position with small random offset
+        const poopX = Math.max(
+          zone.xMin,
+          Math.min(zone.xMax, bunnyState.position.x + (Math.random() - 0.5) * 10)
+        );
         const newPoop = {
           id: Date.now(),
-          x: zone.xMin + Math.random() * (zone.xMax - zone.xMin),
-          y: zone.y + 2 + Math.random() * 4 // Slightly below bunny position
+          x: poopX,
+          y: zone.y + 6 // Just below the cushion surface
         };
         setPoops(prev => [...prev, newPoop]);
         setBunnyState(prev => ({
@@ -369,7 +374,7 @@ const ClassroomPets = () => {
       }
     }, 8000);
     return () => clearInterval(poopInterval);
-  }, [currentPet, poops.length, playPoop, currentCouchZone]);
+  }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x]);
 
   // Fish decay
   useEffect(() => {
