@@ -15,13 +15,15 @@ interface SoundEffectsReturn {
   windIntensity: number;
 }
 
+type PetType = 'bunny' | 'fish';
 
-export const useSoundEffects = (): SoundEffectsReturn => {
+export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsReturn => {
   /**
-   * CRITICAL: WebAudio sound engine for Lola.
+   * CRITICAL: WebAudio sound engine for Lola and Tula.
    * Keep this hook stable and self-contained (UI should only call the exported functions).
    */
   const audioContextRef = useRef<AudioContext | null>(null);
+  const currentPetRef = useRef<PetType>(currentPet);
   const ambientNodesRef = useRef<{
     wind: AudioBufferSourceNode | null;
     windGain: GainNode | null;
@@ -29,6 +31,9 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     windLfo: OscillatorNode | null;
     birdInterval: ReturnType<typeof setInterval> | null;
     childrenInterval: ReturnType<typeof setInterval> | null;
+    waterBubblesInterval: ReturnType<typeof setInterval> | null;
+    waterFlowNode: AudioBufferSourceNode | null;
+    waterFlowGain: GainNode | null;
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
@@ -39,10 +44,18 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     windLfo: null,
     birdInterval: null,
     childrenInterval: null,
+    waterBubblesInterval: null,
+    waterFlowNode: null,
+    waterFlowGain: null,
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
   });
+  
+  // Keep currentPet ref updated
+  useEffect(() => {
+    currentPetRef.current = currentPet;
+  }, [currentPet]);
 
 
   // Track if audio has been unlocked by user gesture
@@ -489,6 +502,87 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     noise.stop(time + 0.4);
   }, [getAudioContext]);
 
+  // Play underwater bubble sounds for fish tank
+  const playWaterBubble = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Random number of bubbles (2-5)
+    const bubbleCount = 2 + Math.floor(Math.random() * 4);
+    
+    for (let i = 0; i < bubbleCount; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      
+      osc.type = 'sine';
+      // Rising pitch as bubble goes up
+      const startFreq = 180 + Math.random() * 120;
+      osc.frequency.setValueAtTime(startFreq, time + i * 0.12);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.8, time + i * 0.12 + 0.15);
+      
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, time + i * 0.12);
+      
+      gain.gain.setValueAtTime(0, time + i * 0.12);
+      gain.gain.linearRampToValueAtTime(ambientVolume * 0.25, time + i * 0.12 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.12 + 0.18);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(time + i * 0.12);
+      osc.stop(time + i * 0.12 + 0.2);
+    }
+  }, [getAudioContext]);
+
+  // Start continuous underwater water flow sound
+  const startWaterFlowSound = useCallback(() => {
+    const ctx = getAudioContext();
+    
+    // Create filtered noise for water flow
+    const bufferSize = ctx.sampleRate * 3;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.4;
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+    
+    // Low-pass filter for underwater muffled sound
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(300, ctx.currentTime);
+    filter.Q.setValueAtTime(1, ctx.currentTime);
+    
+    // Slow modulation for water movement
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.15, ctx.currentTime);
+    lfoGain.gain.setValueAtTime(80, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(ambientVolume * 0.7, ctx.currentTime);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    
+    lfo.start();
+    noise.start();
+    
+    ambientNodesRef.current.waterFlowNode = noise;
+    ambientNodesRef.current.waterFlowGain = gain;
+  }, [getAudioContext, ambientVolume]);
+
   // Play a lofi music chord
   // IMPORTANT: we disconnect nodes on end to avoid leaking AudioNodes (can cause audio to stop after a while).
   const playLofiChord = useCallback(
@@ -671,15 +765,29 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
+    
+    // Stop water sounds
+    if (ambientNodesRef.current.waterBubblesInterval) {
+      clearInterval(ambientNodesRef.current.waterBubblesInterval);
+      ambientNodesRef.current.waterBubblesInterval = null;
+    }
+    if (ambientNodesRef.current.waterFlowNode) {
+      try {
+        ambientNodesRef.current.waterFlowNode.stop();
+      } catch {}
+      ambientNodesRef.current.waterFlowNode = null;
+    }
+    ambientNodesRef.current.waterFlowGain = null;
   }, []);
 
 
   const startAmbient = useCallback(() => {
+    const pet = currentPetRef.current;
+    
     // Guard: don't double-start if core nodes are already running
-    const hasCoreNodes =
-      !!ambientNodesRef.current.wind &&
-      !!ambientNodesRef.current.windGain &&
-      !!ambientNodesRef.current.musicInterval;
+    const hasCoreNodes = pet === 'fish'
+      ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
+      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
 
     if (hasCoreNodes) return;
 
@@ -707,22 +815,45 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
+    // Clear water sounds
+    if (ambientNodesRef.current.waterBubblesInterval) {
+      clearInterval(ambientNodesRef.current.waterBubblesInterval);
+      ambientNodesRef.current.waterBubblesInterval = null;
+    }
+    if (ambientNodesRef.current.waterFlowNode) {
+      try { ambientNodesRef.current.waterFlowNode.stop(); } catch {}
+      ambientNodesRef.current.waterFlowNode = null;
+    }
+    ambientNodesRef.current.waterFlowGain = null;
 
     unlockAudio();
-    startWindSound();
     startLofiMusic();
+    
+    if (pet === 'fish') {
+      // Fish tank: water flow + bubbles
+      startWaterFlowSound();
+      
+      ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
+        if (Math.random() < 0.5) playWaterBubble();
+      }, 2500);
+      
+      playWaterBubble();
+    } else {
+      // Bunny: wind + birds + children
+      startWindSound();
 
-    ambientNodesRef.current.birdInterval = setInterval(() => {
-      if (Math.random() < 0.6) playBirdChirp();
-    }, 2000);
+      ambientNodesRef.current.birdInterval = setInterval(() => {
+        if (Math.random() < 0.6) playBirdChirp();
+      }, 2000);
 
-    ambientNodesRef.current.childrenInterval = setInterval(() => {
-      if (Math.random() < 0.4) playChildrenSound();
-    }, 4000);
+      ambientNodesRef.current.childrenInterval = setInterval(() => {
+        if (Math.random() < 0.4) playChildrenSound();
+      }, 4000);
 
-    playBirdChirp();
-    setTimeout(() => playChildrenSound(), 900);
-  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound]);
+      playBirdChirp();
+      setTimeout(() => playChildrenSound(), 900);
+    }
+  }, [unlockAudio, startWindSound, startWaterFlowSound, startLofiMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
@@ -844,6 +975,20 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     // Keep this in sync with the UI toggle + persisted preference
     shouldStartAmbientRef.current = isAmbientPlaying;
   }, [isAmbientPlaying]);
+
+  // Restart ambient sounds when pet changes to switch between bird/water sounds
+  useEffect(() => {
+    if (!isAmbientPlaying || !hasUnlockedRef.current) return;
+    
+    // Stop current sounds and restart with new pet's sounds
+    stopAmbientRef.current();
+    // Small delay to ensure cleanup completes
+    const timer = setTimeout(() => {
+      startAmbientRef.current();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [currentPet, isAmbientPlaying]);
 
   // If ambient is enabled and audio is unlocked, ensure it stays running.
   // Some browsers will silently suspend WebAudio; we "heal" by resuming + rebuilding nodes when needed.

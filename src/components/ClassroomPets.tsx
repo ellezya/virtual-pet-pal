@@ -121,7 +121,7 @@ const ClassroomPets = () => {
     toggleAmbient,
     isAmbientPlaying,
     windIntensity,
-  } = useSoundEffects();
+  } = useSoundEffects(currentPet);
   const prevHoppingRef = useRef(false);
 
   // Hanging plants react to wind audio (0..1) with a gentle baseline.
@@ -2097,20 +2097,43 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Tank Dirtiness Overlay - gets murky with algae */}
+        {/* Tank Dirtiness Overlay - gets murky green with algae */}
         {currentPet === 'fish' && fishState.tankCleanliness < 100 && (
-          <div 
-            className="absolute inset-0 pointer-events-none z-[3] transition-opacity duration-1000"
-            style={{
-              background: `linear-gradient(
-                180deg, 
-                hsla(120, 40%, 25%, ${(100 - fishState.tankCleanliness) * 0.006}) 0%,
-                hsla(90, 50%, 20%, ${(100 - fishState.tankCleanliness) * 0.008}) 50%,
-                hsla(60, 30%, 15%, ${(100 - fishState.tankCleanliness) * 0.01}) 100%
-              )`,
-              opacity: Math.min(0.85, (100 - fishState.tankCleanliness) / 100)
-            }}
-          />
+          <>
+            {/* Main murky green overlay */}
+            <div 
+              className="absolute inset-0 pointer-events-none z-[3] transition-all duration-1000"
+              style={{
+                background: `linear-gradient(
+                  180deg, 
+                  hsla(95, 60%, 30%, ${(100 - fishState.tankCleanliness) * 0.012}) 0%,
+                  hsla(85, 55%, 25%, ${(100 - fishState.tankCleanliness) * 0.015}) 40%,
+                  hsla(75, 50%, 20%, ${(100 - fishState.tankCleanliness) * 0.018}) 100%
+                )`,
+                opacity: Math.min(0.9, (100 - fishState.tankCleanliness) / 80)
+              }}
+            />
+            {/* Floating algae particles for extra murkiness */}
+            {fishState.tankCleanliness < 70 && (
+              <div className="absolute inset-0 pointer-events-none z-[4]">
+                {Array.from({ length: Math.floor((100 - fishState.tankCleanliness) / 10) }).map((_, i) => (
+                  <div
+                    key={`algae-particle-${i}`}
+                    className="absolute rounded-full animate-float-slow"
+                    style={{
+                      left: `${10 + (i * 17) % 80}%`,
+                      top: `${20 + (i * 23) % 60}%`,
+                      width: `${3 + (i % 3) * 2}px`,
+                      height: `${3 + (i % 3) * 2}px`,
+                      background: `hsla(90, 50%, 35%, ${0.2 + (100 - fishState.tankCleanliness) * 0.005})`,
+                      animationDelay: `${i * 0.7}s`,
+                      animationDuration: `${4 + (i % 3)}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Interactive Environment Objects for Bunny */}
