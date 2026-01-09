@@ -1232,7 +1232,7 @@ const ClassroomPets = () => {
             </div>
             
             {/* Selected Toy Display - only visible on grass in park, with special handling for trampoline and balloon */}
-            {!isTrampolineBouncing && showToys && (
+            {!isTrampolineBouncing && showToys && !(bunnyState.action === 'playing' && selectedToy.id === 'balloon') && (
               <div 
                 className={`absolute transition-transform duration-200 ${
                   bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
