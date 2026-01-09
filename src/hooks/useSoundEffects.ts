@@ -607,84 +607,103 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.waterFlowGain = gain;
   }, [getAudioContext, ambientVolume]);
 
+  // A shared music bus so changes always take effect and we can reliably stop/restart.
+  const getMusicBus = useCallback(() => {
+    const ctx = getAudioContext();
+    if (ambientNodesRef.current.musicGain) return ambientNodesRef.current.musicGain;
+
+    const bus = ctx.createGain();
+    // Soft but audible (overall music loudness)
+    bus.gain.setValueAtTime(musicVolume * 0.22, ctx.currentTime);
+    bus.connect(ctx.destination);
+    ambientNodesRef.current.musicGain = bus;
+    return bus;
+  }, [getAudioContext, musicVolume]);
+
   // Play a soft, relaxing steel pan note with gentle bell-like quality
   const playSteelPanNote = useCallback(
     (frequency: number, startTime: number, duration: number) => {
       const ctx = getAudioContext();
-      
-      const masterGain = ctx.createGain();
-      masterGain.connect(ctx.destination);
-      
+      const musicBus = getMusicBus();
+
+      const noteGain = ctx.createGain();
+      noteGain.connect(musicBus);
+
       // Soft attack and gentle decay for relaxing sound
-      const softVolume = musicVolume * 0.15; // Much softer
-      masterGain.gain.setValueAtTime(0, startTime);
-      masterGain.gain.linearRampToValueAtTime(softVolume, startTime + 0.05); // Soft attack
-      masterGain.gain.linearRampToValueAtTime(softVolume * 0.7, startTime + 0.3); // Gentle sustain
-      masterGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Long fade
-      
+      noteGain.gain.setValueAtTime(0, startTime);
+      noteGain.gain.linearRampToValueAtTime(1, startTime + 0.05);
+      noteGain.gain.linearRampToValueAtTime(0.7, startTime + 0.3);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
       // Fundamental frequency
       const osc1 = ctx.createOscillator();
       osc1.type = 'sine';
       osc1.frequency.setValueAtTime(frequency, startTime);
-      
-      // Second harmonic (octave) - gives brightness
+
+      // Second harmonic (octave)
       const osc2 = ctx.createOscillator();
       osc2.type = 'sine';
       osc2.frequency.setValueAtTime(frequency * 2, startTime);
-      
+
       // Third harmonic for metallic shimmer
       const osc3 = ctx.createOscillator();
       osc3.type = 'sine';
       osc3.frequency.setValueAtTime(frequency * 3, startTime);
-      
+
       // Fourth harmonic - subtle
       const osc4 = ctx.createOscillator();
       osc4.type = 'sine';
       osc4.frequency.setValueAtTime(frequency * 4, startTime);
-      
-      // Gains for each harmonic (fundamental strongest, diminishing harmonics)
+
+      // Gains for each harmonic
       const gain1 = ctx.createGain();
       const gain2 = ctx.createGain();
       const gain3 = ctx.createGain();
       const gain4 = ctx.createGain();
-      
+
       gain1.gain.setValueAtTime(1.0, startTime);
       gain2.gain.setValueAtTime(0.5, startTime);
       gain3.gain.setValueAtTime(0.25, startTime);
       gain4.gain.setValueAtTime(0.1, startTime);
-      
-      // Faster decay for higher harmonics (characteristic of steel pan)
+
+      // Faster decay for higher harmonics
       gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.6);
       gain3.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.4);
       gain4.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.3);
-      
+
       osc1.connect(gain1);
       osc2.connect(gain2);
       osc3.connect(gain3);
       osc4.connect(gain4);
-      
-      gain1.connect(masterGain);
-      gain2.connect(masterGain);
-      gain3.connect(masterGain);
-      gain4.connect(masterGain);
-      
-      [osc1, osc2, osc3, osc4].forEach(osc => {
+
+      gain1.connect(noteGain);
+      gain2.connect(noteGain);
+      gain3.connect(noteGain);
+      gain4.connect(noteGain);
+
+      [osc1, osc2, osc3, osc4].forEach((osc) => {
         osc.start(startTime);
         osc.stop(startTime + duration);
         osc.onended = () => {
-          try { osc.disconnect(); } catch {}
+          try {
+            osc.disconnect();
+          } catch {}
         };
       });
-      
+
       // Cleanup
       window.setTimeout(() => {
-        try { masterGain.disconnect(); } catch {}
-        [gain1, gain2, gain3, gain4].forEach(g => {
-          try { g.disconnect(); } catch {}
+        try {
+          noteGain.disconnect();
+        } catch {}
+        [gain1, gain2, gain3, gain4].forEach((g) => {
+          try {
+            g.disconnect();
+          } catch {}
         });
       }, Math.ceil((duration + 0.5) * 1000));
     },
-    [getAudioContext, musicVolume]
+    [getAudioContext, getMusicBus]
   );
 
   // Play a soft, relaxing steel pan melody phrase
@@ -736,17 +755,17 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       lastMusicTickRef.current = Date.now();
       playSteelPanPhrase();
     };
-    
-    // Initial delay before first note
-    setTimeout(tick, 1000);
-    
+
+    // Play immediately (so users can tell the music changed)
+    tick();
+
     // Play phrases with longer pauses (7-10 seconds apart) for relaxation
     const musicInterval = setInterval(() => {
-      if (Math.random() < 0.6) { // Sometimes skip for more silence
+      if (Math.random() < 0.6) {
         tick();
       }
     }, 8000);
-    
+
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [playSteelPanPhrase]);
 
@@ -838,7 +857,16 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
-    
+
+    // Stop music bus (prevents lingering volume / ensures new music takes effect)
+    if (ambientNodesRef.current.musicGain) {
+      try {
+        ambientNodesRef.current.musicGain.disconnect();
+      } catch {}
+      ambientNodesRef.current.musicGain = null;
+    }
+    ambientNodesRef.current.musicOscillators = [];
+
     // Stop water sounds
     if (ambientNodesRef.current.waterBubblesInterval) {
       clearInterval(ambientNodesRef.current.waterBubblesInterval);
@@ -850,6 +878,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       } catch {}
       ambientNodesRef.current.waterFlowNode = null;
     }
+    if (ambientNodesRef.current.waterFlowGain) {
+      try {
+        ambientNodesRef.current.waterFlowGain.disconnect();
+      } catch {}
+    }
     ambientNodesRef.current.waterFlowGain = null;
   }, []);
 
@@ -860,7 +893,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // Guard: don't double-start if core nodes are already running
     const hasCoreNodes = pet === 'fish'
       ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
-      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
+      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval && !!ambientNodesRef.current.waterFlowNode;
 
     if (hasCoreNodes) return;
 
@@ -905,29 +938,25 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       // Fish tank: steel pan music + relaxing water flow + bubbles
       startSteelPanMusic();
       startWaterFlowSound();
-      
+
       ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
         if (Math.random() < 0.4) playWaterBubble();
       }, 3000);
-      
+
       playWaterBubble();
     } else {
-      // Bunny: lofi chords + wind + birds + children
-      startSteelPanMusic(); // Use steel pan for both now for consistency
+      // Bunny: soft steel pan + gentle water ambience (no birds)
+      startSteelPanMusic();
       startWindSound();
+      startWaterFlowSound();
 
-      ambientNodesRef.current.birdInterval = setInterval(() => {
-        if (Math.random() < 0.6) playBirdChirp();
-      }, 2000);
+      ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
+        if (Math.random() < 0.25) playWaterBubble();
+      }, 3500);
 
-      ambientNodesRef.current.childrenInterval = setInterval(() => {
-        if (Math.random() < 0.4) playChildrenSound();
-      }, 4000);
-
-      playBirdChirp();
-      setTimeout(() => playChildrenSound(), 900);
+      playWaterBubble();
     }
-  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
+  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, playWaterBubble]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
@@ -1102,10 +1131,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
         void ctx.resume().catch(() => {});
       }
 
-      const hasCoreNodes =
-        !!ambientNodesRef.current.wind &&
-        !!ambientNodesRef.current.windGain &&
-        !!ambientNodesRef.current.musicInterval;
+      const pet = currentPetRef.current;
+      const hasCoreNodes = pet === 'fish'
+        ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
+        : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval && !!ambientNodesRef.current.waterFlowNode;
 
       const now = Date.now();
       const musicStalled =
@@ -1146,6 +1175,19 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       }
       if (ambientNodesRef.current.musicInterval) {
         clearInterval(ambientNodesRef.current.musicInterval);
+      }
+      if (ambientNodesRef.current.waterBubblesInterval) {
+        clearInterval(ambientNodesRef.current.waterBubblesInterval);
+      }
+      if (ambientNodesRef.current.waterFlowNode) {
+        try {
+          ambientNodesRef.current.waterFlowNode.stop();
+        } catch {}
+      }
+      if (ambientNodesRef.current.musicGain) {
+        try {
+          ambientNodesRef.current.musicGain.disconnect();
+        } catch {}
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
