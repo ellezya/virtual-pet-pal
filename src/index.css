@@ -420,7 +420,30 @@
     background: linear-gradient(180deg, transparent, rgba(255, 250, 220, 0.9), transparent);
   }
 
-  /* Fish eating animation - gentle nibbling motion */
+  /* Floating algae particles animation */
+  @keyframes float-slow {
+    0%, 100% { 
+      transform: translateY(0) translateX(0);
+      opacity: 0.6;
+    }
+    25% { 
+      transform: translateY(-8px) translateX(3px);
+      opacity: 0.8;
+    }
+    50% { 
+      transform: translateY(-4px) translateX(-2px);
+      opacity: 0.5;
+    }
+    75% { 
+      transform: translateY(-10px) translateX(1px);
+      opacity: 0.7;
+    }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 5s ease-in-out infinite;
+  }
+
   @keyframes fish-eating {
     0%, 100% { 
       transform: scale(1) rotate(0deg);
