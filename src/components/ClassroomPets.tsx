@@ -96,8 +96,8 @@ const ClassroomPets = () => {
   ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
     // Pad the zone so sprites can't visually cross those posts.
-    const baseLeftPad = currentScene === 'room' ? 14 : 0;
-    const baseRightPad = currentScene === 'room' ? 8 : 0;
+    const baseLeftPad = currentScene === 'room' ? 20 : 0;
+    const baseRightPad = currentScene === 'room' ? 12 : 0;
 
     const leftPad = baseLeftPad + (extraPad?.left ?? 0);
     const rightPad = baseRightPad + (extraPad?.right ?? 0);
@@ -307,12 +307,13 @@ const ClassroomPets = () => {
   
   // Toys only appear on grass in park scene
   // Clamp toy position using the same banister-aware logic as Lola (with extra padding for toy width)
+  const toyZone = currentScene === 'park' ? parkZones.grass : currentZoneData;
+  const toyAnchorX = currentScene === 'park'
+    ? toyZone.xMin + 12
+    : (toyZone.xMin + toyZone.xMax) / 2;
+
   const toyAreaPosition = {
-    x: clampZoneX(
-      currentScene === 'park' ? parkZones.grass : currentZoneData,
-      currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12,
-      { left: 8, right: 6 }
-    ),
+    x: clampZoneX(toyZone, toyAnchorX, { left: 12, right: 10 }),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
   
@@ -446,7 +447,7 @@ const ClassroomPets = () => {
         const poopX = clampZoneX(
           zone,
           bunnyState.position.x + (Math.random() - 0.5) * 10,
-          { left: 6, right: 4 }
+          { left: 10, right: 8 }
         );
         const newPoop = {
           id: Date.now(),
@@ -741,9 +742,13 @@ const ClassroomPets = () => {
         setBunnyState(prev => ({ ...prev, action: 'playing', targetObject: null, facingRight: true }));
         
         // Use actual toy position instead of hardcoded values
-        const tunnelCenterX = envObjects['toy-area'].x;
-        const tunnelLeftX = tunnelCenterX - 8;  // Left entrance of log
-        const tunnelRightX = tunnelCenterX + 8; // Right exit of log
+        const playZone = currentScene === 'park'
+          ? parkZones[currentParkZone]
+          : getActiveZones()[currentCouchZone];
+
+        const tunnelCenterX = clampZoneX(playZone, envObjects['toy-area'].x);
+        const tunnelLeftX = clampZoneX(playZone, tunnelCenterX - 8);  // Left entrance of log
+        const tunnelRightX = clampZoneX(playZone, tunnelCenterX + 8); // Right exit of log
         const tunnelY = envObjects['toy-area'].y - 4; // Align with log's ground level
         
         // Move to left entrance
@@ -797,7 +802,11 @@ const ClassroomPets = () => {
 
       // Special handling for yarn - bunny hops to it, bats at it, gets tangled, then wiggles free
       if (toy.id === 'yarn') {
-        const yarnX = envObjects['toy-area'].x;
+        const playZone = currentScene === 'park'
+          ? parkZones[currentParkZone]
+          : getActiveZones()[currentCouchZone];
+
+        const yarnX = clampZoneX(playZone, envObjects['toy-area'].x);
         const yarnY = envObjects['toy-area'].y;
         
         // First hop to yarn
@@ -807,7 +816,7 @@ const ClassroomPets = () => {
         setTimeout(() => {
           setBunnyState(prev => ({ 
             ...prev, 
-            position: { x: yarnX - 5, y: yarnY },
+            position: { x: clampZoneX(playZone, yarnX - 5), y: yarnY },
             isHopping: false,
             action: 'playing'
           }));
@@ -846,7 +855,11 @@ const ClassroomPets = () => {
 
       // Special handling for cardboard box - bunny hops in, peeks out, then hops out
       if (toy.id === 'cardboard') {
-        const boxX = envObjects['toy-area'].x;
+        const playZone = currentScene === 'park'
+          ? parkZones[currentParkZone]
+          : getActiveZones()[currentCouchZone];
+
+        const boxX = clampZoneX(playZone, envObjects['toy-area'].x);
         const boxY = envObjects['toy-area'].y;
         
         setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: boxX > prev.position.x }));
@@ -879,7 +892,7 @@ const ClassroomPets = () => {
           playHop();
           setBunnyState(prev => ({ 
             ...prev, 
-            position: { x: boxX + 6, y: boxY },
+            position: { x: clampZoneX(playZone, boxX + 6), y: boxY },
             isHopping: true
           }));
         }, 3500);
