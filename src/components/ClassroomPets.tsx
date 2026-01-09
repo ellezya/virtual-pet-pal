@@ -2417,6 +2417,56 @@ const ClassroomPets = () => {
               }}
             />
             
+            {/* Sparkle effects on Tula's scales */}
+            {currentPet === 'fish' && (
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Sparkle dots along body - positioned to follow tiger stripe areas */}
+                {[
+                  { x: '25%', y: '35%', size: 4, delay: 0, duration: 2.5 },
+                  { x: '45%', y: '28%', size: 3, delay: 0.8, duration: 2.2 },
+                  { x: '60%', y: '40%', size: 5, delay: 1.5, duration: 2.8 },
+                  { x: '35%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                  { x: '55%', y: '60%', size: 4, delay: 0.4, duration: 2.6 },
+                  { x: '70%', y: '45%', size: 3, delay: 1.8, duration: 2.3 },
+                  { x: '40%', y: '42%', size: 2, delay: 1.2, duration: 2.0 },
+                  { x: '30%', y: '48%', size: 3, delay: 2.5, duration: 2.7 },
+                ].map((sparkle, i) => (
+                  <div
+                    key={`sparkle-${i}`}
+                    className="fish-sparkle"
+                    style={{
+                      left: sparkle.x,
+                      top: sparkle.y,
+                      width: sparkle.size,
+                      height: sparkle.size,
+                      animation: `scale-sparkle-1 ${sparkle.duration}s ease-in-out infinite`,
+                      animationDelay: `${sparkle.delay}s`,
+                    }}
+                  />
+                ))}
+                
+                {/* Star sparkles for extra shimmer */}
+                {[
+                  { x: '38%', y: '32%', size: 8, delay: 0.3, duration: 3 },
+                  { x: '52%', y: '52%', size: 6, delay: 1.6, duration: 2.8 },
+                  { x: '65%', y: '35%', size: 7, delay: 2.2, duration: 3.2 },
+                ].map((star, i) => (
+                  <div
+                    key={`star-${i}`}
+                    className="fish-sparkle-star"
+                    style={{
+                      left: star.x,
+                      top: star.y,
+                      width: star.size,
+                      height: star.size,
+                      animation: `scale-sparkle-2 ${star.duration}s ease-in-out infinite`,
+                      animationDelay: `${star.delay}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            
             {/* Idle behavior indicators */}
             {currentPet === 'bunny' && bunnyState.idleBehavior !== 'none' && bunnyState.action === 'idle' && (
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-base animate-bounce-slow">

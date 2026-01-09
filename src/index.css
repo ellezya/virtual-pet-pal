@@ -367,6 +367,59 @@
     animation: fish-shimmer 4s ease-in-out infinite;
   }
 
+  /* Sparkle animations for fish scales */
+  @keyframes scale-sparkle-1 {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+  
+  @keyframes scale-sparkle-2 {
+    0%, 100% { opacity: 0; transform: scale(0.3) rotate(45deg); }
+    50% { opacity: 0.9; transform: scale(1.1) rotate(45deg); }
+  }
+  
+  @keyframes scale-sparkle-3 {
+    0%, 100% { opacity: 0; transform: scale(0.4) rotate(-30deg); }
+    40% { opacity: 0.8; transform: scale(1) rotate(-30deg); }
+    60% { opacity: 0.8; transform: scale(1) rotate(-30deg); }
+  }
+
+  .fish-sparkle {
+    position: absolute;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 220, 150, 0.6) 40%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .fish-sparkle-star {
+    position: absolute;
+    pointer-events: none;
+  }
+  
+  .fish-sparkle-star::before,
+  .fish-sparkle-star::after {
+    content: '';
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(255, 250, 220, 0.9), transparent);
+  }
+  
+  .fish-sparkle-star::before {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+  
+  .fish-sparkle-star::after {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, rgba(255, 250, 220, 0.9), transparent);
+  }
+
   /* Fish eating animation - gentle nibbling motion */
   @keyframes fish-eating {
     0%, 100% { 
