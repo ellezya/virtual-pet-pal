@@ -1527,6 +1527,35 @@ const ClassroomPets = () => {
                 </>
               )}
 
+              {/* Room scene: horizontal Y ground lines for Seat and Back */}
+              {currentScene === 'room' && (
+                <>
+                  {/* Seat Y line - cyan/teal */}
+                  <div 
+                    className="absolute left-0 right-0 h-px bg-cyan-400/80" 
+                    style={{ top: `${roomBedY.seat}%` }} 
+                  />
+                  <div 
+                    className="absolute text-[9px] text-cyan-400 font-mono bg-background/70 px-1 rounded"
+                    style={{ top: `${roomBedY.seat}%`, left: `${safeMax + 1}%`, transform: 'translateY(-50%)' }}
+                  >
+                    Seat Y: {roomBedY.seat}%
+                  </div>
+
+                  {/* Back Y line - magenta/pink */}
+                  <div 
+                    className="absolute left-0 right-0 h-px bg-pink-400/80" 
+                    style={{ top: `${roomBedY.back}%` }} 
+                  />
+                  <div 
+                    className="absolute text-[9px] text-pink-400 font-mono bg-background/70 px-1 rounded"
+                    style={{ top: `${roomBedY.back}%`, left: `${safeMax + 1}%`, transform: 'translateY(-50%)' }}
+                  >
+                    Back Y: {roomBedY.back}%
+                  </div>
+                </>
+              )}
+
               <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono">
                 Safe X (edge): {safeMin.toFixed(1)}% – {safeMax.toFixed(1)}%<br />
                 Bunny half used: {bunnyHalfUsed.toFixed(1)}% (measured {edgeClamp.bunnyHalfPct.toFixed(1)}%)<br />
