@@ -65,8 +65,8 @@ const ClassroomPets = () => {
   // Bed zones for the room/bedroom scene (bed centered-left in video)
   // These are "center-point" bounds; final clamping adds per-side padding to keep Lola inside the visible frame/banisters.
   const bedZones = {
-    seat: { xMin: 30, xMax: 60, y: 75 },    // Bed surface
-    back: { xMin: 30, xMax: 60, y: 65 },    // Pillows area - matching width
+    seat: { xMin: 28, xMax: 65, y: 75 },    // Bed surface
+    back: { xMin: 28, xMax: 65, y: 65 },    // Pillows area - matching width
   };
   
   // Park zones - interactive play areas with depth perception
@@ -96,8 +96,8 @@ const ClassroomPets = () => {
   ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
     // Pad the zone so sprites can't visually cross those posts.
-    const baseLeftPad = currentScene === 'room' ? 8 : 0;
-    const baseRightPad = currentScene === 'room' ? 6 : 0;
+    const baseLeftPad = currentScene === 'room' ? 14 : 0;
+    const baseRightPad = currentScene === 'room' ? 8 : 0;
 
     const leftPad = baseLeftPad + (extraPad?.left ?? 0);
     const rightPad = baseRightPad + (extraPad?.right ?? 0);
@@ -311,7 +311,7 @@ const ClassroomPets = () => {
     x: clampZoneX(
       currentScene === 'park' ? parkZones.grass : currentZoneData,
       currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12,
-      { left: 3, right: 3 }
+      { left: 8, right: 6 }
     ),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
@@ -446,7 +446,7 @@ const ClassroomPets = () => {
         const poopX = clampZoneX(
           zone,
           bunnyState.position.x + (Math.random() - 0.5) * 10,
-          { left: 2, right: 2 }
+          { left: 6, right: 4 }
         );
         const newPoop = {
           id: Date.now(),
