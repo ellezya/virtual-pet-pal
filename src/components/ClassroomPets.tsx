@@ -260,6 +260,8 @@ const ClassroomPets = () => {
   // Flying baby birds state (for hay pile nest)
   const [flyingBirds, setFlyingBirds] = useState<Array<{ id: number; startX: number; startY: number }>>([]);
   const [eggsRemaining, setEggsRemaining] = useState(3);
+  const [isInBox, setIsInBox] = useState(false);
+  const [yarnTanglePhase, setYarnTanglePhase] = useState<'none' | 'batting' | 'tangled' | 'free'>('none');
   
   // Get available toys based on scene (room = low energy only)
   const availableToys = currentScene === 'room' 
@@ -752,18 +754,99 @@ const ClassroomPets = () => {
 
       // Special handling for balloon - bunny plays with it in place, balloon appears above her
       if (toy.id === 'balloon') {
-        // Stay in current position, just start playing animation
-        setBunnyState(prev => ({ 
-          ...prev, 
-          targetObject: null, 
-          action: 'playing'
-        }));
+        setBunnyState(prev => ({ ...prev, targetObject: null, action: 'playing' }));
         playPlay();
-        
-        // Play for a few seconds
         setTimeout(() => {
           setBunnyState(prev => ({ ...prev, action: 'idle' }));
         }, 4000);
+        
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - toy.energyCost) 
+        }));
+        return;
+      }
+
+      // Special handling for yarn - bunny bats at it, gets tangled, then wiggles free
+      if (toy.id === 'yarn') {
+        setYarnTanglePhase('batting');
+        setBunnyState(prev => ({ ...prev, targetObject: null, action: 'playing' }));
+        playPlay();
+        
+        // Phase 1: Batting at yarn (1.5s)
+        setTimeout(() => {
+          setYarnTanglePhase('tangled');
+        }, 1500);
+        
+        // Phase 2: Tangled up! (2s)
+        setTimeout(() => {
+          setYarnTanglePhase('free');
+          playHop(); // Little hop to break free
+        }, 3500);
+        
+        // Phase 3: Free and done
+        setTimeout(() => {
+          setYarnTanglePhase('none');
+          setBunnyState(prev => ({ ...prev, action: 'idle' }));
+        }, 5000);
+        
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - toy.energyCost) 
+        }));
+        return;
+      }
+
+      // Special handling for cardboard box - bunny hops in, peeks out, then hops out
+      if (toy.id === 'cardboard') {
+        const boxX = envObjects['toy-area'].x;
+        const boxY = envObjects['toy-area'].y;
+        
+        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: boxX > prev.position.x }));
+        playHop();
+        
+        // Hop to box
+        setTimeout(() => {
+          setBunnyState(prev => ({ 
+            ...prev, 
+            position: { x: boxX, y: boxY },
+            isHopping: false
+          }));
+        }, 500);
+        
+        // Hop INTO the box (bunny disappears)
+        setTimeout(() => {
+          setIsInBox(true);
+          setBunnyState(prev => ({ ...prev, action: 'playing' }));
+          playPlay();
+        }, 800);
+        
+        // Peek out (show ears)
+        setTimeout(() => {
+          // Peek phase handled in render
+        }, 2000);
+        
+        // Hop out!
+        setTimeout(() => {
+          setIsInBox(false);
+          playHop();
+          setBunnyState(prev => ({ 
+            ...prev, 
+            position: { x: boxX + 6, y: boxY },
+            isHopping: true
+          }));
+        }, 3500);
+        
+        // Done
+        setTimeout(() => {
+          setBunnyState(prev => ({ ...prev, isHopping: false, action: 'idle' }));
+        }, 4200);
         
         const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
         const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
@@ -1276,6 +1359,26 @@ const ClassroomPets = () => {
                 ) : selectedToy.id === 'tunnel' && selectedToy.component ? (
                   // Hollow tree trunk - larger display
                   <HollowTreeTrunkSVG large />
+                ) : selectedToy.id === 'yarn' ? (
+                  // Yarn ball with animated state
+                  <div className={`relative ${yarnTanglePhase === 'batting' ? 'animate-wiggle' : ''}`}>
+                    <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🧶</div>
+                    {/* Yarn trail when tangled */}
+                    {yarnTanglePhase === 'tangled' && (
+                      <div className="absolute -top-2 -right-4 text-lg animate-pulse">〰️</div>
+                    )}
+                  </div>
+                ) : selectedToy.id === 'cardboard' ? (
+                  // Cardboard box with peek-a-boo state
+                  <div className="relative">
+                    <div className={`text-2xl sm:text-3xl md:text-4xl drop-shadow-lg ${isInBox ? 'animate-wiggle' : ''}`}>📦</div>
+                    {/* Bunny ears peeking out when in box */}
+                    {isInBox && bunnyState.action === 'playing' && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 animate-bounce-slow">
+                        <span className="text-lg">🐰</span>
+                      </div>
+                    )}
+                  </div>
                 ) : selectedToy.component ? (
                   <selectedToy.component large />
                 ) : (
@@ -1335,7 +1438,9 @@ const ClassroomPets = () => {
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
           } ${
             isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
-          } ${isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : 'opacity-100'}`}
+          } ${yarnTanglePhase === 'tangled' ? 'animate-wiggle' : ''} ${
+            isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : ''
+          } ${isInBox ? 'opacity-0' : 'opacity-100'}`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
