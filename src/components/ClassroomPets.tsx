@@ -32,7 +32,18 @@ const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState('bunny');
   const [currentScene, setCurrentScene] = useState('habitat');
-  
+  const [showBoundsDebug, setShowBoundsDebug] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+        setShowBoundsDebug((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   // Sound effects
   const {
     playHop,
@@ -62,11 +73,11 @@ const ClassroomPets = () => {
     back: { xMin: 62, xMax: 88, y: 62 },    // Back cushions
   };
   
-  // Bed zones for the room/bedroom scene (bed centered-left in video)
-  // Widened xMin/xMax to give more room after padding is applied.
+  // Bed zones for the room/bedroom scene
+  // NOTE: These are visual bounds for the bed area in the video.
   const bedZones = {
-    seat: { xMin: 22, xMax: 68, y: 75 },    // Bed surface - widened
-    back: { xMin: 22, xMax: 68, y: 65 },    // Pillows area - matching width
+    seat: { xMin: 20, xMax: 90, y: 75 },
+    back: { xMin: 20, xMax: 90, y: 65 },
   };
   
   // Park zones - interactive play areas with depth perception
@@ -89,15 +100,17 @@ const ClassroomPets = () => {
     return couchZones;
   };
 
+  const ROOM_VISUAL_PAD = { left: 22, right: 14 };
+
   const clampZoneX = (
     zone: { xMin: number; xMax: number },
     x: number,
     extraPad?: { left?: number; right?: number }
   ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
-    // Pad the zone so sprites can't visually cross those posts.
-    const baseLeftPad = currentScene === 'room' ? 8 : 0;
-    const baseRightPad = currentScene === 'room' ? 6 : 0;
+    // These pads are for the *sprite center point* (because we translate(-50%) when rendering).
+    const baseLeftPad = currentScene === 'room' ? ROOM_VISUAL_PAD.left : 0;
+    const baseRightPad = currentScene === 'room' ? ROOM_VISUAL_PAD.right : 0;
 
     const leftPad = baseLeftPad + (extraPad?.left ?? 0);
     const rightPad = baseRightPad + (extraPad?.right ?? 0);
@@ -806,13 +819,10 @@ const ClassroomPets = () => {
           ? parkZones[currentParkZone]
           : getActiveZones()[currentCouchZone];
 
-        // Yarn play needs extra clearance from the bed posts/banister.
-        const yarnPad = currentScene === 'room' ? { left: 4, right: 4 } : undefined;
-
-        const yarnX = clampZoneX(playZone, envObjects['toy-area'].x, yarnPad);
+        const yarnX = clampZoneX(playZone, envObjects['toy-area'].x);
         const yarnY = envObjects['toy-area'].y;
         // Approach from slightly left, but keep it clamped so it can never hit the posts.
-        const yarnApproachX = clampZoneX(playZone, yarnX - 2, yarnPad);
+        const yarnApproachX = clampZoneX(playZone, yarnX - 2);
         
         // First hop to yarn
         setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: yarnApproachX > prev.position.x }));
@@ -1325,30 +1335,22 @@ const ClassroomPets = () => {
         </div>
 
         {/* DEBUG: Safe bounds overlay - toggle with Shift+D */}
-        {(() => {
-          const showDebug = false; // Set to true to see safe bounds
-          if (!showDebug || currentScene === 'park') return null;
+        {showBoundsDebug && currentScene !== 'park' && (() => {
           const zone = getActiveZones()[currentCouchZone];
-          const baseLeftPad = 8;
-          const baseRightPad = 6;
-          const minX = zone.xMin + baseLeftPad;
-          const maxX = zone.xMax - baseRightPad;
+          const minX = clampZoneX(zone, zone.xMin);
+          const maxX = clampZoneX(zone, zone.xMax);
+          const bunnyXRaw = bunnyState.position.x;
+          const bunnyXClamped = clampZoneX(zone, bunnyXRaw);
+
           return (
             <div className="absolute inset-0 pointer-events-none z-[50]">
-              {/* Left bound */}
-              <div 
-                className="absolute h-full w-0.5 bg-red-500/50"
-                style={{ left: `${minX}%` }}
-              />
-              {/* Right bound */}
-              <div 
-                className="absolute h-full w-0.5 bg-red-500/50"
-                style={{ left: `${maxX}%` }}
-              />
-              {/* Zone info */}
-              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs p-2 rounded font-mono">
-                Zone: {minX.toFixed(1)}% - {maxX.toFixed(1)}%<br/>
-                Toy X: {envObjects['toy-area'].x.toFixed(1)}%
+              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${minX}%` }} />
+              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${maxX}%` }} />
+
+              <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono">
+                Safe X: {minX.toFixed(1)}% – {maxX.toFixed(1)}%<br />
+                Toy X: {envObjects['toy-area'].x.toFixed(1)}%<br />
+                Bunny X: {bunnyXRaw.toFixed(1)}% (→ {bunnyXClamped.toFixed(1)}%)
               </div>
             </div>
           );
