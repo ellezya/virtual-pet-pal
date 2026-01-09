@@ -125,8 +125,9 @@ const ClassroomPets = () => {
   } = useSoundEffects(currentPet);
   const prevHoppingRef = useRef(false);
 
-  // Hanging plants react to wind audio (0..1) with a gentle baseline.
-  const plantStrength = Math.min(1, (isAmbientPlaying ? 0.3 : 0.1) + windIntensity * 1.0);
+  // Hanging plants were previously driven by wind audio; wind ambience is disabled now.
+  // Keep a gentle baseline sway so the scene still feels alive.
+  const plantStrength = Math.min(1, 0.12 + windIntensity * 1.0);
   const plantSwayDeg = 2 + plantStrength * 6; // degrees
   const plantDuration = 5.5 - plantStrength * 2.0; // seconds
 

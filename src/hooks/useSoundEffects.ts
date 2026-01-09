@@ -1020,25 +1020,38 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const startAmbient = useCallback(() => {
     const pet = currentPetRef.current;
 
+    // Ambient is Tula-only.
+    // If we're not on Tula, ensure everything is stopped and do not start anything.
+    if (pet !== 'fish') {
+      stopAmbient();
+      return;
+    }
+
     // Guard: don't double-start if core nodes are already running
-    const hasCoreNodes = pet === 'fish'
-      ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
-      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
+    const hasCoreNodes =
+      !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval;
 
     if (hasCoreNodes) return;
 
-    // Clear any partial/stale nodes inline (avoid calling stopAmbient to prevent circular dep)
+    // Clear any partial/stale nodes inline (including any leftover Lola ambience)
     if (ambientNodesRef.current.wind) {
-      try { (ambientNodesRef.current.wind as any).stop(); } catch {}
+      try {
+        (ambientNodesRef.current.wind as any).stop();
+      } catch {}
       ambientNodesRef.current.wind = null;
     }
     if (ambientNodesRef.current.windLfo) {
-      try { ambientNodesRef.current.windLfo.stop(); } catch {}
-      try { ambientNodesRef.current.windLfo.disconnect(); } catch {}
+      try {
+        ambientNodesRef.current.windLfo.stop();
+      } catch {}
+      try {
+        ambientNodesRef.current.windLfo.disconnect();
+      } catch {}
       ambientNodesRef.current.windLfo = null;
     }
     ambientNodesRef.current.windGain = null;
     ambientNodesRef.current.windAnalyser = null;
+
     if (ambientNodesRef.current.birdInterval) {
       clearInterval(ambientNodesRef.current.birdInterval);
       ambientNodesRef.current.birdInterval = null;
@@ -1047,67 +1060,63 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       clearInterval(ambientNodesRef.current.childrenInterval);
       ambientNodesRef.current.childrenInterval = null;
     }
+
     if (ambientNodesRef.current.musicInterval) {
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
 
+    // Hard-stop any currently playing music oscillators
     if (ambientNodesRef.current.musicOscillators.length) {
       ambientNodesRef.current.musicOscillators.forEach((osc) => {
-        try { osc.stop(); } catch {}
-        try { osc.disconnect(); } catch {}
+        try {
+          osc.stop();
+        } catch {}
+        try {
+          osc.disconnect();
+        } catch {}
       });
       ambientNodesRef.current.musicOscillators = [];
     }
 
+    // Reset music bus
     if (ambientNodesRef.current.musicGain) {
-      try { ambientNodesRef.current.musicGain.disconnect(); } catch {}
+      try {
+        ambientNodesRef.current.musicGain.disconnect();
+      } catch {}
       ambientNodesRef.current.musicGain = null;
     }
 
-    // Clear water sounds
+    // Reset water sounds
     if (ambientNodesRef.current.waterBubblesInterval) {
       clearInterval(ambientNodesRef.current.waterBubblesInterval);
       ambientNodesRef.current.waterBubblesInterval = null;
     }
     if (ambientNodesRef.current.waterFlowNode) {
-      try { ambientNodesRef.current.waterFlowNode.stop(); } catch {}
+      try {
+        ambientNodesRef.current.waterFlowNode.stop();
+      } catch {}
       ambientNodesRef.current.waterFlowNode = null;
     }
     if (ambientNodesRef.current.waterFlowGain) {
-      try { ambientNodesRef.current.waterFlowGain.disconnect(); } catch {}
+      try {
+        ambientNodesRef.current.waterFlowGain.disconnect();
+      } catch {}
+      ambientNodesRef.current.waterFlowGain = null;
     }
-    ambientNodesRef.current.waterFlowGain = null;
 
     unlockAudio();
 
-    if (pet === 'fish') {
-      // Tula: steel pan + relaxing water (no birds/wind)
-      startSteelPanMusic();
-      startWaterFlowSound();
+    // Tula: steel pans + relaxing water only
+    startSteelPanMusic();
+    startWaterFlowSound();
 
-      ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
-        if (Math.random() < 0.35) playWaterBubble();
-      }, 3200);
+    ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
+      if (Math.random() < 0.35) playWaterBubble();
+    }, 3200);
 
-      playWaterBubble();
-    } else {
-      // Lola: lo-fi + birds + breeze
-      startLolaLofiMusic();
-      startWindSound();
-
-      ambientNodesRef.current.birdInterval = setInterval(() => {
-        if (Math.random() < 0.6) playBirdChirp();
-      }, 2000);
-
-      ambientNodesRef.current.childrenInterval = setInterval(() => {
-        if (Math.random() < 0.35) playChildrenSound();
-      }, 4500);
-
-      playBirdChirp();
-      setTimeout(() => playChildrenSound(), 900);
-    }
-  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, startLolaLofiMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
+    playWaterBubble();
+  }, [unlockAudio, startWaterFlowSound, startSteelPanMusic, playWaterBubble, stopAmbient]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
@@ -1131,27 +1140,31 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   }, [startAmbient, stopAmbient, unlockAudio]);
 
   // Measure wind loudness (proxy) from WebAudio analyser so visuals can match the breeze.
+  // If wind is not part of the current ambience, keep this at 0 and don't run a RAF loop.
   useEffect(() => {
     if (!isAmbientPlaying) {
       setWindIntensity(0);
       return;
     }
 
-    const tick = () => {
-      const analyser = ambientNodesRef.current.windAnalyser;
-      if (analyser) {
-        const buf = new Uint8Array(analyser.fftSize);
-        analyser.getByteTimeDomainData(buf);
+    const analyser = ambientNodesRef.current.windAnalyser;
+    if (!analyser) {
+      setWindIntensity(0);
+      return;
+    }
 
-        let sum = 0;
-        for (let i = 0; i < buf.length; i++) {
-          const v = (buf[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rms = Math.sqrt(sum / buf.length); // ~0..0.25
-        const normalized = Math.max(0, Math.min(1, (rms - 0.05) / 0.15));
-        setWindIntensity(normalized);
+    const tick = () => {
+      const buf = new Uint8Array(analyser.fftSize);
+      analyser.getByteTimeDomainData(buf);
+
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) {
+        const v = (buf[i] - 128) / 128;
+        sum += v * v;
       }
+      const rms = Math.sqrt(sum / buf.length); // ~0..0.25
+      const normalized = Math.max(0, Math.min(1, (rms - 0.05) / 0.15));
+      setWindIntensity(normalized);
 
       windMeterRafRef.current = requestAnimationFrame(tick);
     };
@@ -1232,33 +1245,34 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Track previous pet to detect changes (skip initial mount)
   const prevPetRef = useRef<PetType | null>(null);
-  
-  // Restart ambient sounds when pet changes to switch between bird/water sounds
+
+  // Restart/stop ambient when pet changes.
+  // Requirement: ambience is for Tula only (steel pans + water). Lola has no ambience.
   useEffect(() => {
     // Skip on initial mount
     if (prevPetRef.current === null) {
       prevPetRef.current = currentPet;
-      currentPetRef.current = currentPet; // Ensure ref is in sync
+      currentPetRef.current = currentPet;
       return;
     }
-    
-    // Only restart if pet actually changed
+
     if (prevPetRef.current === currentPet) return;
     prevPetRef.current = currentPet;
-    currentPetRef.current = currentPet; // Update ref BEFORE restart
-    
+    currentPetRef.current = currentPet;
+
     if (!isAmbientPlaying || !hasUnlockedRef.current) return;
-    
-    // Stop current sounds and restart with new pet's sounds
+
+    // Always stop first
     stopAmbientRef.current();
-    
-    // Small delay to ensure cleanup completes, then restart
+
+    // Only restart if Tula is selected
+    if (currentPet !== 'fish') return;
+
     const timer = setTimeout(() => {
-      // Force restart by ensuring we have latest ref
       currentPetRef.current = currentPet;
       startAmbientRef.current();
     }, 150);
-    
+
     return () => clearTimeout(timer);
   }, [currentPet, isAmbientPlaying]);
 
@@ -1282,10 +1296,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
         void ctx.resume().catch(() => {});
       }
 
-      const pet = currentPetRef.current;
-      const hasCoreNodes = pet === 'fish'
-        ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
-        : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
+       const pet = currentPetRef.current;
+       if (pet !== 'fish') return;
+
+       const hasCoreNodes =
+         !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval;
 
       const now = Date.now();
       const musicStalled =
