@@ -2449,134 +2449,136 @@ const ClassroomPets = () => {
               filter: 'drop-shadow(0 0 15px rgba(160, 120, 80, 0.2))',
             } : undefined}
           >
-            {/* Pet Image - scaled to fit room */}
-            <img 
-              ref={bunnyImgRef}
-              src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
-              alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
-              className={`object-contain transition-all duration-700 ease-out ${
+            {/* Fish transforms (flip + depth scale) must apply to sparkles too, so we wrap image + effects */}
+            <div
+              className="relative"
+              style={
                 currentPet === 'fish'
-                  ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 animate-fish-shimmer'
-                  : currentScene === 'room'
-                  ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
-                  : currentScene === 'habitat'
-                  ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36'
-                  : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
-              } ${
-                bunnyState.isNapping ? 'scale-75' :
-                bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''} ${
-                fishState.isResting ? 'opacity-80' : ''
-              }`}
-              style={{
-                // Bunny gets simple drop shadow, fish gets warm underwater tones with depth dimension
-                filter: currentPet === 'fish' 
-                  ? `drop-shadow(0 0 6px rgba(140, 100, 70, 0.3)) drop-shadow(0 3px 6px rgba(60, 40, 30, 0.35)) brightness(0.92) saturate(0.8) sepia(0.2) contrast(1.08)`
-                  : 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
-                transform: `${
-                  currentPet === 'bunny' && !bunnyState.facingRight 
-                    ? 'scaleX(-1)' 
-                    : currentPet === 'fish' && !fishState.facingRight 
-                      ? 'scaleX(-1)' 
-                      : 'scaleX(1)'
-                } ${
-                  // Fish depth: scale based on vertical position (higher = smaller/further, lower = larger/closer)
-                  currentPet === 'fish' 
-                    ? `scale(${0.85 + (fishState.position.y / 100) * 0.3})` 
-                    : ''
+                  ? {
+                      transform: `${fishState.facingRight ? 'scaleX(1)' : 'scaleX(-1)'} scale(${0.85 + (fishState.position.y / 100) * 0.3})`,
+                    }
+                  : undefined
+              }
+            >
+              {/* Pet Image - scaled to fit room */}
+              <img
+                ref={bunnyImgRef}
+                src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
+                alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
+                className={`object-contain transition-all duration-700 ease-out ${
+                  currentPet === 'fish'
+                    ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 animate-fish-shimmer'
+                    : currentScene === 'room'
+                      ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
+                      : currentScene === 'habitat'
+                        ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36'
+                        : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
                 } ${
                   bunnyState.isNapping
-                    ? ''
-                    : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
-                    ? 'rotate(-5deg) translateY(-5%)'
-                    : ''
-                }`,
-              }}
-            />
-
-            {/* Gentle "eating bubbles" at mouth (subtle, no puke look) */}
-            {currentPet === 'fish' && fishState.action === 'eating' && (
-              <div
-                className="absolute pointer-events-none"
+                    ? 'scale-75'
+                    : bunnyState.action === 'eating' || bunnyState.action === 'drinking'
+                      ? 'scale-110'
+                      : ''
+                } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''} ${
+                  fishState.isResting ? 'opacity-80' : ''
+                }`}
                 style={{
-                  top: '40%',
-                  left: fishState.facingRight ? '26%' : '74%',
-                  transform: 'translate(-50%, -50%)',
+                  // Bunny gets simple drop shadow, fish gets warm underwater tones
+                  filter:
+                    currentPet === 'fish'
+                      ? `drop-shadow(0 0 6px rgba(140, 100, 70, 0.3)) drop-shadow(0 3px 6px rgba(60, 40, 30, 0.35)) brightness(0.92) saturate(0.8) sepia(0.2) contrast(1.08)`
+                      : 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
+                  transform: `${
+                    currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
+                  } ${
+                    bunnyState.isNapping
+                      ? ''
+                      : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
+                        ? 'rotate(-5deg) translateY(-5%)'
+                        : ''
+                  }`,
                 }}
-              >
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={`eat-bubble-${i}`}
-                    className="absolute rounded-full bg-foreground/25"
-                    style={{
-                      width: 3 + i,
-                      height: 3 + i,
-                      left: `${i * 6}px`,
-                      top: `${i * 3}px`,
-                      animation: `bubble-rise ${2.8 + i * 0.4}s ease-in-out infinite`,
-                      animationDelay: `${i * 0.3}s`,
-                      filter: 'blur(0.2px)',
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {/* Sparkle effects on Tula's body scales only (not face) */}
-            {/* Sparkle positions are dynamically computed based on fish direction */}
-            {currentPet === 'fish' && (
-              <div
-                className="absolute inset-0 pointer-events-none"
-              >
-                {/* Sparkle dots along body - positioned on body/tail area only, avoiding face */}
-                {/* When facingRight: body is on right (55-80%), face is on left (0-40%) */}
-                {/* When facingLeft: body is on left (20-45%), face is on right (60-100%) */}
-                {[
-                  { xRight: 55, xLeft: 45, y: '35%', size: 4, delay: 0, duration: 2.5 },
-                  { xRight: 65, xLeft: 35, y: '42%', size: 3, delay: 0.8, duration: 2.2 },
-                  { xRight: 75, xLeft: 25, y: '38%', size: 5, delay: 1.5, duration: 2.8 },
-                  { xRight: 60, xLeft: 40, y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                  { xRight: 70, xLeft: 30, y: '58%', size: 4, delay: 0.4, duration: 2.6 },
-                  { xRight: 80, xLeft: 20, y: '48%', size: 3, delay: 1.8, duration: 2.3 },
-                  { xRight: 58, xLeft: 42, y: '48%', size: 2, delay: 1.2, duration: 2.0 },
-                  { xRight: 72, xLeft: 28, y: '52%', size: 3, delay: 2.5, duration: 2.7 },
-                ].map((sparkle, i) => (
-                  <div
-                    key={`sparkle-${i}`}
-                    className="fish-sparkle"
-                    style={{
-                      left: `${fishState.facingRight ? sparkle.xRight : sparkle.xLeft}%`,
-                      top: sparkle.y,
-                      width: sparkle.size,
-                      height: sparkle.size,
-                      animation: `scale-sparkle-1 ${sparkle.duration}s ease-in-out infinite`,
-                      animationDelay: `${sparkle.delay}s`,
-                    }}
-                  />
-                ))}
-                
-                {/* Star sparkles for extra shimmer - body area only */}
-                {/* When facingRight: body is on right, when facingLeft: body is on left */}
-                {[
-                  { xRight: 62, xLeft: 38, y: '40%', size: 8, delay: 0.3, duration: 3 },
-                  { xRight: 68, xLeft: 32, y: '54%', size: 6, delay: 1.6, duration: 2.8 },
-                  { xRight: 78, xLeft: 22, y: '45%', size: 7, delay: 2.2, duration: 3.2 },
-                ].map((star, i) => (
-                  <div
-                    key={`star-${i}`}
-                    className="fish-sparkle-star"
-                    style={{
-                      left: `${fishState.facingRight ? star.xRight : star.xLeft}%`,
-                      top: star.y,
-                      width: star.size,
-                      height: star.size,
-                      animation: `scale-sparkle-2 ${star.duration}s ease-in-out infinite`,
-                      animationDelay: `${star.delay}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+              />
+
+              {/* Gentle "eating bubbles" at mouth (subtle, no puke look) */}
+              {currentPet === 'fish' && fishState.action === 'eating' && (
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: '40%',
+                    // Wrapper flips with direction, so mouth stays on same local X.
+                    left: '26%',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={`eat-bubble-${i}`}
+                      className="absolute rounded-full bg-foreground/25"
+                      style={{
+                        width: 3 + i,
+                        height: 3 + i,
+                        left: `${i * 6}px`,
+                        top: `${i * 3}px`,
+                        animation: `bubble-rise ${2.8 + i * 0.4}s ease-in-out infinite`,
+                        animationDelay: `${i * 0.3}s`,
+                        filter: 'blur(0.2px)',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Sparkle effects anchored to Tula's body (they flip + scale with her) */}
+              {currentPet === 'fish' && (
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Sparkle dots along body/tail area only */}
+                  {[
+                    { x: '55%', y: '35%', size: 4, delay: 0, duration: 2.5 },
+                    { x: '65%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
+                    { x: '75%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
+                    { x: '60%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                    { x: '70%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
+                    { x: '80%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
+                    { x: '58%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
+                    { x: '72%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
+                  ].map((sparkle, i) => (
+                    <div
+                      key={`sparkle-${i}`}
+                      className="fish-sparkle"
+                      style={{
+                        left: sparkle.x,
+                        top: sparkle.y,
+                        width: sparkle.size,
+                        height: sparkle.size,
+                        animation: `scale-sparkle-1 ${sparkle.duration}s ease-in-out infinite`,
+                        animationDelay: `${sparkle.delay}s`,
+                      }}
+                    />
+                  ))}
+
+                  {/* Star sparkles for extra shimmer - body area only */}
+                  {[
+                    { x: '62%', y: '40%', size: 8, delay: 0.3, duration: 3 },
+                    { x: '68%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
+                    { x: '78%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
+                  ].map((star, i) => (
+                    <div
+                      key={`star-${i}`}
+                      className="fish-sparkle-star"
+                      style={{
+                        left: star.x,
+                        top: star.y,
+                        width: star.size,
+                        height: star.size,
+                        animation: `scale-sparkle-2 ${star.duration}s ease-in-out infinite`,
+                        animationDelay: `${star.delay}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
             
             {/* Idle behavior indicators */}
             {currentPet === 'bunny' && bunnyState.idleBehavior !== 'none' && bunnyState.action === 'idle' && (
