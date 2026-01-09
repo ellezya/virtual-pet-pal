@@ -63,10 +63,10 @@ const ClassroomPets = () => {
   };
   
   // Bed zones for the room/bedroom scene (bed centered-left in video)
-  // Very tight bounds to keep Lola safely within the bed frame posts
+  // Bounds define the *center point* of Lola; we additionally pad the right edge to keep her sprite inside the footboard banister.
   const bedZones = {
-    seat: { xMin: 35, xMax: 37, y: 75 },    // Bed surface - stop before footboard post
-    back: { xMin: 35, xMax: 37, y: 65 },    // Pillows area - matching width
+    seat: { xMin: 35, xMax: 40, y: 75 },    // Bed surface
+    back: { xMin: 35, xMax: 40, y: 65 },    // Pillows area - matching width
   };
   
   // Park zones - interactive play areas with depth perception
@@ -87,6 +87,13 @@ const ClassroomPets = () => {
     if (currentScene === 'park') return parkZones;
     if (currentScene === 'room') return bedZones;
     return couchZones;
+  };
+
+  const clampZoneX = (zone: { xMin: number; xMax: number }, x: number) => {
+    // Room bed has a visible footboard banister; keep Lola's sprite from crossing it.
+    const rightPad = currentScene === 'room' ? 3 : 0;
+    const max = Math.max(zone.xMin, zone.xMax - rightPad);
+    return Math.max(zone.xMin, Math.min(max, x));
   };
 
   // Get ground Y position based on current scene
@@ -126,18 +133,18 @@ const ClassroomPets = () => {
         const zone = parkZones[currentParkZone];
         setBunnyState(prev => ({
           ...prev,
-          position: { 
-            x: Math.max(zone.xMin, Math.min(zone.xMax, prev.position.x)), 
-            y: zone.y 
+          position: {
+            x: clampZoneX(zone, prev.position.x),
+            y: zone.y
           }
         }));
       } else if (currentScene === 'habitat' || currentScene === 'room') {
         const zone = getActiveZones()[currentCouchZone];
         setBunnyState(prev => ({
           ...prev,
-          position: { 
-            x: Math.max(zone.xMin, Math.min(zone.xMax, prev.position.x)), 
-            y: zone.y 
+          position: {
+            x: clampZoneX(zone, prev.position.x),
+            y: zone.y
           }
         }));
       } else {
@@ -474,7 +481,7 @@ const ClassroomPets = () => {
 
         const target = isOnCouch
           ? {
-              x: Math.max(zone.xMin, Math.min(zone.xMax, rawTarget.x)),
+              x: clampZoneX(zone, rawTarget.x),
               y: zone.y,
             }
           : rawTarget;
@@ -502,7 +509,7 @@ const ClassroomPets = () => {
           
           // Small horizontal movement while changing zones
           const deltaX = (Math.random() - 0.5) * 8;
-          const newX = Math.max(currentZoneData.xMin, Math.min(currentZoneData.xMax, bunnyState.position.x + deltaX));
+          const newX = clampZoneX(currentZoneData, bunnyState.position.x + deltaX);
           const movingRight = deltaX > 0;
           
           setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -521,7 +528,7 @@ const ClassroomPets = () => {
         // Regular horizontal movement within current zone
         const zone = getActiveZones()[currentCouchZone];
         const deltaX = (Math.random() - 0.5) * 10;
-        const newX = Math.max(zone.xMin, Math.min(zone.xMax, bunnyState.position.x + deltaX));
+        const newX = clampZoneX(zone, bunnyState.position.x + deltaX);
         const movingRight = deltaX > 0;
         
         setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: movingRight }));
@@ -537,7 +544,7 @@ const ClassroomPets = () => {
         // Park scene - only grass zone, just move within it
         const parkZone = parkZones.grass;
         const parkDeltaX = (Math.random() - 0.5) * 10;
-        const parkNewX = Math.max(parkZone.xMin, Math.min(parkZone.xMax, bunnyState.position.x + parkDeltaX));
+        const parkNewX = clampZoneX(parkZone, bunnyState.position.x + parkDeltaX);
         const parkMovingRight = parkDeltaX > 0;
         
         setBunnyState(prev => ({ ...prev, isHopping: true, facingRight: parkMovingRight }));
