@@ -285,7 +285,12 @@ const ClassroomPets = () => {
     facingRight: true,
     isNapping: false
   });
-  
+
+  const bunnyStateRef = useRef(bunnyState);
+  useEffect(() => {
+    bunnyStateRef.current = bunnyState;
+  }, [bunnyState]);
+
   // Update bunny position when scene or zone changes
   useEffect(() => {
     if (currentPet === 'bunny') {
@@ -2487,8 +2492,15 @@ const ClassroomPets = () => {
             />
             
             {/* Sparkle effects on Tula's body scales only (not face) */}
+            {/* When fish flips, the sparkle container stays in local coords, so we counter-flip it */}
             {currentPet === 'fish' && (
-              <div className="absolute inset-0 pointer-events-none">
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  // Counter-flip so sparkles stay on body regardless of direction
+                  transform: fishState.facingRight ? 'none' : 'scaleX(-1)',
+                }}
+              >
                 {/* Sparkle dots along body - positioned on body/tail area only, avoiding face */}
                 {[
                   { x: '55%', y: '35%', size: 4, delay: 0, duration: 2.5 },
