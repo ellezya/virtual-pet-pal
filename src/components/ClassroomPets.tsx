@@ -90,10 +90,10 @@ const ClassroomPets = () => {
   };
   
   // Bed zones for the room/bedroom scene
-  // NOTE: These are visual bounds for the bed area in the video.
+  // NOTE: y is the "ground" line (where paws sit) — set to the top edge where the bed shadow begins.
   const bedZones = {
-    seat: { xMin: 20, xMax: 90, y: 75 },
-    back: { xMin: 20, xMax: 90, y: 65 },
+    seat: { xMin: 20, xMax: 90, y: 71 },
+    back: { xMin: 20, xMax: 90, y: 61 },
   };
   
   // Park zones - interactive play areas with depth perception
