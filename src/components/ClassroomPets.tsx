@@ -730,36 +730,47 @@ const ClassroomPets = () => {
         return newState;
       });
 
-      // Same expected poop rate as Lola: 30% every 12s -> ~7.5% every 3s
-      if (Math.random() < 0.075) {
+      // Fish tank should get dirty *slowly* over a long play session.
+      // ~3.5% every 3s ≈ 1 poop / 86s (much slower than bunny)
+      const FISH_POOP_CHANCE_PER_TICK = 0.035;
+      const FISH_POOP_MAX = 30;
+
+      if (Math.random() < FISH_POOP_CHANCE_PER_TICK) {
         const pos = fishStateRef.current.position;
-        setFishPoops((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            x: pos.x + (Math.random() - 0.5) * 15,
-            y: Math.min(85, pos.y + 15 + Math.random() * 10),
-            createdAt: Date.now(),
-          },
-        ]);
+        setFishPoops((prev) => {
+          const next = [
+            ...prev,
+            {
+              id: Date.now(),
+              x: pos.x + (Math.random() - 0.5) * 15,
+              y: Math.min(85, pos.y + 15 + Math.random() * 10),
+              createdAt: Date.now(),
+            },
+          ];
+          // Keep list bounded for performance and to prevent instant max-filth.
+          return next.length > FISH_POOP_MAX ? next.slice(next.length - FISH_POOP_MAX) : next;
+        });
       }
     }, 3000);
 
     return () => clearInterval(interval);
   }, [currentPet]);
 
-  // Calculate tank cleanliness based on poop/algae buildup
+  // Calculate tank cleanliness based on poop/algae buildup (slow burn)
   useEffect(() => {
     if (currentPet !== 'fish') return;
     const now = Date.now();
-    // Each poop contributes to dirtiness, more so as algae grows
+
+    // Each poop adds a little dirt immediately; algae growth ramps that up over ~40 minutes.
     const totalDirtiness = fishPoops.reduce((acc, poop) => {
       const ageMinutes = (now - poop.createdAt) / 60000;
-      const algaeMultiplier = Math.min(3, 1 + ageMinutes * 0.5); // Grows over ~4 minutes to max
-      return acc + (5 * algaeMultiplier);
+      const algaeMultiplier = Math.min(2.6, 1 + ageMinutes * 0.04);
+      const dirtPerPoop = 2.2;
+      return acc + dirtPerPoop * algaeMultiplier;
     }, 0);
+
     const cleanliness = Math.max(0, 100 - totalDirtiness);
-    setFishState(prev => ({ ...prev, tankCleanliness: cleanliness }));
+    setFishState((prev) => ({ ...prev, tankCleanliness: cleanliness }));
   }, [currentPet, fishPoops]);
 
   // Helper to check if current scene is a fish scene
