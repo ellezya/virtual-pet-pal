@@ -14,6 +14,7 @@ import bunnySleeping from '@/assets/bunny-sleeping.png';
 import fishHappy from '@/assets/fish-happy.png';
 import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
+import fishPlaying from '@/assets/fish-playing.png';
 
 // Habitat images
 import habitatIndoor from '@/assets/habitat-indoor.png';
@@ -76,6 +77,7 @@ const ClassroomPets = () => {
     happy: string;
     sad: string;
     eating: string;
+    playing: string;
   } | null>(null);
 
   useEffect(() => {
@@ -85,14 +87,15 @@ const ClassroomPets = () => {
       try {
         // Use higher feather and tolerance for fish sprites for smoother blending with underwater scenes
         const fishBgOptions = { tolerance: 50, feather: 45, sampleSize: 12 };
-        const [happy, sad, eating] = await Promise.all([
+        const [happy, sad, eating, playing] = await Promise.all([
           removeSolidBackgroundToDataUrl(fishHappy, fishBgOptions),
           removeSolidBackgroundToDataUrl(fishSad, fishBgOptions),
           removeSolidBackgroundToDataUrl(fishEating, fishBgOptions),
+          removeSolidBackgroundToDataUrl(fishPlaying, fishBgOptions),
         ]);
 
         if (!cancelled) {
-          setFishSpriteAlpha({ happy, sad, eating });
+          setFishSpriteAlpha({ happy, sad, eating, playing });
         }
       } catch {
         // If anything fails, we just fall back to original sprites.
@@ -1466,6 +1469,7 @@ const ClassroomPets = () => {
 
   const getFishImage = () => {
     if (fishState.action === 'eating') return fishSpriteAlpha?.eating ?? fishEating;
+    if (fishState.action === 'playing') return fishSpriteAlpha?.playing ?? fishPlaying;
     if (fishState.mood === 'sad') return fishSpriteAlpha?.sad ?? fishSad;
     return fishSpriteAlpha?.happy ?? fishHappy;
   };
