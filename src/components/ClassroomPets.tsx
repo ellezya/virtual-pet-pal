@@ -89,11 +89,18 @@ const ClassroomPets = () => {
     return couchZones;
   };
 
-  const clampZoneX = (zone: { xMin: number; xMax: number }, x: number) => {
+  const clampZoneX = (
+    zone: { xMin: number; xMax: number },
+    x: number,
+    extraPad?: { left?: number; right?: number }
+  ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
-    // Pad the zone so Lola's sprite can't visually cross those posts.
-    const leftPad = currentScene === 'room' ? 8 : 0;
-    const rightPad = currentScene === 'room' ? 6 : 0;
+    // Pad the zone so sprites can't visually cross those posts.
+    const baseLeftPad = currentScene === 'room' ? 8 : 0;
+    const baseRightPad = currentScene === 'room' ? 6 : 0;
+
+    const leftPad = baseLeftPad + (extraPad?.left ?? 0);
+    const rightPad = baseRightPad + (extraPad?.right ?? 0);
 
     const min = zone.xMin + leftPad;
     const max = Math.max(min, zone.xMax - rightPad);
@@ -299,11 +306,12 @@ const ClassroomPets = () => {
   const currentZoneData = getCurrentZoneData();
   
   // Toys only appear on grass in park scene
-  // Clamp toy position using the same banister-aware logic as Lola
+  // Clamp toy position using the same banister-aware logic as Lola (with extra padding for toy width)
   const toyAreaPosition = {
     x: clampZoneX(
       currentScene === 'park' ? parkZones.grass : currentZoneData,
-      currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12
+      currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12,
+      { left: 3, right: 3 }
     ),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
@@ -434,9 +442,11 @@ const ClassroomPets = () => {
           : getActiveZones()[currentCouchZone];
         
         // Clamp poop near Lola's X position with small random offset, using the same banister-aware clamping
+        // (extra padding so the 💩 emoji doesn't sit on top of the bed posts)
         const poopX = clampZoneX(
           zone,
-          bunnyState.position.x + (Math.random() - 0.5) * 10
+          bunnyState.position.x + (Math.random() - 0.5) * 10,
+          { left: 2, right: 2 }
         );
         const newPoop = {
           id: Date.now(),
