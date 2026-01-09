@@ -617,14 +617,23 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
 
   const startAmbient = useCallback(() => {
-    // Guard: don't double-start
-    if (
-      ambientNodesRef.current.wind ||
-      ambientNodesRef.current.birdInterval ||
-      ambientNodesRef.current.childrenInterval ||
-      ambientNodesRef.current.musicInterval
-    ) {
-      return;
+    // Guard: don't double-start if core nodes are already running
+    const hasCoreNodes =
+      !!ambientNodesRef.current.wind &&
+      !!ambientNodesRef.current.windGain &&
+      !!ambientNodesRef.current.musicInterval;
+
+    if (hasCoreNodes) return;
+
+    // If we have a partial/ended setup, reset before starting again
+    const hasAnyNodes =
+      !!ambientNodesRef.current.wind ||
+      !!ambientNodesRef.current.birdInterval ||
+      !!ambientNodesRef.current.childrenInterval ||
+      !!ambientNodesRef.current.musicInterval;
+
+    if (hasAnyNodes) {
+      stopAmbient();
     }
 
     unlockAudio();
@@ -641,7 +650,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
     playBirdChirp();
     setTimeout(() => playChildrenSound(), 900);
-  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound]);
+  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound, stopAmbient]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
@@ -747,14 +756,52 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     };
   }, [unlockAudio, startAmbient]);
 
+  // Keep refs to the latest callbacks (avoids hook-deps churn and accidental restart loops)
+  const startAmbientRef = useRef(startAmbient);
+  const stopAmbientRef = useRef(stopAmbient);
+
+  useEffect(() => {
+    startAmbientRef.current = startAmbient;
+  }, [startAmbient]);
+
+  useEffect(() => {
+    stopAmbientRef.current = stopAmbient;
+  }, [stopAmbient]);
+
+  useEffect(() => {
+    // Keep this in sync with the UI toggle + persisted preference
+    shouldStartAmbientRef.current = isAmbientPlaying;
+  }, [isAmbientPlaying]);
+
   // If ambient is enabled and audio is unlocked, ensure it stays running.
-  // (Some browsers may silently suspend audio after route/scene changes.)
-  // NOTE: We intentionally exclude startAmbient from deps to avoid re-triggering on every render.
+  // Some browsers will silently suspend WebAudio; we "heal" by resuming + rebuilding nodes when needed.
   useEffect(() => {
     if (!isAmbientPlaying) return;
     if (!hasUnlockedRef.current) return;
-    startAmbient();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    startAmbientRef.current();
+
+    const watchdog = window.setInterval(() => {
+      if (!shouldStartAmbientRef.current) return;
+      if (!hasUnlockedRef.current) return;
+
+      const ctx = audioContextRef.current;
+      if (ctx && ctx.state === 'suspended') {
+        void ctx.resume().catch(() => {});
+      }
+
+      const hasCoreNodes =
+        !!ambientNodesRef.current.wind &&
+        !!ambientNodesRef.current.windGain &&
+        !!ambientNodesRef.current.musicInterval;
+
+      if (!hasCoreNodes) {
+        stopAmbientRef.current();
+        startAmbientRef.current();
+      }
+    }, 5000);
+
+    return () => window.clearInterval(watchdog);
   }, [isAmbientPlaying]);
 
   // Cleanup on unmount
