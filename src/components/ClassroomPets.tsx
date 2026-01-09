@@ -540,28 +540,8 @@ const ClassroomPets = () => {
     falling: boolean;
   }>>([]);
   
-  // Fish scene decorations (scene-specific)
-  const fishSceneDecorations: Record<FishScene, Array<{ id: string; emoji: string; x: number; y: number; scale: number }>> = {
-    reef: [
-      { id: 'coral1', emoji: '🪸', x: 15, y: 85, scale: 1.4 },
-      { id: 'coral2', emoji: '🪸', x: 75, y: 88, scale: 1.1 },
-      { id: 'plant1', emoji: '🌿', x: 10, y: 82, scale: 1.3 },
-      { id: 'plant2', emoji: '🌱', x: 85, y: 84, scale: 1.0 },
-      { id: 'anemone', emoji: '🌺', x: 45, y: 87, scale: 1.2 },
-    ],
-    castle: [
-      { id: 'castle', emoji: '🏰', x: 50, y: 78, scale: 2.0 },
-      { id: 'treasure', emoji: '📦', x: 30, y: 90, scale: 1.0 },
-      { id: 'rock1', emoji: '🪨', x: 20, y: 88, scale: 0.9 },
-      { id: 'rock2', emoji: '🪨', x: 80, y: 86, scale: 1.1 },
-    ],
-    shell: [
-      { id: 'shell', emoji: '🐚', x: 50, y: 75, scale: 2.5 },
-      { id: 'pearl', emoji: '⚪', x: 48, y: 82, scale: 0.8 },
-      { id: 'rock1', emoji: '🪨', x: 25, y: 90, scale: 1.0 },
-      { id: 'rock2', emoji: '🪨', x: 75, y: 88, scale: 0.8 },
-    ],
-  };
+  // Fish scene decorations removed - clean immersive backgrounds only
+  // The lofi video backgrounds provide all the visual atmosphere needed
   
   // Tank friends - only appear as toys in castle scene
   const tankFriends = [
@@ -1920,48 +1900,17 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Tank Decorations - scene-specific */}
-        {currentPet === 'fish' && isFishScene(currentScene) && (
-          <div className="absolute inset-0 pointer-events-none z-[5]">
-            {fishSceneDecorations[currentScene].map(dec => (
-              <div
-                key={dec.id}
-                className="absolute transform -translate-x-1/2"
-                style={{
-                  left: `${dec.x}%`,
-                  top: `${dec.y}%`,
-                  fontSize: `${dec.scale * 1.5}rem`,
-                }}
-              >
-                {dec.emoji}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Tank decorations removed - clean immersive lofi backgrounds only */}
 
-        {/* Tank Friends - only shown as the selected toy in castle scene */}
-        {currentPet === 'fish' && currentScene === 'castle' && fishState.action === 'playing' && (
-          <div className="absolute inset-0 pointer-events-none z-[6]">
-            <div
-              className="absolute transform -translate-x-1/2 transition-all duration-500 animate-bounce-slow"
-              style={{
-                left: `${fishState.position.x + 8}%`,
-                top: `${fishState.position.y + 5}%`,
-                fontSize: '2rem',
-              }}
-            >
-              {selectedFishToy.emoji}
-            </div>
-          </div>
-        )}
+        {/* Tank friends removed - clean immersive experience */}
 
-        {/* Fish Poops with Algae Growth */}
+        {/* Fish Waste with subtle organic algae growth - immersive design */}
         {currentPet === 'fish' && (
           <div className="absolute inset-0 pointer-events-none z-[7]">
             {fishPoops.map(poop => {
               const ageMinutes = (Date.now() - poop.createdAt) / 60000;
               const algaeLevel = Math.min(1, ageMinutes * 0.25); // Full algae in ~4 minutes
-              const algaeSize = 0.5 + algaeLevel * 1.5;
+              const algaeSize = 0.3 + algaeLevel * 1.2;
               
               return (
                 <div
@@ -1972,18 +1921,34 @@ const ClassroomPets = () => {
                     top: `${poop.y}%`,
                   }}
                 >
-                  {/* Algae growing around poop */}
-                  {algaeLevel > 0.1 && (
+                  {/* Organic waste dot with growing algae halo */}
+                  <div 
+                    className="relative"
+                    style={{
+                      width: `${8 + algaeLevel * 12}px`,
+                      height: `${8 + algaeLevel * 12}px`,
+                    }}
+                  >
+                    {/* Algae growth halo */}
                     <div 
-                      className="absolute -inset-2 rounded-full opacity-60"
+                      className="absolute inset-0 rounded-full transition-all duration-1000"
                       style={{
-                        background: `radial-gradient(circle, hsl(120, 60%, ${30 + algaeLevel * 20}%) 0%, transparent 70%)`,
+                        background: `radial-gradient(circle, rgba(85, 107, 47, ${0.2 + algaeLevel * 0.4}) 0%, rgba(60, 80, 40, ${0.1 + algaeLevel * 0.2}) 50%, transparent 80%)`,
                         transform: `scale(${algaeSize})`,
-                        filter: 'blur(2px)'
+                        filter: `blur(${1 + algaeLevel * 2}px)`,
                       }}
                     />
-                  )}
-                  <div className="text-sm">💩</div>
+                    {/* Core waste particle */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                      style={{
+                        width: '4px',
+                        height: '4px',
+                        background: `rgba(90, 70, 50, ${0.5 + algaeLevel * 0.3})`,
+                        boxShadow: `0 0 3px rgba(70, 90, 50, ${0.3 + algaeLevel * 0.4})`,
+                      }}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -2296,7 +2261,7 @@ const ClassroomPets = () => {
               ref={bunnyImgRef}
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
-              className={`object-contain transition-all duration-500 ${
+              className={`object-contain transition-all duration-700 ease-out ${
                 currentPet === 'fish'
                   ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28'
                   : currentScene === 'room'
@@ -2307,11 +2272,11 @@ const ClassroomPets = () => {
               } ${
                 bunnyState.isNapping ? 'scale-75' :
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${fishState.action === 'eating' ? 'scale-110' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
+              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
-                // Bunny gets simple drop shadow, fish gets warm underwater tones matching the lofi backgrounds
+                // Bunny gets simple drop shadow, fish gets warm underwater tones with depth dimension
                 filter: currentPet === 'fish' 
-                  ? `drop-shadow(0 0 8px rgba(180, 140, 100, 0.35)) drop-shadow(0 2px 4px rgba(80, 60, 40, 0.25)) brightness(0.95) saturate(0.85) sepia(0.15) hue-rotate(10deg) contrast(1.05)`
+                  ? `drop-shadow(0 0 6px rgba(140, 100, 70, 0.3)) drop-shadow(0 3px 6px rgba(60, 40, 30, 0.35)) brightness(0.92) saturate(0.8) sepia(0.2) contrast(1.08)`
                   : 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
                 transform: `${
                   currentPet === 'bunny' && !bunnyState.facingRight 
@@ -2319,6 +2284,11 @@ const ClassroomPets = () => {
                     : currentPet === 'fish' && !fishState.facingRight 
                       ? 'scaleX(-1)' 
                       : 'scaleX(1)'
+                } ${
+                  // Fish depth: scale based on vertical position (higher = smaller/further, lower = larger/closer)
+                  currentPet === 'fish' 
+                    ? `scale(${0.85 + (fishState.position.y / 100) * 0.3})` 
+                    : ''
                 } ${
                   bunnyState.isNapping
                     ? ''
