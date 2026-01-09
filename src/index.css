@@ -486,6 +486,26 @@
     animation: fish-nibble 0.5s ease-in-out infinite;
   }
 
+  /* Fish flake food floating animation */
+  @keyframes fish-flake-float {
+    0%, 100% { 
+      transform: translateY(0) translateX(0) rotate(0deg);
+      opacity: 0.9;
+    }
+    25% { 
+      transform: translateY(-3px) translateX(2px) rotate(15deg);
+      opacity: 1;
+    }
+    50% { 
+      transform: translateY(2px) translateX(-1px) rotate(-10deg);
+      opacity: 0.7;
+    }
+    75% { 
+      transform: translateY(-2px) translateX(3px) rotate(20deg);
+      opacity: 1;
+    }
+  }
+
   .animate-food-fall {
     animation: food-fall 3s ease-in forwards;
   }
