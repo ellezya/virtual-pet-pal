@@ -65,6 +65,37 @@ const ClassroomPets = () => {
     };
   }, []);
 
+  // Create truly transparent fish sprites at runtime (removes baked-in white/checkerboard background)
+  const [fishSpriteAlpha, setFishSpriteAlpha] = useState<{
+    happy: string;
+    sad: string;
+    eating: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [happy, sad, eating] = await Promise.all([
+          removeSolidBackgroundToDataUrl(fishHappy),
+          removeSolidBackgroundToDataUrl(fishSad),
+          removeSolidBackgroundToDataUrl(fishEating),
+        ]);
+
+        if (!cancelled) {
+          setFishSpriteAlpha({ happy, sad, eating });
+        }
+      } catch {
+        // If anything fails, we just fall back to original sprites.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
 
   // Sound effects
   const {
@@ -1351,9 +1382,9 @@ const ClassroomPets = () => {
   };
 
   const getFishImage = () => {
-    if (fishState.action === 'eating') return fishEating;
-    if (fishState.mood === 'sad') return fishSad;
-    return fishHappy;
+    if (fishState.action === 'eating') return fishSpriteAlpha?.eating ?? fishEating;
+    if (fishState.mood === 'sad') return fishSpriteAlpha?.sad ?? fishSad;
+    return fishSpriteAlpha?.happy ?? fishHappy;
   };
 
   const habitatSrc =
