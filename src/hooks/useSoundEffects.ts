@@ -537,145 +537,220 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }
   }, [getAudioContext]);
 
-  // Start continuous underwater water flow sound
+  // Start continuous relaxing underwater water flow sound
   const startWaterFlowSound = useCallback(() => {
     const ctx = getAudioContext();
     
-    // Create filtered noise for water flow
-    const bufferSize = ctx.sampleRate * 3;
+    // Create filtered noise for gentle water flow
+    const bufferSize = ctx.sampleRate * 4;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
+    // Create smoother noise by averaging consecutive samples
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.4;
+      data[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    // Smooth the noise for a more gentle water sound
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 1; i < bufferSize - 1; i++) {
+        data[i] = (data[i - 1] + data[i] + data[i + 1]) / 3;
+      }
     }
     
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
     noise.loop = true;
     
-    // Low-pass filter for underwater muffled sound
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(300, ctx.currentTime);
-    filter.Q.setValueAtTime(1, ctx.currentTime);
+    // Low-pass filter for soft, muffled underwater sound
+    const filter1 = ctx.createBiquadFilter();
+    filter1.type = 'lowpass';
+    filter1.frequency.setValueAtTime(250, ctx.currentTime);
+    filter1.Q.setValueAtTime(0.5, ctx.currentTime);
     
-    // Slow modulation for water movement
+    // Second filter for extra smoothness
+    const filter2 = ctx.createBiquadFilter();
+    filter2.type = 'lowpass';
+    filter2.frequency.setValueAtTime(400, ctx.currentTime);
+    filter2.Q.setValueAtTime(0.3, ctx.currentTime);
+    
+    // Very slow modulation for gentle wave movement
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.15, ctx.currentTime);
-    lfoGain.gain.setValueAtTime(80, ctx.currentTime);
+    lfo.frequency.setValueAtTime(0.08, ctx.currentTime); // Very slow waves
+    lfoGain.gain.setValueAtTime(60, ctx.currentTime);
     lfo.connect(lfoGain);
-    lfoGain.connect(filter.frequency);
+    lfoGain.connect(filter1.frequency);
+    
+    // Second LFO for more organic movement
+    const lfo2 = ctx.createOscillator();
+    const lfo2Gain = ctx.createGain();
+    lfo2.type = 'sine';
+    lfo2.frequency.setValueAtTime(0.12, ctx.currentTime);
+    lfo2Gain.gain.setValueAtTime(40, ctx.currentTime);
+    lfo2.connect(lfo2Gain);
+    lfo2Gain.connect(filter2.frequency);
     
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(ambientVolume * 0.7, ctx.currentTime);
+    gain.gain.setValueAtTime(ambientVolume * 0.5, ctx.currentTime);
     
-    noise.connect(filter);
-    filter.connect(gain);
+    noise.connect(filter1);
+    filter1.connect(filter2);
+    filter2.connect(gain);
     gain.connect(ctx.destination);
     
     lfo.start();
+    lfo2.start();
     noise.start();
     
     ambientNodesRef.current.waterFlowNode = noise;
     ambientNodesRef.current.waterFlowGain = gain;
   }, [getAudioContext, ambientVolume]);
 
-  // Play a lofi music chord
-  // IMPORTANT: we disconnect nodes on end to avoid leaking AudioNodes (can cause audio to stop after a while).
-  const playLofiChord = useCallback(
-    (frequencies: number[], duration: number) => {
+  // Play a steel pan note with metallic, bell-like quality
+  const playSteelPanNote = useCallback(
+    (frequency: number, startTime: number, duration: number) => {
       const ctx = getAudioContext();
-      const time = ctx.currentTime;
-
+      
       const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(musicVolume, time);
-      masterGain.gain.linearRampToValueAtTime(musicVolume * 0.8, time + duration * 0.7);
-      masterGain.gain.linearRampToValueAtTime(0.0001, time + duration);
       masterGain.connect(ctx.destination);
-
-      let endedCount = 0;
-      const total = frequencies.length;
-
-      const maybeCleanupMaster = () => {
-        endedCount += 1;
-        if (endedCount >= total) {
-          try {
-            masterGain.disconnect();
-          } catch {}
-        }
-      };
-
-      frequencies.forEach((freq) => {
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, time);
-
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(800, time);
-        filter.Q.setValueAtTime(1, time);
-
-        oscGain.gain.setValueAtTime(0.15, time);
-
-        osc.connect(filter);
-        filter.connect(oscGain);
-        oscGain.connect(masterGain);
-
+      
+      // Steel pan has quick attack, medium decay with bell-like harmonics
+      masterGain.gain.setValueAtTime(0, startTime);
+      masterGain.gain.linearRampToValueAtTime(musicVolume * 0.4, startTime + 0.01); // Quick attack
+      masterGain.gain.exponentialRampToValueAtTime(musicVolume * 0.15, startTime + 0.15); // Quick initial decay
+      masterGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Slow fade
+      
+      // Fundamental frequency
+      const osc1 = ctx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(frequency, startTime);
+      
+      // Second harmonic (octave) - gives brightness
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(frequency * 2, startTime);
+      
+      // Third harmonic for metallic shimmer
+      const osc3 = ctx.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(frequency * 3, startTime);
+      
+      // Fourth harmonic - subtle
+      const osc4 = ctx.createOscillator();
+      osc4.type = 'sine';
+      osc4.frequency.setValueAtTime(frequency * 4, startTime);
+      
+      // Gains for each harmonic (fundamental strongest, diminishing harmonics)
+      const gain1 = ctx.createGain();
+      const gain2 = ctx.createGain();
+      const gain3 = ctx.createGain();
+      const gain4 = ctx.createGain();
+      
+      gain1.gain.setValueAtTime(1.0, startTime);
+      gain2.gain.setValueAtTime(0.5, startTime);
+      gain3.gain.setValueAtTime(0.25, startTime);
+      gain4.gain.setValueAtTime(0.1, startTime);
+      
+      // Faster decay for higher harmonics (characteristic of steel pan)
+      gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.6);
+      gain3.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.4);
+      gain4.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.3);
+      
+      osc1.connect(gain1);
+      osc2.connect(gain2);
+      osc3.connect(gain3);
+      osc4.connect(gain4);
+      
+      gain1.connect(masterGain);
+      gain2.connect(masterGain);
+      gain3.connect(masterGain);
+      gain4.connect(masterGain);
+      
+      [osc1, osc2, osc3, osc4].forEach(osc => {
+        osc.start(startTime);
+        osc.stop(startTime + duration);
         osc.onended = () => {
-          try {
-            osc.disconnect();
-          } catch {}
-          try {
-            filter.disconnect();
-          } catch {}
-          try {
-            oscGain.disconnect();
-          } catch {}
-          maybeCleanupMaster();
+          try { osc.disconnect(); } catch {}
         };
-
-        osc.start(time);
-        osc.stop(time + duration);
       });
-
-      // Failsafe cleanup (if onended doesn't fire for some reason)
+      
+      // Cleanup
       window.setTimeout(() => {
-        try {
-          masterGain.disconnect();
-        } catch {}
-      }, Math.ceil((duration + 0.25) * 1000));
+        try { masterGain.disconnect(); } catch {}
+        [gain1, gain2, gain3, gain4].forEach(g => {
+          try { g.disconnect(); } catch {}
+        });
+      }, Math.ceil((duration + 0.5) * 1000));
     },
     [getAudioContext, musicVolume]
   );
 
-  // Start lofi background music
-  const startLofiMusic = useCallback(() => {
-    const chords = [
-      [261.63, 329.63, 392.00, 493.88], // Cmaj7
-      [220.00, 261.63, 329.63, 392.00], // Am7
-      [174.61, 220.00, 261.63, 329.63], // Fmaj7
-      [196.00, 246.94, 293.66, 349.23], // G7
+  // Play a steel pan melody phrase
+  const playSteelPanPhrase = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Caribbean/tropical pentatonic patterns
+    const phrases = [
+      // Phrase 1: Ascending melody
+      [
+        { freq: 523.25, delay: 0, dur: 0.8 },     // C5
+        { freq: 587.33, delay: 0.4, dur: 0.6 },   // D5
+        { freq: 659.25, delay: 0.8, dur: 1.0 },   // E5
+        { freq: 783.99, delay: 1.4, dur: 1.2 },   // G5
+      ],
+      // Phrase 2: Descending with pause
+      [
+        { freq: 783.99, delay: 0, dur: 0.6 },     // G5
+        { freq: 659.25, delay: 0.5, dur: 0.8 },   // E5
+        { freq: 523.25, delay: 1.2, dur: 1.4 },   // C5
+      ],
+      // Phrase 3: Playful jump
+      [
+        { freq: 392.00, delay: 0, dur: 0.5 },     // G4
+        { freq: 587.33, delay: 0.3, dur: 0.6 },   // D5
+        { freq: 523.25, delay: 0.7, dur: 0.5 },   // C5
+        { freq: 659.25, delay: 1.1, dur: 1.0 },   // E5
+        { freq: 783.99, delay: 1.8, dur: 1.2 },   // G5
+      ],
+      // Phrase 4: Gentle waves
+      [
+        { freq: 523.25, delay: 0, dur: 1.0 },     // C5
+        { freq: 659.25, delay: 0.6, dur: 0.8 },   // E5
+        { freq: 587.33, delay: 1.2, dur: 1.0 },   // D5
+        { freq: 523.25, delay: 1.9, dur: 1.4 },   // C5
+      ],
     ];
+    
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    
+    phrase.forEach(note => {
+      playSteelPanNote(note.freq, time + note.delay, note.dur);
+    });
+  }, [getAudioContext, playSteelPanNote]);
 
-    let chordIndex = 0;
-
+  // Start steel pan background music
+  const startSteelPanMusic = useCallback(() => {
+    let phraseIndex = 0;
+    
     const tick = () => {
       lastMusicTickRef.current = Date.now();
-      playLofiChord(chords[chordIndex], 3.5);
-      chordIndex = (chordIndex + 1) % chords.length;
+      playSteelPanPhrase();
+      phraseIndex++;
     };
-
+    
     tick();
-
-    const musicInterval = setInterval(tick, 4000);
-
+    
+    // Play phrases with natural pauses (5-7 seconds apart)
+    const musicInterval = setInterval(() => {
+      if (Math.random() < 0.7) { // Sometimes skip for more natural feel
+        tick();
+      }
+    }, 5500);
+    
     ambientNodesRef.current.musicInterval = musicInterval;
-  }, [playLofiChord]);
+  }, [playSteelPanPhrase]);
 
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
@@ -827,19 +902,20 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.waterFlowGain = null;
 
     unlockAudio();
-    startLofiMusic();
     
     if (pet === 'fish') {
-      // Fish tank: water flow + bubbles
+      // Fish tank: steel pan music + relaxing water flow + bubbles
+      startSteelPanMusic();
       startWaterFlowSound();
       
       ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
-        if (Math.random() < 0.5) playWaterBubble();
-      }, 2500);
+        if (Math.random() < 0.4) playWaterBubble();
+      }, 3000);
       
       playWaterBubble();
     } else {
-      // Bunny: wind + birds + children
+      // Bunny: lofi chords + wind + birds + children
+      startSteelPanMusic(); // Use steel pan for both now for consistency
       startWindSound();
 
       ambientNodesRef.current.birdInterval = setInterval(() => {
@@ -853,7 +929,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       playBirdChirp();
       setTimeout(() => playChildrenSound(), 900);
     }
-  }, [unlockAudio, startWindSound, startWaterFlowSound, startLofiMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
+  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
