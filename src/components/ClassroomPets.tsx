@@ -111,6 +111,7 @@ const ClassroomPets = () => {
   // Sound effects
   const {
     playHop,
+    playSwim,
     playEat,
     playDrink,
     playClean,
@@ -317,6 +318,10 @@ const ClassroomPets = () => {
 
   // Poop positions - store x and zone, compute y dynamically from roomBedY
   const [poops, setPoops] = useState<Array<{ id: number; x: number; zone: 'seat' | 'back' }>>([])
+  const poopsRef = useRef(poops);
+  useEffect(() => {
+    poopsRef.current = poops;
+  }, [poops]);
 
   // Get toy scale based on scene
   const getToyScale = () => {
@@ -521,8 +526,8 @@ const ClassroomPets = () => {
     'toy-area': toyAreaPosition,
   };
   const [fishState, setFishState] = useState({
-    hunger: 70,
-    happiness: 80,
+    hunger: 80,
+    happiness: 85,
     energy: 75,
     tankCleanliness: 95,
     mood: 'happy' as 'happy' | 'sad' | 'calm',
@@ -536,7 +541,11 @@ const ClassroomPets = () => {
     isResting: false,
   });
 
-  // Fish tank specific state
+  const fishStateRef = useRef(fishState);
+  useEffect(() => {
+    fishStateRef.current = fishState;
+  }, [fishState]);
+
   const [fishPoops, setFishPoops] = useState<Array<{ 
     id: number; 
     x: number; 
@@ -661,70 +670,77 @@ const ClassroomPets = () => {
     prevHoppingRef.current = bunnyState.isHopping;
   }, [bunnyState.isHopping, playHop]);
 
-  // Bunny occasionally poops - constrained to grass/flowers in park, couch zones in habitat/room
+  // Bunny occasionally poops - interval must NOT depend on position (it would restart constantly)
   useEffect(() => {
     if (currentPet !== 'bunny') return;
+
     const poopInterval = setInterval(() => {
-      // In park, poop is allowed (both grass + flowers are ground-level)
-      
-      // Random chance to poop (higher when recently fed)
-      if (Math.random() < 0.3 && poops.length < 5) {
-        // Get the appropriate zone for poop placement
-        const zone = currentScene === 'park' 
-          ? parkZones[currentParkZone] 
+      const bs = bunnyStateRef.current;
+
+      // Random chance to poop
+      if (Math.random() < 0.3 && poopsRef.current.length < 5) {
+        const zone = currentScene === 'park'
+          ? parkZones[currentParkZone]
           : getActiveZones()[currentCouchZone];
-        
-        // Clamp poop near Lola's X position with small random offset, using the same banister-aware clamping
-        // (extra padding so the 💩 emoji doesn't sit on top of the bed posts)
+
         const poopX = clampZoneX(
           zone,
-          bunnyState.position.x + (Math.random() - 0.5) * 10,
+          bs.position.x + (Math.random() - 0.5) * 10,
           { left: 10, right: 8 }
         );
+
         const newPoop = {
           id: Date.now(),
           x: poopX,
-          zone: currentCouchZone // Store which zone poop was created in
+          zone: currentCouchZone,
         };
-        setPoops(prev => [...prev, newPoop]);
-        setBunnyState(prev => ({
+
+        setPoops((prev) => [...prev, newPoop]);
+        setBunnyState((prev) => ({
           ...prev,
-          cleanliness: Math.max(0, prev.cleanliness - 10)
+          cleanliness: Math.max(0, prev.cleanliness - 10),
         }));
         playPoop();
       }
     }, 12000);
-    return () => clearInterval(poopInterval);
-  }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x, currentScene, currentParkZone]);
 
-  // Fish decay + poop generation
+    return () => clearInterval(poopInterval);
+  }, [currentPet, currentScene, currentCouchZone, currentParkZone, playPoop]);
+
+  // Fish decay + poop generation (same care rate as Lola; interval must not depend on position)
   useEffect(() => {
     if (currentPet !== 'fish') return;
+
     const interval = setInterval(() => {
-      setFishState(prev => {
+      setFishState((prev) => {
         const newState = {
           ...prev,
-          hunger: Math.max(0, prev.hunger - 0.3),
-          happiness: Math.max(0, prev.happiness - 0.2),
+          hunger: Math.max(0, prev.hunger - 0.5),
+          happiness: Math.max(0, prev.happiness - 0.3),
         };
         if (newState.hunger < 30) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'calm';
         return newState;
       });
-      
-      // Fish poops at same rate as bunny (30% chance every 12 seconds = 5% chance every 2 seconds)
-      if (Math.random() < 0.15) {
-        setFishPoops(prev => [...prev, {
-          id: Date.now(),
-          x: fishState.position.x + (Math.random() - 0.5) * 15,
-          y: Math.min(85, fishState.position.y + 15 + Math.random() * 10), // Ensure visible and sinks a bit
-          createdAt: Date.now()
-        }]);
+
+      // Same expected poop rate as Lola: 30% every 12s -> ~7.5% every 3s
+      if (Math.random() < 0.075) {
+        const pos = fishStateRef.current.position;
+        setFishPoops((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            x: pos.x + (Math.random() - 0.5) * 15,
+            y: Math.min(85, pos.y + 15 + Math.random() * 10),
+            createdAt: Date.now(),
+          },
+        ]);
       }
-    }, 4000); // Check every 4 seconds like bunny's effective rate
+    }, 3000);
+
     return () => clearInterval(interval);
-  }, [currentPet, fishState.position.x, fishState.position.y]);
+  }, [currentPet]);
 
   // Calculate tank cleanliness based on poop/algae buildup
   useEffect(() => {
@@ -915,58 +931,84 @@ const ClassroomPets = () => {
   // Auto-move fish with natural swimming behavior (only when no food to chase)
   useEffect(() => {
     if (currentPet !== 'fish' || fishState.action !== 'idle' || fishFood.length > 0) return;
-    
+
     // Pick a new swim target periodically
     const pickNewTarget = () => {
       const speed = fishState.mood === 'happy' ? 1.5 : fishState.mood === 'calm' ? 0.8 : 0.5;
-      setFishState(prev => ({
+      setFishState((prev) => ({
         ...prev,
         swimTarget: {
           x: Math.max(12, Math.min(88, 50 + (Math.random() - 0.5) * 70)),
-          y: Math.max(15, Math.min(75, 45 + (Math.random() - 0.5) * 50))
+          y: Math.max(15, Math.min(75, 45 + (Math.random() - 0.5) * 50)),
         },
-        swimSpeed: speed
+        swimSpeed: speed,
       }));
     };
-    
+
     // Pick new target every 3-6 seconds
     const targetInterval = setInterval(pickNewTarget, 3000 + Math.random() * 3000);
     pickNewTarget(); // Initial target
-    
+
     // Smooth swimming towards target - gentle pace for calming effect
     const swimInterval = setInterval(() => {
-      setFishState(prev => {
+      setFishState((prev) => {
         const dx = prev.swimTarget.x - prev.position.x;
         const dy = prev.swimTarget.y - prev.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance < 2) return prev; // Close enough, wait for new target
-        
+
         // Slow, gentle easing movement - calming pace
         const ease = Math.min(1, distance / 50);
         const moveSpeed = prev.swimSpeed * ease * 0.8; // Halved speed
         const moveX = (dx / distance) * moveSpeed;
         const moveY = (dy / distance) * moveSpeed * 0.5; // Even less vertical movement
-        
+
         // Add slight sine wave wobble for natural fish movement
         const wobble = Math.sin(Date.now() / 400) * 0.15; // Slower, gentler wobble
-        
+
         return {
           ...prev,
           position: {
             x: Math.max(12, Math.min(88, prev.position.x + moveX)),
-            y: Math.max(15, Math.min(75, prev.position.y + moveY + wobble))
+            y: Math.max(15, Math.min(75, prev.position.y + moveY + wobble)),
           },
-          facingRight: dx > 0.5 ? true : dx < -0.5 ? false : prev.facingRight
+          facingRight: dx > 0.5 ? true : dx < -0.5 ? false : prev.facingRight,
         };
       });
     }, 60); // Slightly slower update rate for smoother motion
-    
+
     return () => {
       clearInterval(targetInterval);
       clearInterval(swimInterval);
     };
   }, [currentPet, fishState.action, fishFood.length, fishState.mood]);
+
+  // Gentle swim swish SFX for Tula (throttled)
+  useEffect(() => {
+    if (currentPet !== 'fish') return;
+
+    const prevPosRef = { current: fishStateRef.current.position };
+    let lastAt = 0;
+
+    const id = window.setInterval(() => {
+      const cur = fishStateRef.current.position;
+      const prev = prevPosRef.current;
+      const dx = cur.x - prev.x;
+      const dy = cur.y - prev.y;
+      prevPosRef.current = cur;
+
+      const moved = dx * dx + dy * dy > 3.5;
+      if (!moved) return;
+
+      const now = Date.now();
+      if (now - lastAt < 650) return;
+      lastAt = now;
+      playSwim();
+    }, 420);
+
+    return () => window.clearInterval(id);
+  }, [currentPet, playSwim]);
 
   // Notifications
   useEffect(() => {

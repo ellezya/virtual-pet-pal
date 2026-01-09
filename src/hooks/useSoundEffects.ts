@@ -2,6 +2,8 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 
 interface SoundEffectsReturn {
   playHop: () => void;
+  /** Gentle water swish for Tula's swimming */
+  playSwim: () => void;
   playEat: () => void;
   playDrink: () => void;
   playClean: () => void;
@@ -124,33 +126,75 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const playHop = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
-    
+
     const bufferSize = ctx.sampleRate * 0.08;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
-    
+
     for (let i = 0; i < bufferSize; i++) {
       data[i] = (Math.random() * 2 - 1) * 0.3;
     }
-    
+
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
-    
+
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(800, time);
     filter.frequency.exponentialRampToValueAtTime(200, time + 0.06);
-    
+
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(sfxVolume * 0.15, time);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
-    
+
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
-    
+
     noise.start(time);
     noise.stop(time + 0.1);
+  }, [getAudioContext]);
+
+  // Very soft watery swish for Tula swimming
+  const playSwim = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+
+    const bufferSize = Math.floor(ctx.sampleRate * 0.14);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      // Slightly smoother noise than hop
+      const n = (Math.random() * 2 - 1) * 0.22;
+      data[i] = i === 0 ? n : (data[i - 1] * 0.65 + n * 0.35);
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.setValueAtTime(320, time);
+    band.Q.setValueAtTime(0.7, time);
+
+    const low = ctx.createBiquadFilter();
+    low.type = 'lowpass';
+    low.frequency.setValueAtTime(900, time);
+    low.Q.setValueAtTime(0.3, time);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(sfxVolume * 0.08, time + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+    noise.connect(band);
+    band.connect(low);
+    low.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(time);
+    noise.stop(time + 0.2);
   }, [getAudioContext]);
 
   // Crunchy eating sound
@@ -749,7 +793,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     });
   }, [getAudioContext, playSteelPanNote]);
 
-  // Start soft steel pan background music
+  // Start soft steel pan background music (Tula)
   const startSteelPanMusic = useCallback(() => {
     const tick = () => {
       lastMusicTickRef.current = Date.now();
@@ -768,6 +812,70 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [playSteelPanPhrase]);
+
+  // Start soft lo-fi pad chords (Lola)
+  const startLolaLofiMusic = useCallback(() => {
+    const ctx = getAudioContext();
+    const bus = getMusicBus();
+
+    const chords: number[][] = [
+      [261.63, 329.63, 392.0],    // C major
+      [293.66, 369.99, 440.0],    // Dm-ish (D-F#? -> keep soft; use D-F-A)
+      [293.66, 349.23, 440.0],    // D-F-A
+      [220.0, 261.63, 329.63],    // Am
+      [196.0, 246.94, 293.66],    // Gsus-ish
+    ];
+
+    const playChord = (notes: number[]) => {
+      const t = ctx.currentTime;
+
+      const chordGain = ctx.createGain();
+      chordGain.gain.setValueAtTime(0, t);
+      chordGain.gain.linearRampToValueAtTime(1, t + 0.9);
+      chordGain.gain.setValueAtTime(1, t + 6.0);
+      chordGain.gain.exponentialRampToValueAtTime(0.001, t + 8.0);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(550, t);
+      filter.Q.setValueAtTime(0.4, t);
+
+      chordGain.connect(filter);
+      filter.connect(bus);
+
+      const oscs = notes.map((f) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t);
+        osc.detune.setValueAtTime((Math.random() - 0.5) * 6, t);
+        osc.connect(chordGain);
+        osc.start(t);
+        osc.stop(t + 8.2);
+        return osc;
+      });
+
+      window.setTimeout(() => {
+        try { chordGain.disconnect(); } catch {}
+        try { filter.disconnect(); } catch {}
+        oscs.forEach((o) => {
+          try { o.disconnect(); } catch {}
+        });
+      }, 9000);
+    };
+
+    // Start immediately
+    lastMusicTickRef.current = Date.now();
+    playChord(chords[0]);
+
+    let i = 1;
+    const musicInterval = setInterval(() => {
+      lastMusicTickRef.current = Date.now();
+      playChord(chords[i % chords.length]);
+      i++;
+    }, 8000);
+
+    ambientNodesRef.current.musicInterval = musicInterval;
+  }, [getAudioContext, getMusicBus]);
 
   // Start continuous wind/breeze sound
   const startWindSound = useCallback(() => {
@@ -889,11 +997,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   const startAmbient = useCallback(() => {
     const pet = currentPetRef.current;
-    
+
     // Guard: don't double-start if core nodes are already running
     const hasCoreNodes = pet === 'fish'
       ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
-      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval && !!ambientNodesRef.current.waterFlowNode;
+      : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
 
     if (hasCoreNodes) return;
 
@@ -921,6 +1029,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
+    if (ambientNodesRef.current.musicGain) {
+      try { ambientNodesRef.current.musicGain.disconnect(); } catch {}
+      ambientNodesRef.current.musicGain = null;
+    }
+
     // Clear water sounds
     if (ambientNodesRef.current.waterBubblesInterval) {
       clearInterval(ambientNodesRef.current.waterBubblesInterval);
@@ -930,33 +1043,40 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       try { ambientNodesRef.current.waterFlowNode.stop(); } catch {}
       ambientNodesRef.current.waterFlowNode = null;
     }
+    if (ambientNodesRef.current.waterFlowGain) {
+      try { ambientNodesRef.current.waterFlowGain.disconnect(); } catch {}
+    }
     ambientNodesRef.current.waterFlowGain = null;
 
     unlockAudio();
-    
+
     if (pet === 'fish') {
-      // Fish tank: steel pan music + relaxing water flow + bubbles
+      // Tula: steel pan + relaxing water (no birds/wind)
       startSteelPanMusic();
       startWaterFlowSound();
 
       ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
-        if (Math.random() < 0.4) playWaterBubble();
-      }, 3000);
+        if (Math.random() < 0.35) playWaterBubble();
+      }, 3200);
 
       playWaterBubble();
     } else {
-      // Bunny: soft steel pan + gentle water ambience (no birds)
-      startSteelPanMusic();
+      // Lola: lo-fi + birds + breeze
+      startLolaLofiMusic();
       startWindSound();
-      startWaterFlowSound();
 
-      ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
-        if (Math.random() < 0.25) playWaterBubble();
-      }, 3500);
+      ambientNodesRef.current.birdInterval = setInterval(() => {
+        if (Math.random() < 0.6) playBirdChirp();
+      }, 2000);
 
-      playWaterBubble();
+      ambientNodesRef.current.childrenInterval = setInterval(() => {
+        if (Math.random() < 0.35) playChildrenSound();
+      }, 4500);
+
+      playBirdChirp();
+      setTimeout(() => playChildrenSound(), 900);
     }
-  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, playWaterBubble]);
+  }, [unlockAudio, startWindSound, startWaterFlowSound, startSteelPanMusic, startLolaLofiMusic, playBirdChirp, playChildrenSound, playWaterBubble]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
@@ -1197,6 +1317,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   return {
     playHop,
+    playSwim,
     playEat,
     playDrink,
     playClean,
