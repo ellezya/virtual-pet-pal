@@ -607,7 +607,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.waterFlowGain = gain;
   }, [getAudioContext, ambientVolume]);
 
-  // Play a steel pan note with metallic, bell-like quality
+  // Play a soft, relaxing steel pan note with gentle bell-like quality
   const playSteelPanNote = useCallback(
     (frequency: number, startTime: number, duration: number) => {
       const ctx = getAudioContext();
@@ -615,11 +615,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       const masterGain = ctx.createGain();
       masterGain.connect(ctx.destination);
       
-      // Steel pan has quick attack, medium decay with bell-like harmonics
+      // Soft attack and gentle decay for relaxing sound
+      const softVolume = musicVolume * 0.15; // Much softer
       masterGain.gain.setValueAtTime(0, startTime);
-      masterGain.gain.linearRampToValueAtTime(musicVolume * 0.4, startTime + 0.01); // Quick attack
-      masterGain.gain.exponentialRampToValueAtTime(musicVolume * 0.15, startTime + 0.15); // Quick initial decay
-      masterGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Slow fade
+      masterGain.gain.linearRampToValueAtTime(softVolume, startTime + 0.05); // Soft attack
+      masterGain.gain.linearRampToValueAtTime(softVolume * 0.7, startTime + 0.3); // Gentle sustain
+      masterGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Long fade
       
       // Fundamental frequency
       const osc1 = ctx.createOscillator();
@@ -686,40 +687,39 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     [getAudioContext, musicVolume]
   );
 
-  // Play a steel pan melody phrase
+  // Play a soft, relaxing steel pan melody phrase
   const playSteelPanPhrase = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Caribbean/tropical pentatonic patterns
+    // Soft, relaxing pentatonic patterns - slower timing, longer notes
     const phrases = [
-      // Phrase 1: Ascending melody
+      // Phrase 1: Gentle ascending
       [
-        { freq: 523.25, delay: 0, dur: 0.8 },     // C5
-        { freq: 587.33, delay: 0.4, dur: 0.6 },   // D5
-        { freq: 659.25, delay: 0.8, dur: 1.0 },   // E5
-        { freq: 783.99, delay: 1.4, dur: 1.2 },   // G5
+        { freq: 392.00, delay: 0, dur: 2.0 },      // G4
+        { freq: 440.00, delay: 1.0, dur: 1.8 },    // A4
+        { freq: 523.25, delay: 2.2, dur: 2.5 },    // C5
       ],
-      // Phrase 2: Descending with pause
+      // Phrase 2: Soft descending
       [
-        { freq: 783.99, delay: 0, dur: 0.6 },     // G5
-        { freq: 659.25, delay: 0.5, dur: 0.8 },   // E5
-        { freq: 523.25, delay: 1.2, dur: 1.4 },   // C5
+        { freq: 659.25, delay: 0, dur: 2.2 },      // E5
+        { freq: 523.25, delay: 1.5, dur: 2.0 },    // C5
+        { freq: 440.00, delay: 3.0, dur: 2.5 },    // A4
       ],
-      // Phrase 3: Playful jump
+      // Phrase 3: Two gentle notes
       [
-        { freq: 392.00, delay: 0, dur: 0.5 },     // G4
-        { freq: 587.33, delay: 0.3, dur: 0.6 },   // D5
-        { freq: 523.25, delay: 0.7, dur: 0.5 },   // C5
-        { freq: 659.25, delay: 1.1, dur: 1.0 },   // E5
-        { freq: 783.99, delay: 1.8, dur: 1.2 },   // G5
+        { freq: 523.25, delay: 0, dur: 2.5 },      // C5
+        { freq: 587.33, delay: 2.0, dur: 3.0 },    // D5
       ],
-      // Phrase 4: Gentle waves
+      // Phrase 4: Single peaceful note
       [
-        { freq: 523.25, delay: 0, dur: 1.0 },     // C5
-        { freq: 659.25, delay: 0.6, dur: 0.8 },   // E5
-        { freq: 587.33, delay: 1.2, dur: 1.0 },   // D5
-        { freq: 523.25, delay: 1.9, dur: 1.4 },   // C5
+        { freq: 392.00, delay: 0, dur: 3.5 },      // G4
+      ],
+      // Phrase 5: Gentle wave
+      [
+        { freq: 440.00, delay: 0, dur: 2.0 },      // A4
+        { freq: 523.25, delay: 1.2, dur: 2.2 },    // C5
+        { freq: 440.00, delay: 2.8, dur: 2.5 },    // A4
       ],
     ];
     
@@ -730,24 +730,22 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     });
   }, [getAudioContext, playSteelPanNote]);
 
-  // Start steel pan background music
+  // Start soft steel pan background music
   const startSteelPanMusic = useCallback(() => {
-    let phraseIndex = 0;
-    
     const tick = () => {
       lastMusicTickRef.current = Date.now();
       playSteelPanPhrase();
-      phraseIndex++;
     };
     
-    tick();
+    // Initial delay before first note
+    setTimeout(tick, 1000);
     
-    // Play phrases with natural pauses (5-7 seconds apart)
+    // Play phrases with longer pauses (7-10 seconds apart) for relaxation
     const musicInterval = setInterval(() => {
-      if (Math.random() < 0.7) { // Sometimes skip for more natural feel
+      if (Math.random() < 0.6) { // Sometimes skip for more silence
         tick();
       }
-    }, 5500);
+    }, 8000);
     
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [playSteelPanPhrase]);
@@ -1060,21 +1058,26 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // Skip on initial mount
     if (prevPetRef.current === null) {
       prevPetRef.current = currentPet;
+      currentPetRef.current = currentPet; // Ensure ref is in sync
       return;
     }
     
     // Only restart if pet actually changed
     if (prevPetRef.current === currentPet) return;
     prevPetRef.current = currentPet;
+    currentPetRef.current = currentPet; // Update ref BEFORE restart
     
     if (!isAmbientPlaying || !hasUnlockedRef.current) return;
     
     // Stop current sounds and restart with new pet's sounds
     stopAmbientRef.current();
-    // Small delay to ensure cleanup completes
+    
+    // Small delay to ensure cleanup completes, then restart
     const timer = setTimeout(() => {
+      // Force restart by ensuring we have latest ref
+      currentPetRef.current = currentPet;
       startAmbientRef.current();
-    }, 100);
+    }, 150);
     
     return () => clearTimeout(timer);
   }, [currentPet, isAmbientPlaying]);
