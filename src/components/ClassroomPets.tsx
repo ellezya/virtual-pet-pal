@@ -34,8 +34,14 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
-  const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>('bunny');
-  const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>('habitat');
+  const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
+    const saved = localStorage.getItem('selectedPet');
+    return saved === 'fish' ? 'fish' : 'bunny';
+  });
+  const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>(() => {
+    const savedPet = localStorage.getItem('selectedPet');
+    return savedPet === 'fish' ? 'reef' : 'habitat';
+  });
   // Fish scene type for cleaner logic
   type FishScene = 'reef' | 'castle' | 'shell';
   const [showBoundsDebug, setShowBoundsDebug] = useState(false);
@@ -1534,7 +1540,7 @@ const ClassroomPets = () => {
       {/* Pet/Scene Selector - Same size as toy menu */}
       <nav className="shrink-0 flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
         <button 
-          onClick={() => setCurrentPet('bunny')} 
+          onClick={() => { setCurrentPet('bunny'); localStorage.setItem('selectedPet', 'bunny'); }} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1 ${currentPet === 'bunny' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
         >
           🐰
@@ -1543,7 +1549,7 @@ const ClassroomPets = () => {
           </span>
         </button>
         <button 
-          onClick={() => { setCurrentPet('fish'); setCurrentScene('reef'); }} 
+          onClick={() => { setCurrentPet('fish'); setCurrentScene('reef'); localStorage.setItem('selectedPet', 'fish'); }} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'fish' ? 'bg-secondary text-secondary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
         >
           🐠
