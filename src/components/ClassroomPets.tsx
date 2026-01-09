@@ -712,12 +712,14 @@ const ClassroomPets = () => {
         setIsHoppingThroughTunnel(true);
         setBunnyState(prev => ({ ...prev, action: 'playing', targetObject: null, facingRight: true }));
         
-        // Bunny hops to the left side, goes through, emerges on right
-        const tunnelLeftX = 55;
-        const tunnelRightX = 75;
+        // Use actual toy position instead of hardcoded values
+        const tunnelCenterX = envObjects['toy-area'].x;
+        const tunnelLeftX = tunnelCenterX - 8;  // Left entrance of log
+        const tunnelRightX = tunnelCenterX + 8; // Right exit of log
+        const tunnelY = envObjects['toy-area'].y - 4; // Align with log's ground level
         
         // Move to left entrance
-        setBunnyState(prev => ({ ...prev, position: { x: tunnelLeftX, y: prev.position.y }, isHopping: true }));
+        setBunnyState(prev => ({ ...prev, position: { x: tunnelLeftX, y: tunnelY }, isHopping: true }));
         playHop();
         
         // After a moment, bunny goes "inside" (we'll fade/hide briefly)
@@ -728,7 +730,7 @@ const ClassroomPets = () => {
         // Emerge from right side
         setTimeout(() => {
           playHop();
-          setBunnyState(prev => ({ ...prev, position: { x: tunnelRightX, y: prev.position.y }, isHopping: true }));
+          setBunnyState(prev => ({ ...prev, position: { x: tunnelRightX, y: tunnelY }, isHopping: true }));
         }, 1200);
         
         setTimeout(() => {
@@ -1307,7 +1309,7 @@ const ClassroomPets = () => {
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
           } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''} ${
             isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
-          } ${isHoppingThroughTunnel && bunnyState.position.x > 58 && bunnyState.position.x < 72 ? 'opacity-0' : 'opacity-100'}`}
+          } ${isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : 'opacity-100'}`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
