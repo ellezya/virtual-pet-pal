@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { RotateCcw, Lock, Unlock, LogOut, Volume2, VolumeX, Bug } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
@@ -33,6 +33,12 @@ const ClassroomPets = () => {
   const [currentPet, setCurrentPet] = useState('bunny');
   const [currentScene, setCurrentScene] = useState('habitat');
   const [showBoundsDebug, setShowBoundsDebug] = useState(false);
+
+  const sceneRef = useRef<HTMLElement | null>(null);
+  const bunnyImgRef = useRef<HTMLImageElement | null>(null);
+  const toyMeasureRef = useRef<HTMLDivElement | null>(null);
+  const [edgeClamp, setEdgeClamp] = useState({ bunnyHalfPct: 0, toyHalfPct: 0 });
+
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -128,6 +134,26 @@ const ClassroomPets = () => {
     const min = zone.xMin + leftPad;
     const max = Math.max(min, zone.xMax - rightPad);
     return Math.max(min, Math.min(max, x));
+  };
+
+  // Clamp using the sprite's *visual half-width* so edges never cross the safe bounds.
+  const clampZoneXWithHalfWidth = (
+    zone: { xMin: number; xMax: number },
+    x: number,
+    halfWidthPct: number,
+    extraPad?: { left?: number; right?: number }
+  ) => {
+    const base = clampZoneX(zone, x, extraPad);
+    if (!halfWidthPct || halfWidthPct <= 0) return base;
+
+    const baseMin = clampZoneX(zone, zone.xMin, extraPad);
+    const baseMax = clampZoneX(zone, zone.xMax, extraPad);
+
+    const min = baseMin + halfWidthPct;
+    const max = baseMax - halfWidthPct;
+
+    if (max <= min) return (min + max) / 2;
+    return Math.max(min, Math.min(max, base));
   };
 
   // Get ground Y position based on current scene
@@ -297,12 +323,54 @@ const ClassroomPets = () => {
   ];
   
   const [selectedToy, setSelectedToy] = useState(toys[0]);
-  
+  const [yarnTanglePhase, setYarnTanglePhase] = useState<'none' | 'batting' | 'tangled' | 'free'>('none');
+
+  // Measure visual widths (post-transform) and convert to %-based half-widths.
+  useLayoutEffect(() => {
+    if (!sceneRef.current) return;
+
+    let raf = 0;
+
+    const measure = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const sceneW = sceneRef.current?.getBoundingClientRect().width ?? 0;
+        if (!sceneW) return;
+
+        const bunnyW = bunnyImgRef.current?.getBoundingClientRect().width ?? 0;
+        const toyW = toyMeasureRef.current?.getBoundingClientRect().width ?? 0;
+
+        const bunnyHalfPct = bunnyW ? (bunnyW / sceneW) * 50 : 0;
+        const toyHalfPct = toyW ? (toyW / sceneW) * 50 : 0;
+
+        setEdgeClamp((prev) => {
+          const next = {
+            bunnyHalfPct: Math.round(bunnyHalfPct * 10) / 10,
+            toyHalfPct: Math.round(toyHalfPct * 10) / 10,
+          };
+          if (prev.bunnyHalfPct === next.bunnyHalfPct && prev.toyHalfPct === next.toyHalfPct) return prev;
+          return next;
+        });
+      });
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(sceneRef.current);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+      cancelAnimationFrame(raf);
+    };
+  }, [currentScene, currentPet, bunnyState.action, bunnyState.isNapping, selectedToy.id, yarnTanglePhase, isTrampolineBouncing]);
+
   // Flying baby birds state (for hay pile nest)
   const [flyingBirds, setFlyingBirds] = useState<Array<{ id: number; startX: number; startY: number }>>([]);
   const [eggsRemaining, setEggsRemaining] = useState(3);
   const [isInBox, setIsInBox] = useState(false);
-  const [yarnTanglePhase, setYarnTanglePhase] = useState<'none' | 'batting' | 'tangled' | 'free'>('none');
+
   
   // Get available toys based on scene (room = low energy only)
   const availableToys = currentScene === 'room' 
@@ -1193,7 +1261,7 @@ const ClassroomPets = () => {
       </nav>
 
       {/* Main Scene */}
-      <main className="flex-1 min-h-0 relative overflow-hidden">
+      <main ref={(el) => { sceneRef.current = el; }} className="flex-1 min-h-0 relative overflow-hidden">
         {/* Background based on pet/scene */}
         {currentPet !== 'fish' && currentScene === 'habitat' && (
           <div className="absolute inset-0 z-0 overflow-hidden">
@@ -1421,13 +1489,15 @@ const ClassroomPets = () => {
             {/* Selected Toy Display - only visible on grass in park, with special handling for trampoline and balloon */}
             {!isTrampolineBouncing && showToys && !(bunnyState.action === 'playing' && selectedToy.id === 'balloon') && (
                 <div 
+                  ref={toyMeasureRef}
                   className={`absolute transition-transform duration-200 ${
                     bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
                   } ${bunnyState.action === 'playing' && selectedToy.id !== 'trampoline' ? 'animate-bounce-slow' : ''}`}
                   style={{
-                    left: `${clampZoneX(
+                    left: `${clampZoneXWithHalfWidth(
                       currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
                       envObjects['toy-area'].x,
+                      edgeClamp.toyHalfPct,
                       currentScene === 'room' ? { left: 4, right: 4 } : undefined
                     )}%`,
                     top: `${envObjects['toy-area'].y}%`,
@@ -1580,11 +1650,12 @@ const ClassroomPets = () => {
           } ${yarnTanglePhase === 'tangled' ? 'animate-wiggle' : ''} ${
             isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : ''
           } ${isInBox ? 'opacity-0' : 'opacity-100'}`}
-          style={{ 
-            left: `${currentPet === 'bunny' ? clampZoneX(
-              currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
-              bunnyState.position.x
-            ) : fishState.position.x}%`, 
+            style={{ 
+              left: `${currentPet === 'bunny' ? clampZoneXWithHalfWidth(
+                currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
+                bunnyState.position.x,
+                edgeClamp.bunnyHalfPct
+              ) : fishState.position.x}%`,
             top: `${currentPet === 'bunny' ? (
               isTrampolineBouncing ? ((currentScene === 'room' ? getActiveZones()[currentCouchZone].y : bunnyState.position.y) - 2) :
               // Park video has extra "air" at the bottom; nudge Lola down so her feet touch the ground.
@@ -1638,9 +1709,9 @@ const ClassroomPets = () => {
           }`}>
             {/* Pet Image - scaled to fit room */}
             <img 
+              ref={bunnyImgRef}
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
-              className={`object-contain drop-shadow-2xl transition-all duration-500 ${
                 currentScene === 'room'
                   ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
                   : currentScene === 'habitat'
