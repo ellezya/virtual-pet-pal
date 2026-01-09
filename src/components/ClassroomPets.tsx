@@ -1311,8 +1311,10 @@ const ClassroomPets = () => {
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
-              bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 30 : 
-              isTrampolineBouncing ? bunnyState.position.y - 2 : 
+              bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 30 :
+              isTrampolineBouncing ? bunnyState.position.y - 2 :
+              // Park video has extra "air" at the bottom; nudge Lola down so her feet touch the ground.
+              currentScene === 'park' ? bunnyState.position.y + 4 :
               bunnyState.position.y
             ) : fishState.position.y}%`,
             transform: currentPet === 'bunny'
