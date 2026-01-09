@@ -78,19 +78,25 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
   // Initialize audio context and attempt resume
   const getAudioContext = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtor = window.AudioContext || (window as any).webkitAudioContext;
+
+    // Recreate if missing or the browser closed it (some mobile browsers do this under memory pressure)
+    if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+      audioContextRef.current = new AudioCtor();
     }
+
     const ctx = audioContextRef.current;
+
     if (ctx.state === 'suspended') {
       void ctx.resume().catch(() => {});
     }
+
     return ctx;
   }, []);
 
   const unlockAudio = useCallback(() => {
     const ctx = getAudioContext();
-    if (ctx.state === 'suspended') {
+    if (ctx.state !== 'running') {
       void ctx.resume().catch(() => {});
     }
   }, [getAudioContext]);
@@ -810,7 +816,10 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       if (!hasUnlockedRef.current) return;
 
       const ctx = audioContextRef.current;
-      if (ctx && ctx.state === 'suspended') {
+      if (ctx?.state === 'closed') {
+        // Browser killed the context; recreate on next getAudioContext()
+        audioContextRef.current = null;
+      } else if (ctx?.state === 'suspended') {
         void ctx.resume().catch(() => {});
       }
 
