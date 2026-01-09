@@ -116,7 +116,31 @@ const ClassroomPets = () => {
     return couchZones;
   };
 
-  const ROOM_VISUAL_PAD = { left: 22, right: 14 };
+  const [roomVisualPad, setRoomVisualPad] = useState<{ left: number; right: number }>(() => {
+    if (typeof window === 'undefined') return { left: 22, right: 14 };
+    try {
+      const raw = window.localStorage.getItem('roomVisualPad');
+      if (!raw) return { left: 22, right: 14 };
+      const parsed = JSON.parse(raw);
+      const left = Number(parsed?.left);
+      const right = Number(parsed?.right);
+      return {
+        left: Number.isFinite(left) ? left : 22,
+        right: Number.isFinite(right) ? right : 14,
+      };
+    } catch {
+      return { left: 22, right: 14 };
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('roomVisualPad', JSON.stringify(roomVisualPad));
+    } catch {
+      // ignore
+    }
+  }, [roomVisualPad]);
 
   const clampZoneX = (
     zone: { xMin: number; xMax: number },
@@ -125,8 +149,8 @@ const ClassroomPets = () => {
   ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
     // These pads are for the *sprite center point* (because we translate(-50%) when rendering).
-    const baseLeftPad = currentScene === 'room' ? ROOM_VISUAL_PAD.left : 0;
-    const baseRightPad = currentScene === 'room' ? ROOM_VISUAL_PAD.right : 0;
+    const baseLeftPad = currentScene === 'room' ? roomVisualPad.left : 0;
+    const baseRightPad = currentScene === 'room' ? roomVisualPad.right : 0;
 
     const leftPad = baseLeftPad + (extraPad?.left ?? 0);
     const rightPad = baseRightPad + (extraPad?.right ?? 0);
@@ -406,8 +430,10 @@ const ClassroomPets = () => {
     ? toyZone.xMin + 12
     : (toyZone.xMin + toyZone.xMax) / 2;
 
+  const toyHalfUsedForPos = currentScene === 'room' ? Math.max(edgeClamp.toyHalfPct, 3) : edgeClamp.toyHalfPct;
+
   const toyAreaPosition = {
-    x: clampZoneX(toyZone, toyAnchorX, { left: 4, right: 4 }),
+    x: clampZoneXWithHalfWidth(toyZone, toyAnchorX, toyHalfUsedForPos, { left: 4, right: 4 }),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
   
@@ -1475,12 +1501,49 @@ const ClassroomPets = () => {
               )}
 
               <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono">
-                Safe X (center): {safeMin.toFixed(1)}% – {safeMax.toFixed(1)}%<br />
+                Safe X (edge): {safeMin.toFixed(1)}% – {safeMax.toFixed(1)}%<br />
                 Bunny half used: {bunnyHalfUsed.toFixed(1)}% (measured {edgeClamp.bunnyHalfPct.toFixed(1)}%)<br />
-                Bunny X: {bunnyXRaw.toFixed(1)}% → {bunnyXCenterClamped.toFixed(1)}% → edge {bunnyXEdgeClamped.toFixed(1)}%<br />
+                Bunny X: {bunnyXRaw.toFixed(1)}% → center {bunnyXCenterClamped.toFixed(1)}% → edge {bunnyXEdgeClamped.toFixed(1)}%<br />
                 Toy half used: {toyHalfUsed.toFixed(1)}% (measured {edgeClamp.toyHalfPct.toFixed(1)}%)<br />
                 Toy X: {toyXRaw.toFixed(1)}% → edge {toyXEdgeClamped.toFixed(1)}%
+
+                {currentScene === 'room' && (
+                  <div className="mt-2 pt-2 border-t border-border/60 space-y-2">
+                    <div className="text-[10px] text-muted-foreground">
+                      Adjust pads until the red lines sit exactly on the bed posts.
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-[62px] text-[10px] text-muted-foreground">Left pad</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={50}
+                        step={1}
+                        value={roomVisualPad.left}
+                        onChange={(e) => setRoomVisualPad((p) => ({ ...p, left: Number(e.target.value) }))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="w-8 text-right text-[10px]">{roomVisualPad.left}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-[62px] text-[10px] text-muted-foreground">Right pad</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={50}
+                        step={1}
+                        value={roomVisualPad.right}
+                        onChange={(e) => setRoomVisualPad((p) => ({ ...p, right: Number(e.target.value) }))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="w-8 text-right text-[10px]">{roomVisualPad.right}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
             </div>
           );
         })()}
