@@ -748,6 +748,40 @@ const ClassroomPets = () => {
         }));
         return;
       }
+
+      // Special handling for balloon - bunny floats up holding it
+      if (toy.id === 'balloon') {
+        // Move to where the balloon is first
+        const balloonX = envObjects['toy-area'].x;
+        const balloonY = envObjects['toy-area'].y - 4;
+        
+        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: balloonX > prev.position.x }));
+        
+        // Hop to balloon location
+        setTimeout(() => {
+          setBunnyState(prev => ({ 
+            ...prev, 
+            position: { x: balloonX, y: balloonY },
+            isHopping: false,
+            action: 'playing'
+          }));
+          playPlay();
+          
+          // Float for a few seconds
+          setTimeout(() => {
+            setBunnyState(prev => ({ ...prev, action: 'idle' }));
+          }, 4000);
+        }, 600);
+        
+        const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
+        const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
+        setBunnyState(prev => ({ 
+          ...prev, 
+          happiness: Math.min(100, prev.happiness + happinessBoost), 
+          energy: Math.max(0, prev.energy - toy.energyCost) 
+        }));
+        return;
+      }
       
       doAction('playing', 'toy-area' as any, 5000);
 
