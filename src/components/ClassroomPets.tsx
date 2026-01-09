@@ -63,10 +63,10 @@ const ClassroomPets = () => {
   };
   
   // Bed zones for the room/bedroom scene (bed centered-left in video)
-  // These are "center-point" bounds; final clamping adds per-side padding to keep Lola inside the visible frame/banisters.
+  // Widened xMin/xMax to give more room after padding is applied.
   const bedZones = {
-    seat: { xMin: 28, xMax: 65, y: 75 },    // Bed surface
-    back: { xMin: 28, xMax: 65, y: 65 },    // Pillows area - matching width
+    seat: { xMin: 22, xMax: 68, y: 75 },    // Bed surface - widened
+    back: { xMin: 22, xMax: 68, y: 65 },    // Pillows area - matching width
   };
   
   // Park zones - interactive play areas with depth perception
@@ -96,8 +96,8 @@ const ClassroomPets = () => {
   ) => {
     // Room bed has a prominent left footboard banister + right headboard post.
     // Pad the zone so sprites can't visually cross those posts.
-    const baseLeftPad = currentScene === 'room' ? 20 : 0;
-    const baseRightPad = currentScene === 'room' ? 12 : 0;
+    const baseLeftPad = currentScene === 'room' ? 8 : 0;
+    const baseRightPad = currentScene === 'room' ? 6 : 0;
 
     const leftPad = baseLeftPad + (extraPad?.left ?? 0);
     const rightPad = baseRightPad + (extraPad?.right ?? 0);
@@ -313,7 +313,7 @@ const ClassroomPets = () => {
     : (toyZone.xMin + toyZone.xMax) / 2;
 
   const toyAreaPosition = {
-    x: clampZoneX(toyZone, toyAnchorX, { left: 12, right: 10 }),
+    x: clampZoneX(toyZone, toyAnchorX, { left: 4, right: 4 }),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
   
@@ -807,7 +807,7 @@ const ClassroomPets = () => {
           : getActiveZones()[currentCouchZone];
 
         // Yarn play needs extra clearance from the bed posts/banister.
-        const yarnPad = currentScene === 'room' ? { left: 14, right: 10 } : undefined;
+        const yarnPad = currentScene === 'room' ? { left: 4, right: 4 } : undefined;
 
         const yarnX = clampZoneX(playZone, envObjects['toy-area'].x, yarnPad);
         const yarnY = envObjects['toy-area'].y;
@@ -1324,6 +1324,36 @@ const ClassroomPets = () => {
           ))}
         </div>
 
+        {/* DEBUG: Safe bounds overlay - toggle with Shift+D */}
+        {(() => {
+          const showDebug = false; // Set to true to see safe bounds
+          if (!showDebug || currentScene === 'park') return null;
+          const zone = getActiveZones()[currentCouchZone];
+          const baseLeftPad = 8;
+          const baseRightPad = 6;
+          const minX = zone.xMin + baseLeftPad;
+          const maxX = zone.xMax - baseRightPad;
+          return (
+            <div className="absolute inset-0 pointer-events-none z-[50]">
+              {/* Left bound */}
+              <div 
+                className="absolute h-full w-0.5 bg-red-500/50"
+                style={{ left: `${minX}%` }}
+              />
+              {/* Right bound */}
+              <div 
+                className="absolute h-full w-0.5 bg-red-500/50"
+                style={{ left: `${maxX}%` }}
+              />
+              {/* Zone info */}
+              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs p-2 rounded font-mono">
+                Zone: {minX.toFixed(1)}% - {maxX.toFixed(1)}%<br/>
+                Toy X: {envObjects['toy-area'].x.toFixed(1)}%
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Animated Bubbles for Fish Tank */}
         {currentPet === 'fish' && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-[4]">
@@ -1375,7 +1405,7 @@ const ClassroomPets = () => {
                     left: `${clampZoneX(
                       currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
                       envObjects['toy-area'].x,
-                      currentScene === 'room' ? { left: 12, right: 10 } : undefined
+                      currentScene === 'room' ? { left: 4, right: 4 } : undefined
                     )}%`,
                     top: `${envObjects['toy-area'].y}%`,
                     transform: 'translate(-50%, -100%)'
