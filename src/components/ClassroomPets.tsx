@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut, Volume2, VolumeX, Bug } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
@@ -36,13 +36,23 @@ const ClassroomPets = () => {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+      const isD = e.code === 'KeyD' || e.key === 'D' || e.key === 'd';
+      if (e.shiftKey && isD) {
+        e.preventDefault();
         setShowBoundsDebug((v) => !v);
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+
+    // Use capture to work even when focus is inside the preview/other elements.
+    window.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('keydown', onKeyDown, true);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
   }, []);
+
 
   // Sound effects
   const {
@@ -1105,10 +1115,21 @@ const ClassroomPets = () => {
             onClick={toggleAmbient} 
             className={`p-2 rounded-lg transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
+            type="button"
           >
             {isAmbientPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
+
+          <button
+            onClick={() => setShowBoundsDebug((v) => !v)}
+            className={`p-2 rounded-lg transition-colors ${showBoundsDebug ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            title={showBoundsDebug ? 'Hide bounds debug (Shift+D)' : 'Show bounds debug (Shift+D)'}
+            type="button"
+          >
+            <Bug size={14} />
+          </button>
         </div>
+
         <div className="flex items-center gap-1">
           {gameState.notifications.length > 0 && (
             <div className="flex gap-1">
