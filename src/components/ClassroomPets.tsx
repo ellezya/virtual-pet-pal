@@ -1516,9 +1516,8 @@ const ClassroomPets = () => {
   };
 
   const getFishImage = () => {
-    // IMPORTANT: Avoid using the "fish-eating" sprite frame (it reads as vomiting).
-    // Instead, keep Tula on her normal (happy) sprite and animate a gentle nibble.
-    if (fishState.action === 'eating') return fishSpriteAlpha?.happy ?? fishHappy;
+    // Use the eating sprite when Tula is eating (shows smile + eager expression)
+    if (fishState.action === 'eating') return fishSpriteAlpha?.eating ?? fishEating;
     if (fishState.action === 'playing') return fishSpriteAlpha?.playing ?? fishPlaying;
     if (fishState.mood === 'sad') return fishSpriteAlpha?.sad ?? fishSad;
     return fishSpriteAlpha?.happy ?? fishHappy;
@@ -2500,26 +2499,51 @@ const ClassroomPets = () => {
                 }}
               />
 
-              {/* Gentle "eating bubbles" at mouth (subtle, no puke look) */}
+              {/* Fish flake food particles + eating bubbles near Tula's mouth */}
               {currentPet === 'fish' && fishState.action === 'eating' && (
                 <div
                   className="absolute pointer-events-none"
                   style={{
-                    top: '40%',
+                    top: '42%',
                     // Wrapper flips with direction, so mouth stays on same local X.
-                    left: '26%',
+                    left: '18%',
                     transform: 'translate(-50%, -50%)',
                   }}
                 >
+                  {/* Fish flake food particles floating near mouth */}
+                  {[
+                    { size: 5, color: 'bg-amber-600', x: -8, y: -6, delay: 0, dur: 1.8 },
+                    { size: 4, color: 'bg-orange-500', x: -4, y: 2, delay: 0.3, dur: 2.0 },
+                    { size: 3, color: 'bg-amber-500', x: -10, y: 4, delay: 0.6, dur: 1.6 },
+                    { size: 4, color: 'bg-orange-600', x: -2, y: -4, delay: 0.9, dur: 2.2 },
+                    { size: 3, color: 'bg-amber-400', x: -12, y: 0, delay: 1.2, dur: 1.9 },
+                    { size: 2, color: 'bg-orange-400', x: -6, y: 6, delay: 0.4, dur: 2.1 },
+                  ].map((flake, i) => (
+                    <div
+                      key={`flake-${i}`}
+                      className={`absolute rounded-sm ${flake.color} opacity-90`}
+                      style={{
+                        width: flake.size,
+                        height: flake.size * 0.6,
+                        left: `${flake.x}px`,
+                        top: `${flake.y}px`,
+                        animation: `fish-flake-float ${flake.dur}s ease-in-out infinite`,
+                        animationDelay: `${flake.delay}s`,
+                        transform: `rotate(${i * 30}deg)`,
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Tiny bubbles from eating */}
                   {[0, 1, 2].map((i) => (
                     <div
                       key={`eat-bubble-${i}`}
-                      className="absolute rounded-full bg-foreground/25"
+                      className="absolute rounded-full bg-foreground/20"
                       style={{
-                        width: 3 + i,
-                        height: 3 + i,
-                        left: `${i * 6}px`,
-                        top: `${i * 3}px`,
+                        width: 2 + i,
+                        height: 2 + i,
+                        left: `${i * 5 - 6}px`,
+                        top: `${i * 2 - 8}px`,
                         animation: `bubble-rise ${2.8 + i * 0.4}s ease-in-out infinite`,
                         animationDelay: `${i * 0.3}s`,
                         filter: 'blur(0.2px)',
