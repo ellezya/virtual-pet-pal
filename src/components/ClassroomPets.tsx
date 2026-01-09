@@ -1516,8 +1516,9 @@ const ClassroomPets = () => {
   };
 
   const getFishImage = () => {
-    // Use the eating sprite when Tula is eating (shows smile + eager expression)
-    if (fishState.action === 'eating') return fishSpriteAlpha?.eating ?? fishEating;
+    // IMPORTANT: The dedicated fish-eating sprite reads as "throwing up".
+    // Keep the base sprite cute/neutral and add a separate eating face overlay instead.
+    if (fishState.action === 'eating') return fishSpriteAlpha?.happy ?? fishHappy;
     if (fishState.action === 'playing') return fishSpriteAlpha?.playing ?? fishPlaying;
     if (fishState.mood === 'sad') return fishSpriteAlpha?.sad ?? fishSad;
     return fishSpriteAlpha?.happy ?? fishHappy;
@@ -2499,57 +2500,79 @@ const ClassroomPets = () => {
                 }}
               />
 
-              {/* Fish flake food particles + eating bubbles near Tula's mouth */}
+              {/* Cute eating face + fish flakes near Tula's mouth (no "throw up" look) */}
               {currentPet === 'fish' && fishState.action === 'eating' && (
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    top: '42%',
-                    // Wrapper flips with direction, so mouth stays on same local X.
-                    left: '18%',
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                >
-                  {/* Fish flake food particles floating near mouth */}
-                  {[
-                    { size: 5, color: 'bg-amber-600', x: -8, y: -6, delay: 0, dur: 1.8 },
-                    { size: 4, color: 'bg-orange-500', x: -4, y: 2, delay: 0.3, dur: 2.0 },
-                    { size: 3, color: 'bg-amber-500', x: -10, y: 4, delay: 0.6, dur: 1.6 },
-                    { size: 4, color: 'bg-orange-600', x: -2, y: -4, delay: 0.9, dur: 2.2 },
-                    { size: 3, color: 'bg-amber-400', x: -12, y: 0, delay: 1.2, dur: 1.9 },
-                    { size: 2, color: 'bg-orange-400', x: -6, y: 6, delay: 0.4, dur: 2.1 },
-                  ].map((flake, i) => (
-                    <div
-                      key={`flake-${i}`}
-                      className={`absolute rounded-sm ${flake.color} opacity-90`}
-                      style={{
-                        width: flake.size,
-                        height: flake.size * 0.6,
-                        left: `${flake.x}px`,
-                        top: `${flake.y}px`,
-                        animation: `fish-flake-float ${flake.dur}s ease-in-out infinite`,
-                        animationDelay: `${flake.delay}s`,
-                        transform: `rotate(${i * 30}deg)`,
-                      }}
-                    />
-                  ))}
-                  
-                  {/* Tiny bubbles from eating */}
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={`eat-bubble-${i}`}
-                      className="absolute rounded-full bg-foreground/20"
-                      style={{
-                        width: 2 + i,
-                        height: 2 + i,
-                        left: `${i * 5 - 6}px`,
-                        top: `${i * 2 - 8}px`,
-                        animation: `bubble-rise ${2.8 + i * 0.4}s ease-in-out infinite`,
-                        animationDelay: `${i * 0.3}s`,
-                        filter: 'blur(0.2px)',
-                      }}
-                    />
-                  ))}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Face overlay (smile + happy eyes) */}
+                  <div
+                    className="absolute fish-eating-face"
+                    style={{
+                      top: '36%',
+                      left: '26%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    <svg width="42" height="28" viewBox="0 0 100 60" aria-hidden="true">
+                      {/* happy eyes */}
+                      <path d="M22 26 Q32 18 42 26" fill="none" strokeWidth="6" strokeLinecap="round" />
+                      <path d="M58 26 Q68 18 78 26" fill="none" strokeWidth="6" strokeLinecap="round" />
+                      {/* smile */}
+                      <path d="M34 42 Q50 54 66 42" fill="none" strokeWidth="6" strokeLinecap="round" />
+                      {/* tiny cheek blush */}
+                      <circle cx="18" cy="40" r="6" />
+                      <circle cx="82" cy="40" r="6" />
+                    </svg>
+                  </div>
+
+                  {/* Fish flake food particles + tiny bubbles near mouth */}
+                  <div
+                    className="absolute"
+                    style={{
+                      top: '42%',
+                      // This sits in local (flipped) space, so it stays at the mouth when she turns.
+                      left: '18%',
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                  >
+                    {/* Flakes drift toward her mouth and fade (reads as nibbling, not puke) */}
+                    {[
+                      { w: 6, h: 3, x: -18, y: -8, delay: 0.0, dur: 1.25, rot: 15 },
+                      { w: 5, h: 3, x: -14, y: 2, delay: 0.25, dur: 1.35, rot: -10 },
+                      { w: 4, h: 2, x: -22, y: 6, delay: 0.5, dur: 1.15, rot: 25 },
+                      { w: 5, h: 3, x: -16, y: -2, delay: 0.75, dur: 1.4, rot: -20 },
+                    ].map((flake, i) => (
+                      <div
+                        key={`flake-${i}`}
+                        className="absolute rounded-sm fish-food-flake"
+                        style={{
+                          width: flake.w,
+                          height: flake.h,
+                          left: `${flake.x}px`,
+                          top: `${flake.y}px`,
+                          animation: `fish-flake-nibble-in ${flake.dur}s ease-in-out infinite`,
+                          animationDelay: `${flake.delay}s`,
+                          transform: `rotate(${flake.rot}deg)`,
+                        }}
+                      />
+                    ))}
+
+                    {/* Tiny bubbles */}
+                    {[0, 1].map((i) => (
+                      <div
+                        key={`eat-bubble-${i}`}
+                        className="absolute rounded-full bg-foreground/15"
+                        style={{
+                          width: 2 + i,
+                          height: 2 + i,
+                          left: `${i * 6 - 6}px`,
+                          top: `${i * 2 - 10}px`,
+                          animation: `bubble-rise ${3.0 + i * 0.4}s ease-in-out infinite`,
+                          animationDelay: `${i * 0.35}s`,
+                          filter: 'blur(0.25px)',
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 

@@ -486,24 +486,39 @@
     animation: fish-nibble 0.5s ease-in-out infinite;
   }
 
-  /* Fish flake food floating animation */
-  @keyframes fish-flake-float {
-    0%, 100% { 
-      transform: translateY(0) translateX(0) rotate(0deg);
-      opacity: 0.9;
+  /* Fish food flakes: warm sand tone (semantic token) */
+  .fish-food-flake {
+    background: hsl(var(--tank-sand) / 0.9);
+    box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.08);
+    opacity: 0.95;
+  }
+
+  /* Flakes drift into the mouth and fade (avoids "vomit" motion) */
+  @keyframes fish-flake-nibble-in {
+    0% {
+      transform: translateX(-10px) translateY(0);
+      opacity: 0;
     }
-    25% { 
-      transform: translateY(-3px) translateX(2px) rotate(15deg);
-      opacity: 1;
+    20% {
+      opacity: 0.95;
     }
-    50% { 
-      transform: translateY(2px) translateX(-1px) rotate(-10deg);
-      opacity: 0.7;
+    70% {
+      transform: translateX(2px) translateY(-2px);
+      opacity: 0.55;
     }
-    75% { 
-      transform: translateY(-2px) translateX(3px) rotate(20deg);
-      opacity: 1;
+    100% {
+      transform: translateX(6px) translateY(-3px);
+      opacity: 0;
     }
+  }
+
+  /* Eating face overlay styling */
+  .fish-eating-face svg path {
+    stroke: hsl(var(--foreground) / 0.7);
+  }
+
+  .fish-eating-face svg circle {
+    fill: hsl(var(--accent) / 0.25);
   }
 
   .animate-food-fall {
