@@ -47,10 +47,10 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
   // Track if audio has been unlocked by user gesture
   const hasUnlockedRef = useRef(false);
-  // Track if ambient should start once unlocked
-  const shouldStartAmbientRef = useRef(true);
 
-  const [isAmbientPlaying, setIsAmbientPlaying] = useState(() => {
+  // Read persisted preference once per render; React will only use it on mount.
+  // IMPORTANT: keep this in sync with shouldStartAmbientRef to avoid "turning back on" after remounts.
+  const initialAmbientOn = (() => {
     try {
       const raw = window.localStorage.getItem('lola_ambient_on');
       if (raw === null) return true;
@@ -58,11 +58,19 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     } catch {
       return true;
     }
-  });
+  })();
+
+  // Track if ambient should start once unlocked
+  const shouldStartAmbientRef = useRef(initialAmbientOn);
+
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState<boolean>(initialAmbientOn);
 
   // Expose a small (0..1) proxy value to drive UI animations.
   const [windIntensity, setWindIntensity] = useState(0);
   const windMeterRafRef = useRef<number | null>(null);
+
+  // Used to detect when timers/audio stall (e.g. aggressive background throttling)
+  const lastMusicTickRef = useRef<number>(Date.now());
 
   const musicVolume = 0.12;
   const sfxVolume = 0.8;
@@ -511,17 +519,19 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       [174.61, 220.00, 261.63, 329.63], // Fmaj7
       [196.00, 246.94, 293.66, 349.23], // G7
     ];
-    
+
     let chordIndex = 0;
-    
-    playLofiChord(chords[chordIndex], 3.5);
-    chordIndex = 1;
-    
-    const musicInterval = setInterval(() => {
+
+    const tick = () => {
+      lastMusicTickRef.current = Date.now();
       playLofiChord(chords[chordIndex], 3.5);
       chordIndex = (chordIndex + 1) % chords.length;
-    }, 4000);
-    
+    };
+
+    tick();
+
+    const musicInterval = setInterval(tick, 4000);
+
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [playLofiChord]);
 
@@ -809,7 +819,13 @@ export const useSoundEffects = (): SoundEffectsReturn => {
         !!ambientNodesRef.current.windGain &&
         !!ambientNodesRef.current.musicInterval;
 
-      if (!hasCoreNodes) {
+      const now = Date.now();
+      const musicStalled =
+        document.visibilityState === 'visible' &&
+        now - lastMusicTickRef.current > 12000;
+
+      // If timers/audio stall (common on mobile / aggressive throttling), fully rebuild.
+      if (!hasCoreNodes || musicStalled) {
         stopAmbientRef.current();
         startAmbientRef.current();
       }
