@@ -749,11 +749,13 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
   // If ambient is enabled and audio is unlocked, ensure it stays running.
   // (Some browsers may silently suspend audio after route/scene changes.)
+  // NOTE: We intentionally exclude startAmbient from deps to avoid re-triggering on every render.
   useEffect(() => {
     if (!isAmbientPlaying) return;
     if (!hasUnlockedRef.current) return;
     startAmbient();
-  }, [isAmbientPlaying, startAmbient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAmbientPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {
