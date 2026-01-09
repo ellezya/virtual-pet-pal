@@ -27,6 +27,7 @@ import habitatLofiCouch from '@/assets/habitat-lofi-couch.png';
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
 import lofiParkBg from '@/assets/lofi-park-wide.mp4';
+import lofiTankBg from '@/assets/lofi-tank.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
@@ -1428,16 +1429,22 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Fish tank static background */}
+        {/* Fish tank animated video background */}
         {currentPet === 'fish' && (
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-tank-water via-tank-water to-tank-deep">
-            <img 
-              key={habitatSrc}
-              src={habitatSrc} 
-              alt="Fish tank" 
-              className="w-full h-full object-cover"
-              loading="eager"
-            />
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <video
+              key="tank-video"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover scale-110"
+              style={{ filter: 'saturate(1.3) brightness(1.1)' }}
+            >
+              <source src={lofiTankBg} type="video/mp4" />
+            </video>
+            {/* Underwater gradient overlay for depth */}
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/20 via-transparent to-blue-900/40 pointer-events-none" />
           </div>
         )}
 
