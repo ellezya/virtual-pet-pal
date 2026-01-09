@@ -28,11 +28,16 @@ import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
 import lofiBedroomBg from '@/assets/lofi-bedroom.mp4';
 import lofiParkBg from '@/assets/lofi-park-wide.mp4';
 import lofiTankBg from '@/assets/lofi-tank.mp4';
+import lofiReefBg from '@/assets/lofi-reef.mp4';
+import lofiCastleBg from '@/assets/lofi-castle.mp4';
+import lofiShellBg from '@/assets/lofi-shell.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
-  const [currentPet, setCurrentPet] = useState('bunny');
-  const [currentScene, setCurrentScene] = useState('habitat');
+  const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>('bunny');
+  const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>('habitat');
+  // Fish scene type for cleaner logic
+  type FishScene = 'reef' | 'castle' | 'shell';
   const [showBoundsDebug, setShowBoundsDebug] = useState(false);
 
   const sceneRef = useRef<HTMLElement | null>(null);
@@ -499,25 +504,39 @@ const ClassroomPets = () => {
     falling: boolean;
   }>>([]);
   
-  // Tank decorations and friends
-  const tankDecorations = [
-    { id: 'rock1', emoji: '🪨', x: 15, y: 85, scale: 1.2 },
-    { id: 'rock2', emoji: '🪨', x: 75, y: 88, scale: 0.9 },
-    { id: 'castle', emoji: '🏰', x: 50, y: 82, scale: 1.5 },
-    { id: 'plant1', emoji: '🌿', x: 10, y: 80, scale: 1.3 },
-    { id: 'plant2', emoji: '🌱', x: 85, y: 83, scale: 1.1 },
-    { id: 'coral', emoji: '🪸', x: 30, y: 86, scale: 1.0 },
-  ];
+  // Fish scene decorations (scene-specific)
+  const fishSceneDecorations: Record<FishScene, Array<{ id: string; emoji: string; x: number; y: number; scale: number }>> = {
+    reef: [
+      { id: 'coral1', emoji: '🪸', x: 15, y: 85, scale: 1.4 },
+      { id: 'coral2', emoji: '🪸', x: 75, y: 88, scale: 1.1 },
+      { id: 'plant1', emoji: '🌿', x: 10, y: 82, scale: 1.3 },
+      { id: 'plant2', emoji: '🌱', x: 85, y: 84, scale: 1.0 },
+      { id: 'anemone', emoji: '🌺', x: 45, y: 87, scale: 1.2 },
+    ],
+    castle: [
+      { id: 'castle', emoji: '🏰', x: 50, y: 78, scale: 2.0 },
+      { id: 'treasure', emoji: '📦', x: 30, y: 90, scale: 1.0 },
+      { id: 'rock1', emoji: '🪨', x: 20, y: 88, scale: 0.9 },
+      { id: 'rock2', emoji: '🪨', x: 80, y: 86, scale: 1.1 },
+    ],
+    shell: [
+      { id: 'shell', emoji: '🐚', x: 50, y: 75, scale: 2.5 },
+      { id: 'pearl', emoji: '⚪', x: 48, y: 82, scale: 0.8 },
+      { id: 'rock1', emoji: '🪨', x: 25, y: 90, scale: 1.0 },
+      { id: 'rock2', emoji: '🪨', x: 75, y: 88, scale: 0.8 },
+    ],
+  };
   
+  // Tank friends - only appear as toys in castle scene
   const tankFriends = [
-    { id: 'snail', emoji: '🐌', x: 20, y: 90, speed: 0.02 },
-    { id: 'crab', emoji: '🦀', x: 70, y: 92, speed: 0.05 },
-    { id: 'shrimp', emoji: '🦐', x: 40, y: 88, speed: 0.03 },
+    { id: 'snail', emoji: '🐌', name: 'Shelly', happinessBoost: 15 },
+    { id: 'crab', emoji: '🦀', name: 'Clawdia', happinessBoost: 20 },
+    { id: 'shrimp', emoji: '🦐', name: 'Pip', happinessBoost: 18 },
+    { id: 'starfish', emoji: '⭐', name: 'Twinkle', happinessBoost: 25 },
   ];
   
-  const [friendPositions, setFriendPositions] = useState(
-    tankFriends.reduce((acc, f) => ({ ...acc, [f.id]: { x: f.x, direction: 1 } }), {} as Record<string, { x: number; direction: number }>)
-  );
+  const [selectedFishToy, setSelectedFishToy] = useState(tankFriends[0]);
+  const [fishIsResting, setFishIsResting] = useState(false);
 
   const [gameState, setGameState] = useState({
     locked: false,
@@ -693,27 +712,10 @@ const ClassroomPets = () => {
     setFishState(prev => ({ ...prev, tankCleanliness: cleanliness }));
   }, [currentPet, fishPoops]);
 
-  // Tank friends slowly move around
-  useEffect(() => {
-    if (currentPet !== 'fish') return;
-    const interval = setInterval(() => {
-      setFriendPositions(prev => {
-        const updated = { ...prev };
-        tankFriends.forEach(friend => {
-          const current = updated[friend.id];
-          let newX = current.x + friend.speed * current.direction * 10;
-          let newDirection = current.direction;
-          if (newX < 5 || newX > 95) {
-            newDirection *= -1;
-            newX = Math.max(5, Math.min(95, newX));
-          }
-          updated[friend.id] = { x: newX, direction: newDirection };
-        });
-        return updated;
-      });
-    }, 500);
-    return () => clearInterval(interval);
-  }, [currentPet]);
+  // Helper to check if current scene is a fish scene
+  const isFishScene = (scene: string): scene is FishScene => {
+    return scene === 'reef' || scene === 'castle' || scene === 'shell';
+  };
 
   // Food particles fall and Tula swims to eat them
   useEffect(() => {
@@ -1433,7 +1435,7 @@ const ClassroomPets = () => {
           </span>
         </button>
         <button 
-          onClick={() => { setCurrentPet('fish'); setCurrentScene('tank'); }} 
+          onClick={() => { setCurrentPet('fish'); setCurrentScene('reef'); }} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'fish' ? 'bg-secondary text-secondary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
         >
           🐠
@@ -1460,6 +1462,32 @@ const ClassroomPets = () => {
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'park' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
             >
               🌳
+            </button>
+          </>
+        )}
+        
+        {currentPet === 'fish' && (
+          <>
+            <button 
+              onClick={() => setCurrentScene('reef')} 
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'reef' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Coral Reef"
+            >
+              🪸
+            </button>
+            <button 
+              onClick={() => setCurrentScene('castle')} 
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'castle' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Play Castle"
+            >
+              🏰
+            </button>
+            <button 
+              onClick={() => setCurrentScene('shell')} 
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'shell' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Shell Cave (Rest)"
+            >
+              🐚
             </button>
           </>
         )}
@@ -1577,22 +1605,26 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Fish tank animated video background */}
+        {/* Fish scene animated video backgrounds */}
         {currentPet === 'fish' && (
           <div className="absolute inset-0 z-0 overflow-hidden">
             <video
-              key="tank-video"
+              key={currentScene}
               autoPlay
               loop
               muted
               playsInline
               className="w-full h-full object-cover scale-110"
-              style={{ filter: 'saturate(1.3) brightness(1.1)' }}
+              style={{ filter: currentScene === 'shell' ? 'saturate(0.9) brightness(0.8)' : 'saturate(1.3) brightness(1.1)' }}
             >
-              <source src={lofiTankBg} type="video/mp4" />
+              <source src={currentScene === 'reef' ? lofiReefBg : currentScene === 'castle' ? lofiCastleBg : lofiShellBg} type="video/mp4" />
             </video>
             {/* Underwater gradient overlay for depth */}
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/20 via-transparent to-blue-900/40 pointer-events-none" />
+            <div className={`absolute inset-0 pointer-events-none ${
+              currentScene === 'shell' 
+                ? 'bg-gradient-to-b from-blue-900/30 via-indigo-900/20 to-purple-900/40' 
+                : 'bg-gradient-to-b from-cyan-400/20 via-transparent to-blue-900/40'
+            }`} />
           </div>
         )}
 
@@ -1811,10 +1843,10 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Tank Decorations - rocks, plants, castle */}
-        {currentPet === 'fish' && (
+        {/* Tank Decorations - scene-specific */}
+        {currentPet === 'fish' && isFishScene(currentScene) && (
           <div className="absolute inset-0 pointer-events-none z-[5]">
-            {tankDecorations.map(dec => (
+            {fishSceneDecorations[currentScene].map(dec => (
               <div
                 key={dec.id}
                 className="absolute transform -translate-x-1/2"
@@ -1830,26 +1862,19 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Tank Friends - snail, crab, shrimp moving around */}
-        {currentPet === 'fish' && (
+        {/* Tank Friends - only shown as the selected toy in castle scene */}
+        {currentPet === 'fish' && currentScene === 'castle' && fishState.action === 'playing' && (
           <div className="absolute inset-0 pointer-events-none z-[6]">
-            {tankFriends.map(friend => {
-              const pos = friendPositions[friend.id];
-              return (
-                <div
-                  key={friend.id}
-                  className="absolute transform -translate-x-1/2 transition-all duration-500"
-                  style={{
-                    left: `${pos?.x ?? friend.x}%`,
-                    top: `${friend.y}%`,
-                    fontSize: '1.5rem',
-                    transform: `translateX(-50%) scaleX(${pos?.direction ?? 1})`
-                  }}
-                >
-                  {friend.emoji}
-                </div>
-              );
-            })}
+            <div
+              className="absolute transform -translate-x-1/2 transition-all duration-500 animate-bounce-slow"
+              style={{
+                left: `${fishState.position.x + 8}%`,
+                top: `${fishState.position.y + 5}%`,
+                fontSize: '2rem',
+              }}
+            >
+              {selectedFishToy.emoji}
+            </div>
           </div>
         )}
 
