@@ -89,11 +89,38 @@ const ClassroomPets = () => {
     back: { xMin: 62, xMax: 88, y: 62 },    // Back cushions
   };
   
+  // Bed Y calibration (persisted to localStorage)
+  const [roomBedY, setRoomBedY] = useState<{ seat: number; back: number }>(() => {
+    if (typeof window === 'undefined') return { seat: 71, back: 61 };
+    try {
+      const raw = window.localStorage.getItem('roomBedY');
+      if (!raw) return { seat: 71, back: 61 };
+      const parsed = JSON.parse(raw);
+      const seat = Number(parsed?.seat);
+      const back = Number(parsed?.back);
+      return {
+        seat: Number.isFinite(seat) ? seat : 71,
+        back: Number.isFinite(back) ? back : 61,
+      };
+    } catch {
+      return { seat: 71, back: 61 };
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('roomBedY', JSON.stringify(roomBedY));
+    } catch {
+      // ignore
+    }
+  }, [roomBedY]);
+
   // Bed zones for the room/bedroom scene
   // NOTE: y is the "ground" line (where paws sit) — set to the top edge where the bed shadow begins.
   const bedZones = {
-    seat: { xMin: 20, xMax: 90, y: 71 },
-    back: { xMin: 20, xMax: 90, y: 61 },
+    seat: { xMin: 20, xMax: 90, y: roomBedY.seat },
+    back: { xMin: 20, xMax: 90, y: roomBedY.back },
   };
   
   // Park zones - interactive play areas with depth perception
@@ -1508,7 +1535,7 @@ const ClassroomPets = () => {
                 Toy X: {toyXRaw.toFixed(1)}% → edge {toyXEdgeClamped.toFixed(1)}%
 
                 {currentScene === 'room' && (
-                  <div className="mt-2 pt-2 border-t border-border/60 space-y-2">
+                  <div className="mt-2 pt-2 border-t border-border/60 space-y-2 pointer-events-auto">
                     <div className="text-[10px] text-muted-foreground">
                       Adjust pads until the red lines sit exactly on the bed posts.
                     </div>
@@ -1539,6 +1566,38 @@ const ClassroomPets = () => {
                         className="flex-1 accent-primary"
                       />
                       <span className="w-8 text-right text-[10px]">{roomVisualPad.right}</span>
+                    </div>
+
+                    <div className="text-[10px] text-muted-foreground mt-2">
+                      Bed Y (surface) – lower ↑ moves Lola up on bed.
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-[62px] text-[10px] text-muted-foreground">Seat Y</span>
+                      <input
+                        type="range"
+                        min={50}
+                        max={90}
+                        step={1}
+                        value={roomBedY.seat}
+                        onChange={(e) => setRoomBedY((p) => ({ ...p, seat: Number(e.target.value) }))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="w-8 text-right text-[10px]">{roomBedY.seat}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="w-[62px] text-[10px] text-muted-foreground">Back Y</span>
+                      <input
+                        type="range"
+                        min={40}
+                        max={80}
+                        step={1}
+                        value={roomBedY.back}
+                        onChange={(e) => setRoomBedY((p) => ({ ...p, back: Number(e.target.value) }))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="w-8 text-right text-[10px]">{roomBedY.back}</span>
                     </div>
                   </div>
                 )}
