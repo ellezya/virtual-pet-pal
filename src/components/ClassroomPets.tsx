@@ -1375,14 +1375,30 @@ const ClassroomPets = () => {
         happiness: Math.min(100, prev.happiness + 10)
       }));
     } else {
-      // Clear all fish poops and algae
+      // Clear all fish poops (but not algae - use filter for that)
       setFishPoops([]);
       setFishState(prev => ({ 
         ...prev, 
-        tankCleanliness: 100, 
-        happiness: Math.min(100, prev.happiness + 15) 
+        tankCleanliness: Math.min(100, prev.tankCleanliness + 40), 
+        happiness: Math.min(100, prev.happiness + 10) 
       }));
     }
+  };
+
+  // Water filter cleans algae buildup but not poop
+  const runWaterFilter = () => {
+    if (gameState.locked || currentPet !== 'fish') return;
+    playClean();
+    // Reset algae growth by updating createdAt to now
+    setFishPoops(prev => prev.map(poop => ({
+      ...poop,
+      createdAt: Date.now() // Reset algae age
+    })));
+    setFishState(prev => ({ 
+      ...prev, 
+      tankCleanliness: Math.min(100, prev.tankCleanliness + 30),
+      happiness: Math.min(100, prev.happiness + 5)
+    }));
   };
 
   const resetPet = () => {
@@ -2730,8 +2746,19 @@ const ClassroomPets = () => {
               disabled={gameState.locked || fishState.action !== 'idle'}
               className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
             >
-              <span className="leading-none">🎮</span>
+              <span className="leading-none">🎾</span>
               <span className="text-[9px] font-medium leading-none">Play</span>
+            </button>
+          )}
+          {currentPet === 'fish' && (
+            <button
+              onClick={runWaterFilter}
+              disabled={gameState.locked || fishState.tankCleanliness >= 95}
+              className={`pet-button-water w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl ${fishState.tankCleanliness >= 95 ? 'opacity-50' : ''}`}
+              title="Filter cleans algae buildup"
+            >
+              <span className="leading-none">💨</span>
+              <span className="text-[9px] font-medium leading-none">Filter</span>
             </button>
           )}
           {currentPet === 'bunny' && (
