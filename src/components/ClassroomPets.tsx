@@ -713,16 +713,16 @@ const ClassroomPets = () => {
         return newState;
       });
       
-      // Fish poops occasionally (less frequent than bunny)
-      if (Math.random() < 0.08) {
+      // Fish poops at same rate as bunny (30% chance every 12 seconds = 5% chance every 2 seconds)
+      if (Math.random() < 0.15) {
         setFishPoops(prev => [...prev, {
           id: Date.now(),
-          x: fishState.position.x + (Math.random() - 0.5) * 10,
-          y: fishState.position.y + 10,
+          x: fishState.position.x + (Math.random() - 0.5) * 15,
+          y: Math.min(85, fishState.position.y + 15 + Math.random() * 10), // Ensure visible and sinks a bit
           createdAt: Date.now()
         }]);
       }
-    }, 2000);
+    }, 4000); // Check every 4 seconds like bunny's effective rate
     return () => clearInterval(interval);
   }, [currentPet, fishState.position.x, fishState.position.y]);
 
@@ -2421,19 +2421,19 @@ const ClassroomPets = () => {
               }}
             />
             
-            {/* Sparkle effects on Tula's scales */}
+            {/* Sparkle effects on Tula's body scales only (not face) */}
             {currentPet === 'fish' && (
               <div className="absolute inset-0 pointer-events-none">
-                {/* Sparkle dots along body - positioned to follow tiger stripe areas */}
+                {/* Sparkle dots along body - positioned on body/tail area only, avoiding face */}
                 {[
-                  { x: '25%', y: '35%', size: 4, delay: 0, duration: 2.5 },
-                  { x: '45%', y: '28%', size: 3, delay: 0.8, duration: 2.2 },
-                  { x: '60%', y: '40%', size: 5, delay: 1.5, duration: 2.8 },
-                  { x: '35%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                  { x: '55%', y: '60%', size: 4, delay: 0.4, duration: 2.6 },
-                  { x: '70%', y: '45%', size: 3, delay: 1.8, duration: 2.3 },
-                  { x: '40%', y: '42%', size: 2, delay: 1.2, duration: 2.0 },
-                  { x: '30%', y: '48%', size: 3, delay: 2.5, duration: 2.7 },
+                  { x: '55%', y: '35%', size: 4, delay: 0, duration: 2.5 },
+                  { x: '65%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
+                  { x: '75%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
+                  { x: '60%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                  { x: '70%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
+                  { x: '80%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
+                  { x: '58%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
+                  { x: '72%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
                 ].map((sparkle, i) => (
                   <div
                     key={`sparkle-${i}`}
@@ -2449,11 +2449,11 @@ const ClassroomPets = () => {
                   />
                 ))}
                 
-                {/* Star sparkles for extra shimmer */}
+                {/* Star sparkles for extra shimmer - body area only */}
                 {[
-                  { x: '38%', y: '32%', size: 8, delay: 0.3, duration: 3 },
-                  { x: '52%', y: '52%', size: 6, delay: 1.6, duration: 2.8 },
-                  { x: '65%', y: '35%', size: 7, delay: 2.2, duration: 3.2 },
+                  { x: '62%', y: '40%', size: 8, delay: 0.3, duration: 3 },
+                  { x: '68%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
+                  { x: '78%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
                 ].map((star, i) => (
                   <div
                     key={`star-${i}`}
