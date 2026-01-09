@@ -705,31 +705,30 @@ export const useSoundEffects = (): SoundEffectsReturn => {
     const onFirstInteraction = () => {
       if (hasUnlockedRef.current) return;
       hasUnlockedRef.current = true;
+
+      // IMPORTANT: start audio inside the user gesture to satisfy browser autoplay policies
       unlockAudio();
       if (shouldStartAmbientRef.current) {
-        setTimeout(() => {
-          startAmbient();
-        }, 0);
+        startAmbient();
       }
     };
 
     const onAnyPointerDown = () => {
-      // Just unlock audio context if needed, don't restart ambient
+      // Keep audio alive; do NOT stop anything unless the user toggles it off
       if (!shouldStartAmbientRef.current) return;
       unlockAudio();
+      if (hasUnlockedRef.current) {
+        startAmbient(); // guarded against double-start
+      }
     };
 
     const onVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return;
       if (!shouldStartAmbientRef.current) return;
-      // If audio was previously unlocked, just resume context
-      if (hasUnlockedRef.current) {
-        unlockAudio();
-        // Only restart if ambient nodes are missing
-        if (!ambientNodesRef.current.wind && !ambientNodesRef.current.musicInterval) {
-          startAmbient();
-        }
-      }
+      if (!hasUnlockedRef.current) return;
+
+      unlockAudio();
+      startAmbient(); // guarded against double-start
     };
 
     window.addEventListener('pointerdown', onFirstInteraction, { passive: true });
@@ -746,8 +745,15 @@ export const useSoundEffects = (): SoundEffectsReturn => {
       window.removeEventListener('pointerdown', onAnyPointerDown);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [unlockAudio, startAmbient, stopAmbient]);
+  }, [unlockAudio, startAmbient]);
 
+  // If ambient is enabled and audio is unlocked, ensure it stays running.
+  // (Some browsers may silently suspend audio after route/scene changes.)
+  useEffect(() => {
+    if (!isAmbientPlaying) return;
+    if (!hasUnlockedRef.current) return;
+    startAmbient();
+  }, [isAmbientPlaying, startAmbient]);
 
   // Cleanup on unmount
   useEffect(() => {
