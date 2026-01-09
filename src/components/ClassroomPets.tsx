@@ -77,10 +77,12 @@ const ClassroomPets = () => {
 
     (async () => {
       try {
+        // Use higher feather and tolerance for fish sprites for smoother blending with underwater scenes
+        const fishBgOptions = { tolerance: 50, feather: 45, sampleSize: 12 };
         const [happy, sad, eating] = await Promise.all([
-          removeSolidBackgroundToDataUrl(fishHappy),
-          removeSolidBackgroundToDataUrl(fishSad),
-          removeSolidBackgroundToDataUrl(fishEating),
+          removeSolidBackgroundToDataUrl(fishHappy, fishBgOptions),
+          removeSolidBackgroundToDataUrl(fishSad, fishBgOptions),
+          removeSolidBackgroundToDataUrl(fishEating, fishBgOptions),
         ]);
 
         if (!cancelled) {
@@ -2217,34 +2219,40 @@ const ClassroomPets = () => {
             </div>
           )}
           
-          <div className={`relative ${
-            currentPet === 'fish' 
-              ? fishState.mood === 'happy' 
-                ? 'animate-fish-wiggle-fast' 
-                : fishState.mood === 'calm' 
-                  ? 'animate-fish-wiggle-normal' 
-                  : 'animate-fish-wiggle-slow'
-              : ''
-          } ${
-            currentPet === 'bunny' && bunnyState.isHopping && currentScene !== 'park' && !isTrampolineBouncing ? 'animate-hop' : ''
-          } ${
-            currentPet === 'bunny' && bunnyState.idleBehavior === 'sniffing' ? 'animate-sniff' : ''
-          } ${
-            currentPet === 'bunny' && bunnyState.idleBehavior === 'ear-scratch' ? 'animate-ear-scratch' : ''
-          } ${
-            currentPet === 'bunny' && bunnyState.idleBehavior === 'nibbling' ? 'animate-nibble' : ''
-          } ${
-            currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
-          } ${
-            (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy.id !== 'balloon')
-              ? 'animate-wiggle' : ''
-          }`}>
+          <div 
+            className={`relative ${
+              currentPet === 'fish' 
+                ? fishState.mood === 'happy' 
+                  ? 'animate-fish-wiggle-fast' 
+                  : fishState.mood === 'calm' 
+                    ? 'animate-fish-wiggle-normal' 
+                    : 'animate-fish-wiggle-slow'
+                : ''
+            } ${
+              currentPet === 'bunny' && bunnyState.isHopping && currentScene !== 'park' && !isTrampolineBouncing ? 'animate-hop' : ''
+            } ${
+              currentPet === 'bunny' && bunnyState.idleBehavior === 'sniffing' ? 'animate-sniff' : ''
+            } ${
+              currentPet === 'bunny' && bunnyState.idleBehavior === 'ear-scratch' ? 'animate-ear-scratch' : ''
+            } ${
+              currentPet === 'bunny' && bunnyState.idleBehavior === 'nibbling' ? 'animate-nibble' : ''
+            } ${
+              currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
+            } ${
+              (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy.id !== 'balloon')
+                ? 'animate-wiggle' : ''
+            }`}
+            style={currentPet === 'fish' ? {
+              // Underwater caustic glow effect for realistic water blending
+              filter: 'drop-shadow(0 0 20px rgba(64, 180, 220, 0.25))',
+            } : undefined}
+          >
             {/* Pet Image - scaled to fit room */}
             <img 
               ref={bunnyImgRef}
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
-              className={`object-contain drop-shadow-2xl transition-all duration-500 ${
+              className={`object-contain transition-all duration-500 ${
                 currentPet === 'fish'
                   ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28'
                   : currentScene === 'room'
@@ -2257,7 +2265,10 @@ const ClassroomPets = () => {
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${fishState.action === 'eating' ? 'scale-110' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
-                filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
+                // Bunny gets simple drop shadow, fish gets underwater-style glow and color grading
+                filter: currentPet === 'fish' 
+                  ? `drop-shadow(0 0 12px rgba(100, 200, 255, 0.4)) drop-shadow(0 2px 6px rgba(0, 50, 100, 0.3)) brightness(1.05) saturate(1.1) hue-rotate(-5deg)`
+                  : 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
                 transform: `${
                   currentPet === 'bunny' && !bunnyState.facingRight 
                     ? 'scaleX(-1)' 
@@ -2271,6 +2282,8 @@ const ClassroomPets = () => {
                     ? 'rotate(-5deg) translateY(-5%)'
                     : ''
                 }`,
+                // Add subtle mix-blend for fish to integrate with underwater lighting
+                mixBlendMode: currentPet === 'fish' ? 'normal' : 'normal',
               }}
             />
             
