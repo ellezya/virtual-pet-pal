@@ -1712,6 +1712,7 @@ const ClassroomPets = () => {
               ref={bunnyImgRef}
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
+              className={`object-contain drop-shadow-2xl transition-all duration-500 ${
                 currentScene === 'room'
                   ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
                   : currentScene === 'habitat'
