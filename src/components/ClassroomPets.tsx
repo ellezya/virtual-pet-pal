@@ -2523,31 +2523,29 @@ const ClassroomPets = () => {
             )}
             
             {/* Sparkle effects on Tula's body scales only (not face) */}
-            {/* When fish flips, the sparkle container stays in local coords, so we counter-flip it */}
+            {/* Sparkle positions are dynamically computed based on fish direction */}
             {currentPet === 'fish' && (
               <div
                 className="absolute inset-0 pointer-events-none"
-                style={{
-                  // Counter-flip so sparkles stay on body regardless of direction
-                  transform: fishState.facingRight ? 'none' : 'scaleX(-1)',
-                }}
               >
                 {/* Sparkle dots along body - positioned on body/tail area only, avoiding face */}
+                {/* When facingRight: body is on right (55-80%), face is on left (0-40%) */}
+                {/* When facingLeft: body is on left (20-45%), face is on right (60-100%) */}
                 {[
-                  { x: '55%', y: '35%', size: 4, delay: 0, duration: 2.5 },
-                  { x: '65%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
-                  { x: '75%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
-                  { x: '60%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                  { x: '70%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
-                  { x: '80%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
-                  { x: '58%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
-                  { x: '72%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
+                  { xRight: 55, xLeft: 45, y: '35%', size: 4, delay: 0, duration: 2.5 },
+                  { xRight: 65, xLeft: 35, y: '42%', size: 3, delay: 0.8, duration: 2.2 },
+                  { xRight: 75, xLeft: 25, y: '38%', size: 5, delay: 1.5, duration: 2.8 },
+                  { xRight: 60, xLeft: 40, y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                  { xRight: 70, xLeft: 30, y: '58%', size: 4, delay: 0.4, duration: 2.6 },
+                  { xRight: 80, xLeft: 20, y: '48%', size: 3, delay: 1.8, duration: 2.3 },
+                  { xRight: 58, xLeft: 42, y: '48%', size: 2, delay: 1.2, duration: 2.0 },
+                  { xRight: 72, xLeft: 28, y: '52%', size: 3, delay: 2.5, duration: 2.7 },
                 ].map((sparkle, i) => (
                   <div
                     key={`sparkle-${i}`}
                     className="fish-sparkle"
                     style={{
-                      left: sparkle.x,
+                      left: `${fishState.facingRight ? sparkle.xRight : sparkle.xLeft}%`,
                       top: sparkle.y,
                       width: sparkle.size,
                       height: sparkle.size,
@@ -2558,16 +2556,17 @@ const ClassroomPets = () => {
                 ))}
                 
                 {/* Star sparkles for extra shimmer - body area only */}
+                {/* When facingRight: body is on right, when facingLeft: body is on left */}
                 {[
-                  { x: '62%', y: '40%', size: 8, delay: 0.3, duration: 3 },
-                  { x: '68%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
-                  { x: '78%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
+                  { xRight: 62, xLeft: 38, y: '40%', size: 8, delay: 0.3, duration: 3 },
+                  { xRight: 68, xLeft: 32, y: '54%', size: 6, delay: 1.6, duration: 2.8 },
+                  { xRight: 78, xLeft: 22, y: '45%', size: 7, delay: 2.2, duration: 3.2 },
                 ].map((star, i) => (
                   <div
                     key={`star-${i}`}
                     className="fish-sparkle-star"
                     style={{
-                      left: star.x,
+                      left: `${fishState.facingRight ? star.xRight : star.xLeft}%`,
                       top: star.y,
                       width: star.size,
                       height: star.size,
