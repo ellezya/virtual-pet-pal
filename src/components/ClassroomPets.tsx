@@ -519,7 +519,10 @@ const ClassroomPets = () => {
     action: 'idle' as 'idle' | 'eating' | 'playing',
     position: { x: 50, y: 50 },
     facingRight: true,
-    targetFoodId: null as number | null
+    targetFoodId: null as number | null,
+    // Natural swimming state
+    swimTarget: { x: 50, y: 50 } as { x: number; y: number },
+    swimSpeed: 1, // varies based on mood
   });
 
   // Fish tank specific state
@@ -917,22 +920,61 @@ const ClassroomPets = () => {
     return () => clearInterval(idleInterval);
   }, [currentPet, bunnyState.action]);
 
-  // Auto-move fish (only when no food to chase)
+  // Auto-move fish with natural swimming behavior (only when no food to chase)
   useEffect(() => {
     if (currentPet !== 'fish' || fishState.action !== 'idle' || fishFood.length > 0) return;
-    const swimInterval = setInterval(() => {
-      const newX = Math.max(15, Math.min(85, fishState.position.x + (Math.random() - 0.5) * 20));
+    
+    // Pick a new swim target periodically
+    const pickNewTarget = () => {
+      const speed = fishState.mood === 'happy' ? 1.5 : fishState.mood === 'calm' ? 0.8 : 0.5;
       setFishState(prev => ({
         ...prev,
-        position: {
-          x: newX,
-          y: Math.max(20, Math.min(70, prev.position.y + (Math.random() - 0.5) * 15))
+        swimTarget: {
+          x: Math.max(12, Math.min(88, 50 + (Math.random() - 0.5) * 70)),
+          y: Math.max(15, Math.min(75, 45 + (Math.random() - 0.5) * 50))
         },
-        facingRight: newX > prev.position.x
+        swimSpeed: speed
       }));
-    }, 2000);
-    return () => clearInterval(swimInterval);
-  }, [currentPet, fishState.action, fishFood.length, fishState.position.x]);
+    };
+    
+    // Pick new target every 3-6 seconds
+    const targetInterval = setInterval(pickNewTarget, 3000 + Math.random() * 3000);
+    pickNewTarget(); // Initial target
+    
+    // Smooth swimming towards target
+    const swimInterval = setInterval(() => {
+      setFishState(prev => {
+        const dx = prev.swimTarget.x - prev.position.x;
+        const dy = prev.swimTarget.y - prev.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 2) return prev; // Close enough, wait for new target
+        
+        // Smooth easing movement - faster when far, slower when close
+        const ease = Math.min(1, distance / 30);
+        const moveSpeed = prev.swimSpeed * ease * 2;
+        const moveX = (dx / distance) * moveSpeed;
+        const moveY = (dy / distance) * moveSpeed * 0.6; // Less vertical movement
+        
+        // Add slight sine wave wobble for natural fish movement
+        const wobble = Math.sin(Date.now() / 300) * 0.3;
+        
+        return {
+          ...prev,
+          position: {
+            x: Math.max(12, Math.min(88, prev.position.x + moveX)),
+            y: Math.max(15, Math.min(75, prev.position.y + moveY + wobble))
+          },
+          facingRight: dx > 0.5 ? true : dx < -0.5 ? false : prev.facingRight
+        };
+      });
+    }, 50); // Smooth 20fps updates
+    
+    return () => {
+      clearInterval(targetInterval);
+      clearInterval(swimInterval);
+    };
+  }, [currentPet, fishState.action, fishFood.length, fishState.mood]);
 
   // Notifications
   useEffect(() => {
@@ -1359,7 +1401,9 @@ const ClassroomPets = () => {
         action: 'idle',
         position: { x: 50, y: 50 },
         facingRight: true,
-        targetFoodId: null
+        targetFoodId: null,
+        swimTarget: { x: 50, y: 50 },
+        swimSpeed: 1
       });
       setFishPoops([]);
       setFishFood([]);
@@ -2243,8 +2287,8 @@ const ClassroomPets = () => {
                 ? 'animate-wiggle' : ''
             }`}
             style={currentPet === 'fish' ? {
-              // Underwater caustic glow effect for realistic water blending
-              filter: 'drop-shadow(0 0 20px rgba(64, 180, 220, 0.25))',
+              // Warm ambient glow to match lofi background tones
+              filter: 'drop-shadow(0 0 15px rgba(160, 120, 80, 0.2))',
             } : undefined}
           >
             {/* Pet Image - scaled to fit room */}
@@ -2265,9 +2309,9 @@ const ClassroomPets = () => {
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
               } ${fishState.action === 'eating' ? 'scale-110' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
-                // Bunny gets simple drop shadow, fish gets underwater-style glow and color grading
+                // Bunny gets simple drop shadow, fish gets warm underwater tones matching the lofi backgrounds
                 filter: currentPet === 'fish' 
-                  ? `drop-shadow(0 0 12px rgba(100, 200, 255, 0.4)) drop-shadow(0 2px 6px rgba(0, 50, 100, 0.3)) brightness(1.05) saturate(1.1) hue-rotate(-5deg)`
+                  ? `drop-shadow(0 0 8px rgba(180, 140, 100, 0.35)) drop-shadow(0 2px 4px rgba(80, 60, 40, 0.25)) brightness(0.95) saturate(0.85) sepia(0.15) hue-rotate(10deg) contrast(1.05)`
                   : 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
                 transform: `${
                   currentPet === 'bunny' && !bunnyState.facingRight 
@@ -2282,8 +2326,6 @@ const ClassroomPets = () => {
                     ? 'rotate(-5deg) translateY(-5%)'
                     : ''
                 }`,
-                // Add subtle mix-blend for fish to integrate with underwater lighting
-                mixBlendMode: currentPet === 'fish' ? 'normal' : 'normal',
               }}
             />
             
