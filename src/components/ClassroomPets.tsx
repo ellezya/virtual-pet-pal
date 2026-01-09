@@ -749,29 +749,20 @@ const ClassroomPets = () => {
         return;
       }
 
-      // Special handling for balloon - bunny floats up holding it
+      // Special handling for balloon - bunny plays with it in place, balloon appears above her
       if (toy.id === 'balloon') {
-        // Move to below the balloon so it appears above her
-        const balloonX = envObjects['toy-area'].x;
-        const balloonY = envObjects['toy-area'].y + 8;
+        // Stay in current position, just start playing animation
+        setBunnyState(prev => ({ 
+          ...prev, 
+          targetObject: null, 
+          action: 'playing'
+        }));
+        playPlay();
         
-        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: balloonX > prev.position.x }));
-        
-        // Hop to balloon location
+        // Play for a few seconds
         setTimeout(() => {
-          setBunnyState(prev => ({ 
-            ...prev, 
-            position: { x: balloonX, y: balloonY },
-            isHopping: false,
-            action: 'playing'
-          }));
-          playPlay();
-          
-          // Float for a few seconds
-          setTimeout(() => {
-            setBunnyState(prev => ({ ...prev, action: 'idle' }));
-          }, 4000);
-        }, 600);
+          setBunnyState(prev => ({ ...prev, action: 'idle' }));
+        }, 4000);
         
         const parkMultiplier = currentScene === 'park' ? 1.5 : 1;
         const happinessBoost = Math.round(toy.happinessBoost * parkMultiplier);
@@ -1337,17 +1328,16 @@ const ClassroomPets = () => {
         )}
         
         {/* Pet - anchor at feet (bottom-center) for bunny, center for fish */}
-        {/* When playing with balloon, bunny floats up hanging from the string! */}
+        {/* When playing with balloon, balloon floats above bunny but bunny stays grounded */}
         <div 
           className={`absolute transition-all ease-out ${
             currentPet === 'bunny' && bunnyState.isHopping ? 'duration-600' : 'duration-700'
-          } ${currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? 'animate-balloon-float' : ''} ${
+          } ${
             isTrampolineBouncing ? 'animate-trampoline-bounce' : ''
           } ${isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : 'opacity-100'}`}
           style={{ 
             left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
-              bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? bunnyState.position.y - 30 :
               isTrampolineBouncing ? bunnyState.position.y - 2 :
               // Park video has extra "air" at the bottom; nudge Lola down so her feet touch the ground.
               currentScene === 'park' ? bunnyState.position.y + 4 :
