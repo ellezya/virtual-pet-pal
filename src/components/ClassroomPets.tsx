@@ -479,8 +479,45 @@ const ClassroomPets = () => {
     tankCleanliness: 95,
     mood: 'happy' as 'happy' | 'sad' | 'calm',
     action: 'idle' as 'idle' | 'eating' | 'playing',
-    position: { x: 50, y: 50 }
+    position: { x: 50, y: 50 },
+    facingRight: true,
+    targetFoodId: null as number | null
   });
+
+  // Fish tank specific state
+  const [fishPoops, setFishPoops] = useState<Array<{ 
+    id: number; 
+    x: number; 
+    y: number; 
+    createdAt: number; // timestamp for algae growth
+  }>>([]);
+  
+  const [fishFood, setFishFood] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    falling: boolean;
+  }>>([]);
+  
+  // Tank decorations and friends
+  const tankDecorations = [
+    { id: 'rock1', emoji: '🪨', x: 15, y: 85, scale: 1.2 },
+    { id: 'rock2', emoji: '🪨', x: 75, y: 88, scale: 0.9 },
+    { id: 'castle', emoji: '🏰', x: 50, y: 82, scale: 1.5 },
+    { id: 'plant1', emoji: '🌿', x: 10, y: 80, scale: 1.3 },
+    { id: 'plant2', emoji: '🌱', x: 85, y: 83, scale: 1.1 },
+    { id: 'coral', emoji: '🪸', x: 30, y: 86, scale: 1.0 },
+  ];
+  
+  const tankFriends = [
+    { id: 'snail', emoji: '🐌', x: 20, y: 90, speed: 0.02 },
+    { id: 'crab', emoji: '🦀', x: 70, y: 92, speed: 0.05 },
+    { id: 'shrimp', emoji: '🦐', x: 40, y: 88, speed: 0.03 },
+  ];
+  
+  const [friendPositions, setFriendPositions] = useState(
+    tankFriends.reduce((acc, f) => ({ ...acc, [f.id]: { x: f.x, direction: 1 } }), {} as Record<string, { x: number; direction: number }>)
+  );
 
   const [gameState, setGameState] = useState({
     locked: false,
@@ -613,7 +650,7 @@ const ClassroomPets = () => {
     return () => clearInterval(poopInterval);
   }, [currentPet, poops.length, playPoop, currentCouchZone, bunnyState.position.x, currentScene, currentParkZone]);
 
-  // Fish decay
+  // Fish decay + poop generation
   useEffect(() => {
     if (currentPet !== 'fish') return;
     const interval = setInterval(() => {
@@ -622,16 +659,114 @@ const ClassroomPets = () => {
           ...prev,
           hunger: Math.max(0, prev.hunger - 0.3),
           happiness: Math.max(0, prev.happiness - 0.2),
-          tankCleanliness: Math.max(0, prev.tankCleanliness - 0.4)
         };
         if (newState.hunger < 30) newState.mood = 'sad';
         else if (newState.happiness > 70) newState.mood = 'happy';
         else newState.mood = 'calm';
         return newState;
       });
+      
+      // Fish poops occasionally (less frequent than bunny)
+      if (Math.random() < 0.08) {
+        setFishPoops(prev => [...prev, {
+          id: Date.now(),
+          x: fishState.position.x + (Math.random() - 0.5) * 10,
+          y: fishState.position.y + 10,
+          createdAt: Date.now()
+        }]);
+      }
     }, 2000);
     return () => clearInterval(interval);
+  }, [currentPet, fishState.position.x, fishState.position.y]);
+
+  // Calculate tank cleanliness based on poop/algae buildup
+  useEffect(() => {
+    if (currentPet !== 'fish') return;
+    const now = Date.now();
+    // Each poop contributes to dirtiness, more so as algae grows
+    const totalDirtiness = fishPoops.reduce((acc, poop) => {
+      const ageMinutes = (now - poop.createdAt) / 60000;
+      const algaeMultiplier = Math.min(3, 1 + ageMinutes * 0.5); // Grows over ~4 minutes to max
+      return acc + (5 * algaeMultiplier);
+    }, 0);
+    const cleanliness = Math.max(0, 100 - totalDirtiness);
+    setFishState(prev => ({ ...prev, tankCleanliness: cleanliness }));
+  }, [currentPet, fishPoops]);
+
+  // Tank friends slowly move around
+  useEffect(() => {
+    if (currentPet !== 'fish') return;
+    const interval = setInterval(() => {
+      setFriendPositions(prev => {
+        const updated = { ...prev };
+        tankFriends.forEach(friend => {
+          const current = updated[friend.id];
+          let newX = current.x + friend.speed * current.direction * 10;
+          let newDirection = current.direction;
+          if (newX < 5 || newX > 95) {
+            newDirection *= -1;
+            newX = Math.max(5, Math.min(95, newX));
+          }
+          updated[friend.id] = { x: newX, direction: newDirection };
+        });
+        return updated;
+      });
+    }, 500);
+    return () => clearInterval(interval);
   }, [currentPet]);
+
+  // Food particles fall and Tula swims to eat them
+  useEffect(() => {
+    if (currentPet !== 'fish' || fishFood.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setFishFood(prev => {
+        const updated = prev.map(food => ({
+          ...food,
+          y: Math.min(85, food.y + 2), // Fall down
+          falling: food.y < 85
+        })).filter(food => food.y < 90); // Remove when settled too long
+        
+        return updated;
+      });
+      
+      // Tula swims towards nearest food if hungry
+      const nearestFood = fishFood.find(f => f.falling || f.y >= 80);
+      if (nearestFood && fishState.action === 'idle') {
+        const dx = nearestFood.x - fishState.position.x;
+        const dy = nearestFood.y - fishState.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < 8) {
+          // Eat the food!
+          setFishFood(prev => prev.filter(f => f.id !== nearestFood.id));
+          setFishState(prev => ({
+            ...prev,
+            action: 'eating',
+            hunger: Math.min(100, prev.hunger + 15),
+            happiness: Math.min(100, prev.happiness + 5)
+          }));
+          setTimeout(() => {
+            setFishState(prev => ({ ...prev, action: 'idle' }));
+          }, 500);
+        } else {
+          // Swim towards food
+          const moveX = (dx / distance) * 5;
+          const moveY = (dy / distance) * 3;
+          setFishState(prev => ({
+            ...prev,
+            position: {
+              x: Math.max(10, Math.min(90, prev.position.x + moveX)),
+              y: Math.max(15, Math.min(80, prev.position.y + moveY))
+            },
+            facingRight: dx > 0
+          }));
+        }
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [currentPet, fishFood, fishState.action, fishState.position.x, fishState.position.y]);
 
   // Auto-move bunny with hopping to objects or idle wandering on couch
   useEffect(() => {
@@ -747,20 +882,22 @@ const ClassroomPets = () => {
     return () => clearInterval(idleInterval);
   }, [currentPet, bunnyState.action]);
 
-  // Auto-move fish
+  // Auto-move fish (only when no food to chase)
   useEffect(() => {
-    if (currentPet !== 'fish' || fishState.action !== 'idle') return;
+    if (currentPet !== 'fish' || fishState.action !== 'idle' || fishFood.length > 0) return;
     const swimInterval = setInterval(() => {
+      const newX = Math.max(15, Math.min(85, fishState.position.x + (Math.random() - 0.5) * 20));
       setFishState(prev => ({
         ...prev,
         position: {
-          x: Math.max(15, Math.min(85, prev.position.x + (Math.random() - 0.5) * 20)),
+          x: newX,
           y: Math.max(20, Math.min(70, prev.position.y + (Math.random() - 0.5) * 15))
-        }
+        },
+        facingRight: newX > prev.position.x
       }));
     }, 2000);
     return () => clearInterval(swimInterval);
-  }, [currentPet, fishState.action]);
+  }, [currentPet, fishState.action, fishFood.length, fishState.position.x]);
 
   // Notifications
   useEffect(() => {
@@ -821,12 +958,17 @@ const ClassroomPets = () => {
         setBowlLevels(prev => ({ ...prev, food: Math.max(0, prev.food - 60) }));
       }, 800);
     } else {
-      doAction('eating', null, 3000);
-      setFishState(prev => ({ 
-        ...prev, 
-        hunger: Math.min(100, prev.hunger + 50), 
-        happiness: Math.min(100, prev.happiness + 10) 
+      // Sprinkle food from top of tank
+      playEat();
+      const foodCount = 5 + Math.floor(Math.random() * 4);
+      const newFood = Array.from({ length: foodCount }, (_, i) => ({
+        id: Date.now() + i,
+        x: 20 + Math.random() * 60,
+        y: 5 + Math.random() * 5,
+        falling: true
       }));
+      setFishFood(prev => [...prev, ...newFood]);
+      // Tula will swim to eat them via the useEffect
     }
   };
 
@@ -1143,6 +1285,8 @@ const ClassroomPets = () => {
         happiness: Math.min(100, prev.happiness + 10)
       }));
     } else {
+      // Clear all fish poops and algae
+      setFishPoops([]);
       setFishState(prev => ({ 
         ...prev, 
         tankCleanliness: 100, 
@@ -1178,8 +1322,12 @@ const ClassroomPets = () => {
         tankCleanliness: 95,
         mood: 'happy',
         action: 'idle',
-        position: { x: 50, y: 50 }
+        position: { x: 50, y: 50 },
+        facingRight: true,
+        targetFoodId: null
       });
+      setFishPoops([]);
+      setFishFood([]);
     }
   };
 
@@ -1663,6 +1811,123 @@ const ClassroomPets = () => {
           </div>
         )}
 
+        {/* Tank Decorations - rocks, plants, castle */}
+        {currentPet === 'fish' && (
+          <div className="absolute inset-0 pointer-events-none z-[5]">
+            {tankDecorations.map(dec => (
+              <div
+                key={dec.id}
+                className="absolute transform -translate-x-1/2"
+                style={{
+                  left: `${dec.x}%`,
+                  top: `${dec.y}%`,
+                  fontSize: `${dec.scale * 1.5}rem`,
+                }}
+              >
+                {dec.emoji}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tank Friends - snail, crab, shrimp moving around */}
+        {currentPet === 'fish' && (
+          <div className="absolute inset-0 pointer-events-none z-[6]">
+            {tankFriends.map(friend => {
+              const pos = friendPositions[friend.id];
+              return (
+                <div
+                  key={friend.id}
+                  className="absolute transform -translate-x-1/2 transition-all duration-500"
+                  style={{
+                    left: `${pos?.x ?? friend.x}%`,
+                    top: `${friend.y}%`,
+                    fontSize: '1.5rem',
+                    transform: `translateX(-50%) scaleX(${pos?.direction ?? 1})`
+                  }}
+                >
+                  {friend.emoji}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Fish Poops with Algae Growth */}
+        {currentPet === 'fish' && (
+          <div className="absolute inset-0 pointer-events-none z-[7]">
+            {fishPoops.map(poop => {
+              const ageMinutes = (Date.now() - poop.createdAt) / 60000;
+              const algaeLevel = Math.min(1, ageMinutes * 0.25); // Full algae in ~4 minutes
+              const algaeSize = 0.5 + algaeLevel * 1.5;
+              
+              return (
+                <div
+                  key={poop.id}
+                  className="absolute transform -translate-x-1/2"
+                  style={{
+                    left: `${poop.x}%`,
+                    top: `${poop.y}%`,
+                  }}
+                >
+                  {/* Algae growing around poop */}
+                  {algaeLevel > 0.1 && (
+                    <div 
+                      className="absolute -inset-2 rounded-full opacity-60"
+                      style={{
+                        background: `radial-gradient(circle, hsl(120, 60%, ${30 + algaeLevel * 20}%) 0%, transparent 70%)`,
+                        transform: `scale(${algaeSize})`,
+                        filter: 'blur(2px)'
+                      }}
+                    />
+                  )}
+                  <div className="text-sm">💩</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Falling Fish Food */}
+        {currentPet === 'fish' && fishFood.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none z-[8]">
+            {fishFood.map(food => (
+              <div
+                key={food.id}
+                className="absolute transform -translate-x-1/2 transition-all duration-100"
+                style={{
+                  left: `${food.x}%`,
+                  top: `${food.y}%`,
+                }}
+              >
+                <div 
+                  className="w-2 h-2 rounded-full bg-amber-600 shadow-sm"
+                  style={{ 
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    animation: food.falling ? 'none' : 'pulse-soft 1s infinite'
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tank Dirtiness Overlay - gets murky with algae */}
+        {currentPet === 'fish' && fishState.tankCleanliness < 100 && (
+          <div 
+            className="absolute inset-0 pointer-events-none z-[3] transition-opacity duration-1000"
+            style={{
+              background: `linear-gradient(
+                180deg, 
+                hsla(120, 40%, 25%, ${(100 - fishState.tankCleanliness) * 0.006}) 0%,
+                hsla(90, 50%, 20%, ${(100 - fishState.tankCleanliness) * 0.008}) 50%,
+                hsla(60, 30%, 15%, ${(100 - fishState.tankCleanliness) * 0.01}) 100%
+              )`,
+              opacity: Math.min(0.85, (100 - fishState.tankCleanliness) / 100)
+            }}
+          />
+        )}
+
         {/* Interactive Environment Objects for Bunny */}
         {currentPet === 'bunny' && (
           <div className="absolute inset-0 z-[5] pointer-events-none">
@@ -1897,7 +2162,13 @@ const ClassroomPets = () => {
           )}
           
           <div className={`relative ${
-            currentPet === 'fish' ? 'animate-swim' : ''
+            currentPet === 'fish' 
+              ? fishState.mood === 'happy' 
+                ? 'animate-fish-wiggle-fast' 
+                : fishState.mood === 'calm' 
+                  ? 'animate-fish-wiggle-normal' 
+                  : 'animate-fish-wiggle-slow'
+              : ''
           } ${
             currentPet === 'bunny' && bunnyState.isHopping && currentScene !== 'park' && !isTrampolineBouncing ? 'animate-hop' : ''
           } ${
@@ -1909,17 +2180,18 @@ const ClassroomPets = () => {
           } ${
             currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
           } ${
-            (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy.id !== 'balloon') ||
-            (currentPet === 'fish' && fishState.action === 'playing')
+            (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy.id !== 'balloon')
               ? 'animate-wiggle' : ''
           }`}>
             {/* Pet Image - scaled to fit room */}
             <img 
               ref={bunnyImgRef}
               src={currentPet === 'bunny' ? getBunnyImage() : getFishImage()}
-              alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Goldie the fish'}
+              alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
               className={`object-contain drop-shadow-2xl transition-all duration-500 ${
-                currentScene === 'room'
+                currentPet === 'fish'
+                  ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28'
+                  : currentScene === 'room'
                   ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
                   : currentScene === 'habitat'
                   ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36'
@@ -1927,11 +2199,15 @@ const ClassroomPets = () => {
               } ${
                 bunnyState.isNapping ? 'scale-75' :
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
+              } ${fishState.action === 'eating' ? 'scale-110' : ''} ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
               style={{
                 filter: 'drop-shadow(0 4px 8px hsl(var(--foreground) / 0.25))',
                 transform: `${
-                  currentPet === 'bunny' && !bunnyState.facingRight ? 'scaleX(-1)' : 'scaleX(1)'
+                  currentPet === 'bunny' && !bunnyState.facingRight 
+                    ? 'scaleX(-1)' 
+                    : currentPet === 'fish' && !fishState.facingRight 
+                      ? 'scaleX(-1)' 
+                      : 'scaleX(1)'
                 } ${
                   bunnyState.isNapping
                     ? ''
