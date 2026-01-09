@@ -545,12 +545,12 @@ const ClassroomPets = () => {
   // Fish scene decorations removed - clean immersive backgrounds only
   // The lofi video backgrounds provide all the visual atmosphere needed
   
-  // Tank toys for Tula - immersive, non-emoji designs
+  // Tank toys for Tula - with clear emoji icons
   const fishToys = [
-    { id: 'tunnel', name: 'Swim Tunnel', happinessBoost: 15, energyCost: 10 },
-    { id: 'bubbler', name: 'Bubble Stream', happinessBoost: 12, energyCost: 5 },
-    { id: 'snail', name: 'Shelly the Snail', happinessBoost: 18, energyCost: 8 },
-    { id: 'crab', name: 'Clawdia the Crab', happinessBoost: 20, energyCost: 12 },
+    { id: 'ring', name: 'Swim Ring', emoji: '⭕', happinessBoost: 15, energyCost: 10 },
+    { id: 'bubbler', name: 'Bubbles', emoji: '🫧', happinessBoost: 12, energyCost: 5 },
+    { id: 'snail', name: 'Shelly', emoji: '🐌', happinessBoost: 18, energyCost: 8 },
+    { id: 'crab', name: 'Clawdia', emoji: '🦀', happinessBoost: 20, energyCost: 12 },
   ];
   
   const [selectedFishToy, setSelectedFishToy] = useState(fishToys[0]);
@@ -2010,37 +2010,7 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Swim tunnel decoration - appears in reef scene */}
-        {currentPet === 'fish' && currentScene === 'reef' && (
-          <div className="absolute inset-0 pointer-events-none z-[5]">
-            <div
-              className="absolute"
-              style={{
-                left: '70%',
-                top: '65%',
-                transform: 'translate(-50%, -50%) rotate(-15deg)',
-              }}
-            >
-              {/* Organic tunnel shape */}
-              <div 
-                className="w-20 h-10 rounded-full"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(100, 80, 60, 0.3) 0%, rgba(60, 50, 40, 0.5) 100%)',
-                  boxShadow: 'inset 0 0 15px rgba(40, 30, 25, 0.5), 0 4px 12px rgba(60, 45, 35, 0.3)',
-                  border: '2px solid rgba(80, 60, 45, 0.3)',
-                }}
-              >
-                {/* Hollow center */}
-                <div 
-                  className="absolute inset-2 rounded-full"
-                  style={{
-                    background: 'radial-gradient(ellipse, rgba(30, 25, 20, 0.6) 0%, rgba(50, 40, 30, 0.3) 100%)',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Tank decorations removed - clean immersive lofi backgrounds only */}
 
         {/* Fish Waste with subtle organic algae growth - immersive design */}
         {currentPet === 'fish' && (
@@ -2564,28 +2534,9 @@ const ClassroomPets = () => {
                       ? 'bg-secondary text-secondary-foreground scale-110 shadow-md' 
                       : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
                 >
-                  {/* Stylized toy icons */}
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    {toy.id === 'tunnel' && (
-                      <div className="w-5 h-3 rounded-full border-2 border-current opacity-70" />
-                    )}
-                    {toy.id === 'bubbler' && (
-                      <div className="flex flex-col gap-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
-                        <div className="w-2 h-2 rounded-full bg-current opacity-60" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-current opacity-80" />
-                      </div>
-                    )}
-                    {toy.id === 'snail' && (
-                      <div className="w-4 h-3 rounded-full bg-current opacity-60" />
-                    )}
-                    {toy.id === 'crab' && (
-                      <div className="w-5 h-3 rounded-lg bg-current opacity-60" />
-                    )}
-                  </div>
-                  <span className="text-[10px] font-medium leading-tight">{toy.name.split(' ')[0]}</span>
+                  <span className="text-xl">{toy.emoji}</span>
+                  <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
                   <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
                 </button>
               ))}
