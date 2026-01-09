@@ -87,6 +87,12 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
     const ctx = audioContextRef.current;
 
+    // Lightweight debug trail for when browsers suspend/close audio (helps diagnose random cut-outs)
+    ctx.onstatechange = () => {
+      // eslint-disable-next-line no-console
+      console.debug('[audio] AudioContext state:', ctx.state);
+    };
+
     if (ctx.state === 'suspended') {
       void ctx.resume().catch(() => {});
     }
@@ -484,38 +490,74 @@ export const useSoundEffects = (): SoundEffectsReturn => {
   }, [getAudioContext]);
 
   // Play a lofi music chord
-  const playLofiChord = useCallback((frequencies: number[], duration: number) => {
-    const ctx = getAudioContext();
-    const time = ctx.currentTime;
-    
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(musicVolume, time);
-    masterGain.gain.linearRampToValueAtTime(musicVolume * 0.8, time + duration * 0.7);
-    masterGain.gain.linearRampToValueAtTime(0, time + duration);
-    masterGain.connect(ctx.destination);
-    
-    frequencies.forEach((freq) => {
-      const osc = ctx.createOscillator();
-      const oscGain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, time);
-      
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(800, time);
-      filter.Q.setValueAtTime(1, time);
-      
-      oscGain.gain.setValueAtTime(0.15, time);
-      
-      osc.connect(filter);
-      filter.connect(oscGain);
-      oscGain.connect(masterGain);
-      
-      osc.start(time);
-      osc.stop(time + duration);
-    });
-  }, [getAudioContext, musicVolume]);
+  // IMPORTANT: we disconnect nodes on end to avoid leaking AudioNodes (can cause audio to stop after a while).
+  const playLofiChord = useCallback(
+    (frequencies: number[], duration: number) => {
+      const ctx = getAudioContext();
+      const time = ctx.currentTime;
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(musicVolume, time);
+      masterGain.gain.linearRampToValueAtTime(musicVolume * 0.8, time + duration * 0.7);
+      masterGain.gain.linearRampToValueAtTime(0.0001, time + duration);
+      masterGain.connect(ctx.destination);
+
+      let endedCount = 0;
+      const total = frequencies.length;
+
+      const maybeCleanupMaster = () => {
+        endedCount += 1;
+        if (endedCount >= total) {
+          try {
+            masterGain.disconnect();
+          } catch {}
+        }
+      };
+
+      frequencies.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, time);
+        filter.Q.setValueAtTime(1, time);
+
+        oscGain.gain.setValueAtTime(0.15, time);
+
+        osc.connect(filter);
+        filter.connect(oscGain);
+        oscGain.connect(masterGain);
+
+        osc.onended = () => {
+          try {
+            osc.disconnect();
+          } catch {}
+          try {
+            filter.disconnect();
+          } catch {}
+          try {
+            oscGain.disconnect();
+          } catch {}
+          maybeCleanupMaster();
+        };
+
+        osc.start(time);
+        osc.stop(time + duration);
+      });
+
+      // Failsafe cleanup (if onended doesn't fire for some reason)
+      window.setTimeout(() => {
+        try {
+          masterGain.disconnect();
+        } catch {}
+      }, Math.ceil((duration + 0.25) * 1000));
+    },
+    [getAudioContext, musicVolume]
+  );
 
   // Start lofi background music
   const startLofiMusic = useCallback(() => {
@@ -835,6 +877,14 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
       // If timers/audio stall (common on mobile / aggressive throttling), fully rebuild.
       if (!hasCoreNodes || musicStalled) {
+        // eslint-disable-next-line no-console
+        console.debug('[audio] watchdog rebuild', {
+          hasCoreNodes,
+          musicStalled,
+          ctxState: audioContextRef.current?.state ?? 'none',
+          msSinceMusicTick: now - lastMusicTickRef.current,
+        });
+
         stopAmbientRef.current();
         startAmbientRef.current();
       }
