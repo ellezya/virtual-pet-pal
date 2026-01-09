@@ -367,6 +367,44 @@
     animation: fish-shimmer 4s ease-in-out infinite;
   }
 
+  /* Fish eating animation - gentle nibbling motion */
+  @keyframes fish-eating {
+    0%, 100% { 
+      transform: scale(1) rotate(0deg);
+    }
+    10% { 
+      transform: scale(1.02) rotate(3deg);
+    }
+    20% { 
+      transform: scale(0.98) rotate(-2deg);
+    }
+    30% { 
+      transform: scale(1.03) rotate(2deg);
+    }
+    40% { 
+      transform: scale(0.97) rotate(-3deg);
+    }
+    50% { 
+      transform: scale(1.02) rotate(1deg);
+    }
+    60% { 
+      transform: scale(0.98) rotate(-1deg);
+    }
+    70% { 
+      transform: scale(1.01) rotate(2deg);
+    }
+    80% { 
+      transform: scale(0.99) rotate(-2deg);
+    }
+    90% { 
+      transform: scale(1) rotate(1deg);
+    }
+  }
+
+  .animate-fish-eating {
+    animation: fish-eating 0.6s ease-in-out infinite;
+  }
+
   .animate-food-fall {
     animation: food-fall 3s ease-in forwards;
   }

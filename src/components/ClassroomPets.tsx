@@ -2339,11 +2339,13 @@ const ClassroomPets = () => {
           <div 
             className={`relative ${
               currentPet === 'fish' 
-                ? fishState.mood === 'happy' 
-                  ? 'animate-fish-wiggle-fast' 
-                  : fishState.mood === 'calm' 
-                    ? 'animate-fish-wiggle-normal' 
-                    : 'animate-fish-wiggle-slow'
+                ? fishState.action === 'eating'
+                  ? 'animate-fish-eating'
+                  : fishState.mood === 'happy' 
+                    ? 'animate-fish-wiggle-fast' 
+                    : fishState.mood === 'calm' 
+                      ? 'animate-fish-wiggle-normal' 
+                      : 'animate-fish-wiggle-slow'
                 : ''
             } ${
               currentPet === 'bunny' && bunnyState.isHopping && currentScene !== 'park' && !isTrampolineBouncing ? 'animate-hop' : ''
