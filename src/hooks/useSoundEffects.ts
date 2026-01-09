@@ -976,8 +976,21 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     shouldStartAmbientRef.current = isAmbientPlaying;
   }, [isAmbientPlaying]);
 
+  // Track previous pet to detect changes (skip initial mount)
+  const prevPetRef = useRef<PetType | null>(null);
+  
   // Restart ambient sounds when pet changes to switch between bird/water sounds
   useEffect(() => {
+    // Skip on initial mount
+    if (prevPetRef.current === null) {
+      prevPetRef.current = currentPet;
+      return;
+    }
+    
+    // Only restart if pet actually changed
+    if (prevPetRef.current === currentPet) return;
+    prevPetRef.current = currentPet;
+    
     if (!isAmbientPlaying || !hasUnlockedRef.current) return;
     
     // Stop current sounds and restart with new pet's sounds
