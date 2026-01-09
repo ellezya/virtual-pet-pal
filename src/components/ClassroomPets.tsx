@@ -267,8 +267,8 @@ const ClassroomPets = () => {
     }
   }, [currentScene, currentPet, currentCouchZone, currentParkZone]);
 
-  // Poop positions in the habitat
-  const [poops, setPoops] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  // Poop positions - store x and zone, compute y dynamically from roomBedY
+  const [poops, setPoops] = useState<Array<{ id: number; x: number; zone: 'seat' | 'back' }>>([])
 
   // Get toy scale based on scene
   const getToyScale = () => {
@@ -599,7 +599,7 @@ const ClassroomPets = () => {
         const newPoop = {
           id: Date.now(),
           x: poopX,
-          y: zone.y + 6 // Just below the surface
+          zone: currentCouchZone // Store which zone poop was created in
         };
         setPoops(prev => [...prev, newPoop]);
         setBunnyState(prev => ({
@@ -1798,20 +1798,28 @@ const ClassroomPets = () => {
               </div>
             ))}
             
-            {/* Poops - only visible on grass in park */}
-            {showToys && poops.map((poop) => (
-              <div
-                key={poop.id}
-                className="absolute transition-all duration-300 animate-fade-in"
-                style={{ 
-                  left: `${poop.x}%`, 
-                  top: `${poop.y}%`, 
-                  transform: 'translate(-50%, -100%)' 
-                }}
-              >
-                <div className="text-base sm:text-lg md:text-xl drop-shadow-md">💩</div>
-              </div>
-            ))}
+            {/* Poops - only visible on grass in park, Y computed dynamically from current zone */}
+            {showToys && poops.map((poop) => {
+              // Compute Y dynamically so it updates when roomBedY sliders change
+              const poopZoneData = currentScene === 'park' 
+                ? parkZones[currentParkZone] 
+                : getActiveZones()[poop.zone] || getActiveZones()[currentCouchZone];
+              const poopY = poopZoneData.y + 6;
+              
+              return (
+                <div
+                  key={poop.id}
+                  className="absolute transition-all duration-300 animate-fade-in"
+                  style={{ 
+                    left: `${poop.x}%`, 
+                    top: `${poopY}%`, 
+                    transform: 'translate(-50%, -100%)' 
+                  }}
+                >
+                  <div className="text-base sm:text-lg md:text-xl drop-shadow-md">💩</div>
+                </div>
+              );
+            })}
           </div>
         )}
         {/* Trampoline displayed under bunny when bouncing */}
