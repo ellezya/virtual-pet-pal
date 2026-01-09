@@ -751,9 +751,9 @@ const ClassroomPets = () => {
 
       // Special handling for balloon - bunny floats up holding it
       if (toy.id === 'balloon') {
-        // Move to where the balloon is first
+        // Move to below the balloon so it appears above her
         const balloonX = envObjects['toy-area'].x;
-        const balloonY = envObjects['toy-area'].y - 4;
+        const balloonY = envObjects['toy-area'].y + 8;
         
         setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: balloonX > prev.position.x }));
         
