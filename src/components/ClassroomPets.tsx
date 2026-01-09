@@ -72,7 +72,7 @@ const ClassroomPets = () => {
   // Lower y = higher on screen = further away = smaller scale
   // Higher y = lower on screen = closer = larger scale
   const parkZones = {
-    grass: { xMin: 35, xMax: 65, y: 78, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass only - centered, away from bench
+    grass: { xMin: 35, xMax: 65, y: 84, scale: 1.0, label: '🌿 Grassy Field' },      // Foreground grass only - aligned to ground path
   };
   
   // Track which park zone Lola is in (only grass now)
