@@ -1014,8 +1014,27 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       } catch {}
     }
     ambientNodesRef.current.waterFlowGain = null;
+
+    // HARD RESET: close the AudioContext to guarantee any previously-created (untracked) nodes are silenced.
+    if (audioContextRef.current) {
+      try {
+        void audioContextRef.current.close();
+      } catch {}
+      audioContextRef.current = null;
+    }
   }, []);
 
+  // Safety: ambience is Tula-only.
+  // 1) On mount (incl. hot reload), hard-stop anything that might still be ringing.
+  useEffect(() => {
+    stopAmbient();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2) Any time we are on Lola, hard-stop all ambience.
+  useEffect(() => {
+    if (currentPet !== 'fish') stopAmbient();
+  }, [currentPet, stopAmbient]);
 
   const startAmbient = useCallback(() => {
     const pet = currentPetRef.current;
