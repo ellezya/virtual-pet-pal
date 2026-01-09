@@ -117,19 +117,19 @@ const ClassroomPets = () => {
   };
 
   const [roomVisualPad, setRoomVisualPad] = useState<{ left: number; right: number }>(() => {
-    if (typeof window === 'undefined') return { left: 22, right: 14 };
+    if (typeof window === 'undefined') return { left: 18, right: 0 };
     try {
       const raw = window.localStorage.getItem('roomVisualPad');
-      if (!raw) return { left: 22, right: 14 };
+      if (!raw) return { left: 18, right: 0 };
       const parsed = JSON.parse(raw);
       const left = Number(parsed?.left);
       const right = Number(parsed?.right);
       return {
-        left: Number.isFinite(left) ? left : 22,
-        right: Number.isFinite(right) ? right : 14,
+        left: Number.isFinite(left) ? left : 18,
+        right: Number.isFinite(right) ? right : 0,
       };
     } catch {
-      return { left: 22, right: 14 };
+      return { left: 18, right: 0 };
     }
   });
 
