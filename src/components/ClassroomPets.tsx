@@ -806,17 +806,22 @@ const ClassroomPets = () => {
           ? parkZones[currentParkZone]
           : getActiveZones()[currentCouchZone];
 
-        const yarnX = clampZoneX(playZone, envObjects['toy-area'].x);
+        // Yarn play needs extra clearance from the bed posts/banister.
+        const yarnPad = currentScene === 'room' ? { left: 14, right: 10 } : undefined;
+
+        const yarnX = clampZoneX(playZone, envObjects['toy-area'].x, yarnPad);
         const yarnY = envObjects['toy-area'].y;
+        // Approach from slightly left, but keep it clamped so it can never hit the posts.
+        const yarnApproachX = clampZoneX(playZone, yarnX - 2, yarnPad);
         
         // First hop to yarn
-        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: yarnX > prev.position.x }));
+        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: yarnApproachX > prev.position.x }));
         playHop();
         
         setTimeout(() => {
           setBunnyState(prev => ({ 
             ...prev, 
-            position: { x: clampZoneX(playZone, yarnX - 5), y: yarnY },
+            position: { x: yarnApproachX, y: yarnY },
             isHopping: false,
             action: 'playing'
           }));
