@@ -625,15 +625,29 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
     if (hasCoreNodes) return;
 
-    // If we have a partial/ended setup, reset before starting again
-    const hasAnyNodes =
-      !!ambientNodesRef.current.wind ||
-      !!ambientNodesRef.current.birdInterval ||
-      !!ambientNodesRef.current.childrenInterval ||
-      !!ambientNodesRef.current.musicInterval;
-
-    if (hasAnyNodes) {
-      stopAmbient();
+    // Clear any partial/stale nodes inline (avoid calling stopAmbient to prevent circular dep)
+    if (ambientNodesRef.current.wind) {
+      try { (ambientNodesRef.current.wind as any).stop(); } catch {}
+      ambientNodesRef.current.wind = null;
+    }
+    if (ambientNodesRef.current.windLfo) {
+      try { ambientNodesRef.current.windLfo.stop(); } catch {}
+      try { ambientNodesRef.current.windLfo.disconnect(); } catch {}
+      ambientNodesRef.current.windLfo = null;
+    }
+    ambientNodesRef.current.windGain = null;
+    ambientNodesRef.current.windAnalyser = null;
+    if (ambientNodesRef.current.birdInterval) {
+      clearInterval(ambientNodesRef.current.birdInterval);
+      ambientNodesRef.current.birdInterval = null;
+    }
+    if (ambientNodesRef.current.childrenInterval) {
+      clearInterval(ambientNodesRef.current.childrenInterval);
+      ambientNodesRef.current.childrenInterval = null;
+    }
+    if (ambientNodesRef.current.musicInterval) {
+      clearInterval(ambientNodesRef.current.musicInterval);
+      ambientNodesRef.current.musicInterval = null;
     }
 
     unlockAudio();
@@ -650,7 +664,7 @@ export const useSoundEffects = (): SoundEffectsReturn => {
 
     playBirdChirp();
     setTimeout(() => playChildrenSound(), 900);
-  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound, stopAmbient]);
+  }, [unlockAudio, startWindSound, startLofiMusic, playBirdChirp, playChildrenSound]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
