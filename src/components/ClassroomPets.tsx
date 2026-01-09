@@ -1367,12 +1367,20 @@ const ClassroomPets = () => {
             
             {/* Selected Toy Display - only visible on grass in park, with special handling for trampoline and balloon */}
             {!isTrampolineBouncing && showToys && !(bunnyState.action === 'playing' && selectedToy.id === 'balloon') && (
-              <div 
-                className={`absolute transition-transform duration-200 ${
-                  bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
-                } ${bunnyState.action === 'playing' && selectedToy.id !== 'trampoline' ? 'animate-bounce-slow' : ''}`}
-                style={{ left: `${envObjects['toy-area'].x}%`, top: `${envObjects['toy-area'].y}%`, transform: 'translate(-50%, -100%)' }}
-              >
+                <div 
+                  className={`absolute transition-transform duration-200 ${
+                    bunnyState.targetObject === 'toy-area' ? 'scale-110' : ''
+                  } ${bunnyState.action === 'playing' && selectedToy.id !== 'trampoline' ? 'animate-bounce-slow' : ''}`}
+                  style={{
+                    left: `${clampZoneX(
+                      currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
+                      envObjects['toy-area'].x,
+                      currentScene === 'room' ? { left: 12, right: 10 } : undefined
+                    )}%`,
+                    top: `${envObjects['toy-area'].y}%`,
+                    transform: 'translate(-50%, -100%)'
+                  }}
+                >
                 {bunnyState.action === 'playing' && selectedToy.id === 'balloon' ? (
                   // Show balloon with string when bunny is floating
                   <div className="relative">
@@ -1497,8 +1505,11 @@ const ClassroomPets = () => {
           <div 
             className="absolute z-[11]"
             style={{ 
-              left: `${bunnyState.position.x}%`, 
-              top: `${bunnyState.position.y}%`,
+              left: `${clampZoneX(
+                currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
+                bunnyState.position.x
+              )}%`, 
+              top: `${currentScene === 'room' ? getActiveZones()[currentCouchZone].y : bunnyState.position.y}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
@@ -1517,12 +1528,15 @@ const ClassroomPets = () => {
             isHoppingThroughTunnel && Math.abs(bunnyState.position.x - envObjects['toy-area'].x) < 6 ? 'opacity-0' : ''
           } ${isInBox ? 'opacity-0' : 'opacity-100'}`}
           style={{ 
-            left: `${currentPet === 'bunny' ? bunnyState.position.x : fishState.position.x}%`, 
+            left: `${currentPet === 'bunny' ? clampZoneX(
+              currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
+              bunnyState.position.x
+            ) : fishState.position.x}%`, 
             top: `${currentPet === 'bunny' ? (
-              isTrampolineBouncing ? bunnyState.position.y - 2 :
+              isTrampolineBouncing ? ((currentScene === 'room' ? getActiveZones()[currentCouchZone].y : bunnyState.position.y) - 2) :
               // Park video has extra "air" at the bottom; nudge Lola down so her feet touch the ground.
               currentScene === 'park' ? bunnyState.position.y + 4 :
-              bunnyState.position.y
+              (currentScene === 'room' ? getActiveZones()[currentCouchZone].y : bunnyState.position.y)
             ) : fishState.position.y}%`,
             transform: currentPet === 'bunny'
               ? (currentScene === 'park'
