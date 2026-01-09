@@ -355,12 +355,15 @@ const ClassroomPets = () => {
     };
 
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(sceneRef.current);
+
+    const hasRO = typeof ResizeObserver !== 'undefined';
+    const ro = hasRO ? new ResizeObserver(measure) : null;
+    if (ro) ro.observe(sceneRef.current);
+
     window.addEventListener('resize', measure);
 
     return () => {
-      ro.disconnect();
+      ro?.disconnect();
       window.removeEventListener('resize', measure);
       cancelAnimationFrame(raf);
     };
@@ -1426,20 +1429,57 @@ const ClassroomPets = () => {
         {/* DEBUG: Safe bounds overlay - toggle with Shift+D */}
         {showBoundsDebug && currentScene !== 'park' && (() => {
           const zone = getActiveZones()[currentCouchZone];
-          const minX = clampZoneX(zone, zone.xMin);
-          const maxX = clampZoneX(zone, zone.xMax);
+          const safeMin = clampZoneX(zone, zone.xMin);
+          const safeMax = clampZoneX(zone, zone.xMax);
+
+          const bunnyHalfUsed = currentScene === 'room' ? Math.max(edgeClamp.bunnyHalfPct, 5) : edgeClamp.bunnyHalfPct;
+          const toyHalfUsed = currentScene === 'room' ? Math.max(edgeClamp.toyHalfPct, 3) : edgeClamp.toyHalfPct;
+
           const bunnyXRaw = bunnyState.position.x;
-          const bunnyXClamped = clampZoneX(zone, bunnyXRaw);
+          const bunnyXCenterClamped = clampZoneX(zone, bunnyXRaw);
+          const bunnyXEdgeClamped = clampZoneXWithHalfWidth(zone, bunnyXRaw, bunnyHalfUsed);
+
+          const toyXRaw = envObjects['toy-area'].x;
+          const toyXEdgeClamped = clampZoneXWithHalfWidth(
+            zone,
+            toyXRaw,
+            toyHalfUsed,
+            currentScene === 'room' ? { left: 4, right: 4 } : undefined
+          );
+
+          const bunnyMin = safeMin + bunnyHalfUsed;
+          const bunnyMax = safeMax - bunnyHalfUsed;
+          const toyMin = safeMin + toyHalfUsed;
+          const toyMax = safeMax - toyHalfUsed;
 
           return (
             <div className="absolute inset-0 pointer-events-none z-[50]">
-              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${minX}%` }} />
-              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${maxX}%` }} />
+              {/* Base safe bounds */}
+              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${safeMin}%` }} />
+              <div className="absolute top-0 bottom-0 w-px bg-destructive/70" style={{ left: `${safeMax}%` }} />
+
+              {/* Effective edge bounds (bunny) */}
+              {bunnyHalfUsed > 0 && (
+                <>
+                  <div className="absolute top-0 bottom-0 w-px bg-primary/60" style={{ left: `${bunnyMin}%` }} />
+                  <div className="absolute top-0 bottom-0 w-px bg-primary/60" style={{ left: `${bunnyMax}%` }} />
+                </>
+              )}
+
+              {/* Effective edge bounds (toy) */}
+              {toyHalfUsed > 0 && (
+                <>
+                  <div className="absolute top-0 bottom-0 w-px bg-secondary/60" style={{ left: `${toyMin}%` }} />
+                  <div className="absolute top-0 bottom-0 w-px bg-secondary/60" style={{ left: `${toyMax}%` }} />
+                </>
+              )}
 
               <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono">
-                Safe X: {minX.toFixed(1)}% – {maxX.toFixed(1)}%<br />
-                Toy X: {envObjects['toy-area'].x.toFixed(1)}%<br />
-                Bunny X: {bunnyXRaw.toFixed(1)}% (→ {bunnyXClamped.toFixed(1)}%)
+                Safe X (center): {safeMin.toFixed(1)}% – {safeMax.toFixed(1)}%<br />
+                Bunny half used: {bunnyHalfUsed.toFixed(1)}% (measured {edgeClamp.bunnyHalfPct.toFixed(1)}%)<br />
+                Bunny X: {bunnyXRaw.toFixed(1)}% → {bunnyXCenterClamped.toFixed(1)}% → edge {bunnyXEdgeClamped.toFixed(1)}%<br />
+                Toy half used: {toyHalfUsed.toFixed(1)}% (measured {edgeClamp.toyHalfPct.toFixed(1)}%)<br />
+                Toy X: {toyXRaw.toFixed(1)}% → edge {toyXEdgeClamped.toFixed(1)}%
               </div>
             </div>
           );
@@ -1497,7 +1537,7 @@ const ClassroomPets = () => {
                     left: `${clampZoneXWithHalfWidth(
                       currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
                       envObjects['toy-area'].x,
-                      edgeClamp.toyHalfPct,
+                      currentScene === 'room' ? Math.max(edgeClamp.toyHalfPct, 3) : edgeClamp.toyHalfPct,
                       currentScene === 'room' ? { left: 4, right: 4 } : undefined
                     )}%`,
                     top: `${envObjects['toy-area'].y}%`,
@@ -1654,7 +1694,7 @@ const ClassroomPets = () => {
               left: `${currentPet === 'bunny' ? clampZoneXWithHalfWidth(
                 currentScene === 'park' ? parkZones[currentParkZone] : getActiveZones()[currentCouchZone],
                 bunnyState.position.x,
-                edgeClamp.bunnyHalfPct
+                currentScene === 'room' ? Math.max(edgeClamp.bunnyHalfPct, 5) : edgeClamp.bunnyHalfPct
               ) : fishState.position.x}%`,
             top: `${currentPet === 'bunny' ? (
               isTrampolineBouncing ? ((currentScene === 'room' ? getActiveZones()[currentCouchZone].y : bunnyState.position.y) - 2) :
