@@ -772,8 +772,8 @@ const ClassroomPets = () => {
         if (bunnyState.happiness < 30) notifications.push('😢 Bunny is sad!');
         if (bunnyState.rest < 30 && bunnyState.energy < 40) notifications.push('😴 Lola needs rest!');
       } else if (currentPet === 'fish') {
-        if (fishState.hunger < 30) notifications.push('🐠 Fish hungry!');
-        if (fishState.tankCleanliness < 40) notifications.push('🧽 Tank dirty!');
+        if (fishState.hunger < 30) notifications.push('🐠 Tula is hungry!');
+        if (fishState.tankCleanliness < 40) notifications.push('🧽 Tank needs cleaning!');
       }
       setGameState(prev => ({ ...prev, notifications }));
     }, 3000);
