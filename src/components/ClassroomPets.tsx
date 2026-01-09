@@ -921,7 +921,7 @@ const ClassroomPets = () => {
     const targetInterval = setInterval(pickNewTarget, 3000 + Math.random() * 3000);
     pickNewTarget(); // Initial target
     
-    // Smooth swimming towards target
+    // Smooth swimming towards target - gentle pace for calming effect
     const swimInterval = setInterval(() => {
       setFishState(prev => {
         const dx = prev.swimTarget.x - prev.position.x;
@@ -930,14 +930,14 @@ const ClassroomPets = () => {
         
         if (distance < 2) return prev; // Close enough, wait for new target
         
-        // Smooth easing movement - faster when far, slower when close
-        const ease = Math.min(1, distance / 30);
-        const moveSpeed = prev.swimSpeed * ease * 2;
+        // Slow, gentle easing movement - calming pace
+        const ease = Math.min(1, distance / 50);
+        const moveSpeed = prev.swimSpeed * ease * 0.8; // Halved speed
         const moveX = (dx / distance) * moveSpeed;
-        const moveY = (dy / distance) * moveSpeed * 0.6; // Less vertical movement
+        const moveY = (dy / distance) * moveSpeed * 0.5; // Even less vertical movement
         
         // Add slight sine wave wobble for natural fish movement
-        const wobble = Math.sin(Date.now() / 300) * 0.3;
+        const wobble = Math.sin(Date.now() / 400) * 0.15; // Slower, gentler wobble
         
         return {
           ...prev,
@@ -948,7 +948,7 @@ const ClassroomPets = () => {
           facingRight: dx > 0.5 ? true : dx < -0.5 ? false : prev.facingRight
         };
       });
-    }, 50); // Smooth 20fps updates
+    }, 60); // Slightly slower update rate for smoother motion
     
     return () => {
       clearInterval(targetInterval);
