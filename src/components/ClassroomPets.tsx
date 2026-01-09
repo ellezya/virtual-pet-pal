@@ -63,9 +63,10 @@ const ClassroomPets = () => {
   };
   
   // Bed zones for the room/bedroom scene (bed centered-left in video)
+  // Tighter bounds to keep Lola on the visible bed area
   const bedZones = {
-    seat: { xMin: 20, xMax: 55, y: 75 },    // Bed surface
-    back: { xMin: 20, xMax: 55, y: 62 },    // Pillows area
+    seat: { xMin: 28, xMax: 48, y: 75 },    // Bed surface - narrower to stay on mattress
+    back: { xMin: 28, xMax: 48, y: 62 },    // Pillows area - matching width
   };
   
   // Park zones - interactive play areas with depth perception
