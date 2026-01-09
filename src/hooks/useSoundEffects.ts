@@ -854,12 +854,23 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
         return osc;
       });
 
+      // Track these long-running oscillators so we can hard-stop immediately when switching pets
+      oscs.forEach((osc) => {
+        ambientNodesRef.current.musicOscillators.push(osc);
+        osc.onended = () => {
+          ambientNodesRef.current.musicOscillators = ambientNodesRef.current.musicOscillators.filter(
+            (o) => o !== osc
+          );
+          try {
+            osc.disconnect();
+          } catch {}
+        };
+      });
+
       window.setTimeout(() => {
         try { chordGain.disconnect(); } catch {}
         try { filter.disconnect(); } catch {}
-        oscs.forEach((o) => {
-          try { o.disconnect(); } catch {}
-        });
+        // Oscillator disconnects handled in onended (above)
       }, 9000);
     };
 
@@ -966,6 +977,19 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       ambientNodesRef.current.musicInterval = null;
     }
 
+    // Hard-stop any currently playing music oscillators (lo-fi chords can ring out otherwise)
+    if (ambientNodesRef.current.musicOscillators.length) {
+      ambientNodesRef.current.musicOscillators.forEach((osc) => {
+        try {
+          osc.stop();
+        } catch {}
+        try {
+          osc.disconnect();
+        } catch {}
+      });
+      ambientNodesRef.current.musicOscillators = [];
+    }
+
     // Stop music bus (prevents lingering volume / ensures new music takes effect)
     if (ambientNodesRef.current.musicGain) {
       try {
@@ -973,8 +997,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       } catch {}
       ambientNodesRef.current.musicGain = null;
     }
-    ambientNodesRef.current.musicOscillators = [];
-
     // Stop water sounds
     if (ambientNodesRef.current.waterBubblesInterval) {
       clearInterval(ambientNodesRef.current.waterBubblesInterval);
@@ -1029,6 +1051,15 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
     }
+
+    if (ambientNodesRef.current.musicOscillators.length) {
+      ambientNodesRef.current.musicOscillators.forEach((osc) => {
+        try { osc.stop(); } catch {}
+        try { osc.disconnect(); } catch {}
+      });
+      ambientNodesRef.current.musicOscillators = [];
+    }
+
     if (ambientNodesRef.current.musicGain) {
       try { ambientNodesRef.current.musicGain.disconnect(); } catch {}
       ambientNodesRef.current.musicGain = null;
@@ -1254,7 +1285,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       const pet = currentPetRef.current;
       const hasCoreNodes = pet === 'fish'
         ? !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval
-        : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval && !!ambientNodesRef.current.waterFlowNode;
+        : !!ambientNodesRef.current.wind && !!ambientNodesRef.current.windGain && !!ambientNodesRef.current.musicInterval;
 
       const now = Date.now();
       const musicStalled =

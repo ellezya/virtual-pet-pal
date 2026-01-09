@@ -448,37 +448,27 @@
     0%, 100% { 
       transform: scale(1) rotate(0deg);
     }
-    10% { 
-      transform: scale(1.02) rotate(3deg);
+    50% { 
+      transform: scale(1.015) rotate(1.2deg);
     }
-    20% { 
-      transform: scale(0.98) rotate(-2deg);
-    }
-    30% { 
-      transform: scale(1.03) rotate(2deg);
-    }
-    40% { 
-      transform: scale(0.97) rotate(-3deg);
+  }
+
+  /* Gentle nibble (use for Tula eating without the "vomit" sprite) */
+  @keyframes fish-nibble {
+    0%, 100% { 
+      transform: scale(1) rotate(0deg) translateY(0);
     }
     50% { 
-      transform: scale(1.02) rotate(1deg);
-    }
-    60% { 
-      transform: scale(0.98) rotate(-1deg);
-    }
-    70% { 
-      transform: scale(1.01) rotate(2deg);
-    }
-    80% { 
-      transform: scale(0.99) rotate(-2deg);
-    }
-    90% { 
-      transform: scale(1) rotate(1deg);
+      transform: scale(1.02) rotate(1deg) translateY(-1px);
     }
   }
 
   .animate-fish-eating {
-    animation: fish-eating 0.6s ease-in-out infinite;
+    animation: fish-eating 0.9s ease-in-out infinite;
+  }
+
+  .animate-fish-nibble {
+    animation: fish-nibble 0.95s ease-in-out infinite;
   }
 
   .animate-food-fall {
