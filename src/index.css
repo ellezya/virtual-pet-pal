@@ -453,13 +453,28 @@
     }
   }
 
-  /* Gentle nibble (use for Tula eating without the "vomit" sprite) */
+  /* Lively nibble for Tula eating - quick chomping motion like Lola */
   @keyframes fish-nibble {
     0%, 100% { 
-      transform: scale(1) rotate(0deg) translateY(0);
+      transform: scale(1) rotate(0deg) translateX(0);
     }
-    50% { 
-      transform: scale(1.02) rotate(1deg) translateY(-1px);
+    15% { 
+      transform: scale(1.08) rotate(-3deg) translateX(4px);
+    }
+    30% { 
+      transform: scale(0.95) rotate(2deg) translateX(-2px);
+    }
+    45% { 
+      transform: scale(1.1) rotate(-4deg) translateX(5px);
+    }
+    60% { 
+      transform: scale(0.92) rotate(3deg) translateX(-3px);
+    }
+    75% { 
+      transform: scale(1.06) rotate(-2deg) translateX(3px);
+    }
+    90% { 
+      transform: scale(0.98) rotate(1deg) translateX(-1px);
     }
   }
 
@@ -468,7 +483,7 @@
   }
 
   .animate-fish-nibble {
-    animation: fish-nibble 0.95s ease-in-out infinite;
+    animation: fish-nibble 0.5s ease-in-out infinite;
   }
 
   .animate-food-fall {
