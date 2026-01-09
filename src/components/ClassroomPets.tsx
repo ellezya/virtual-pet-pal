@@ -514,15 +514,17 @@ const ClassroomPets = () => {
   const [fishState, setFishState] = useState({
     hunger: 70,
     happiness: 80,
+    energy: 75,
     tankCleanliness: 95,
     mood: 'happy' as 'happy' | 'sad' | 'calm',
-    action: 'idle' as 'idle' | 'eating' | 'playing',
+    action: 'idle' as 'idle' | 'eating' | 'playing' | 'resting',
     position: { x: 50, y: 50 },
     facingRight: true,
     targetFoodId: null as number | null,
     // Natural swimming state
     swimTarget: { x: 50, y: 50 } as { x: number; y: number },
     swimSpeed: 1, // varies based on mood
+    isResting: false,
   });
 
   // Fish tank specific state
@@ -543,16 +545,17 @@ const ClassroomPets = () => {
   // Fish scene decorations removed - clean immersive backgrounds only
   // The lofi video backgrounds provide all the visual atmosphere needed
   
-  // Tank friends - only appear as toys in castle scene
-  const tankFriends = [
-    { id: 'snail', emoji: '🐌', name: 'Shelly', happinessBoost: 15 },
-    { id: 'crab', emoji: '🦀', name: 'Clawdia', happinessBoost: 20 },
-    { id: 'shrimp', emoji: '🦐', name: 'Pip', happinessBoost: 18 },
-    { id: 'starfish', emoji: '⭐', name: 'Twinkle', happinessBoost: 25 },
+  // Tank toys for Tula - immersive, non-emoji designs
+  const fishToys = [
+    { id: 'tunnel', name: 'Swim Tunnel', happinessBoost: 15, energyCost: 10 },
+    { id: 'bubbler', name: 'Bubble Stream', happinessBoost: 12, energyCost: 5 },
+    { id: 'snail', name: 'Shelly the Snail', happinessBoost: 18, energyCost: 8 },
+    { id: 'crab', name: 'Clawdia the Crab', happinessBoost: 20, energyCost: 12 },
   ];
   
-  const [selectedFishToy, setSelectedFishToy] = useState(tankFriends[0]);
+  const [selectedFishToy, setSelectedFishToy] = useState(fishToys[0]);
   const [fishIsResting, setFishIsResting] = useState(false);
+  const [activeFishFriend, setActiveFishFriend] = useState<{ id: string; x: number; y: number } | null>(null);
 
   const [gameState, setGameState] = useState({
     locked: false,
@@ -1306,10 +1309,24 @@ const ClassroomPets = () => {
         }));
       }, playDelayMs);
     } else {
-      doAction('playing', null, 3000);
+      // Fish play with selected fish toy
+      const toy = selectedFishToy;
+      doAction('playing', null, 4000);
+      
+      // Show fish friend if playing with snail or crab
+      if (toy.id === 'snail' || toy.id === 'crab') {
+        setActiveFishFriend({
+          id: toy.id,
+          x: fishState.position.x + (Math.random() > 0.5 ? 15 : -15),
+          y: fishState.position.y + 5,
+        });
+        setTimeout(() => setActiveFishFriend(null), 4000);
+      }
+      
       setFishState(prev => ({ 
         ...prev, 
-        happiness: Math.min(100, prev.happiness + 20) 
+        happiness: Math.min(100, prev.happiness + toy.happinessBoost),
+        energy: Math.max(0, prev.energy - toy.energyCost)
       }));
     }
   };
@@ -1328,6 +1345,22 @@ const ClassroomPets = () => {
         energy: Math.min(100, prev.energy + 20)
       }));
     }, 6000);
+  };
+
+  const takeFishRest = () => {
+    if (gameState.locked || currentPet !== 'fish' || currentScene !== 'shell') return;
+    setFishState(prev => ({ ...prev, action: 'resting', isResting: true }));
+    
+    // Rest for 5 seconds in the shell cave
+    setTimeout(() => {
+      setFishState(prev => ({ 
+        ...prev, 
+        action: 'idle', 
+        isResting: false,
+        energy: Math.min(100, prev.energy + 25),
+        happiness: Math.min(100, prev.happiness + 10)
+      }));
+    }, 5000);
   };
 
   const cleanHabitat = () => {
@@ -1376,6 +1409,7 @@ const ClassroomPets = () => {
       setFishState({
         hunger: 70,
         happiness: 80,
+        energy: 75,
         tankCleanliness: 95,
         mood: 'happy',
         action: 'idle',
@@ -1383,7 +1417,8 @@ const ClassroomPets = () => {
         facingRight: true,
         targetFoodId: null,
         swimTarget: { x: 50, y: 50 },
-        swimSpeed: 1
+        swimSpeed: 1,
+        isResting: false
       });
       setFishPoops([]);
       setFishFood([]);
@@ -1902,7 +1937,94 @@ const ClassroomPets = () => {
 
         {/* Tank decorations removed - clean immersive lofi backgrounds only */}
 
-        {/* Tank friends removed - clean immersive experience */}
+        {/* Fish playmates - appear when playing with snail or crab toy */}
+        {currentPet === 'fish' && activeFishFriend && (
+          <div className="absolute inset-0 pointer-events-none z-[6]">
+            <div
+              className="absolute transition-all duration-1000 ease-out"
+              style={{
+                left: `${activeFishFriend.x}%`,
+                top: `${activeFishFriend.y}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              {/* Stylized friend shape - organic blending */}
+              {activeFishFriend.id === 'snail' && (
+                <div className="relative">
+                  <div 
+                    className="w-8 h-6 rounded-full"
+                    style={{
+                      background: 'radial-gradient(ellipse at 30% 40%, rgba(180, 140, 100, 0.7), rgba(120, 90, 60, 0.5))',
+                      boxShadow: '0 2px 8px rgba(80, 60, 40, 0.3)',
+                    }}
+                  />
+                  <div 
+                    className="absolute -top-1 left-1 w-3 h-4 rounded-full"
+                    style={{
+                      background: 'radial-gradient(ellipse, rgba(200, 160, 120, 0.6), rgba(140, 100, 70, 0.4))',
+                    }}
+                  />
+                </div>
+              )}
+              {activeFishFriend.id === 'crab' && (
+                <div className="relative">
+                  <div 
+                    className="w-10 h-6 rounded-lg"
+                    style={{
+                      background: 'radial-gradient(ellipse at 50% 60%, rgba(200, 100, 80, 0.7), rgba(160, 70, 50, 0.5))',
+                      boxShadow: '0 2px 8px rgba(100, 50, 40, 0.3)',
+                    }}
+                  />
+                  {/* Claws */}
+                  <div 
+                    className="absolute -left-2 top-1 w-3 h-2 rounded-full"
+                    style={{
+                      background: 'rgba(180, 90, 70, 0.6)',
+                    }}
+                  />
+                  <div 
+                    className="absolute -right-2 top-1 w-3 h-2 rounded-full"
+                    style={{
+                      background: 'rgba(180, 90, 70, 0.6)',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Swim tunnel decoration - appears in reef scene */}
+        {currentPet === 'fish' && currentScene === 'reef' && (
+          <div className="absolute inset-0 pointer-events-none z-[5]">
+            <div
+              className="absolute"
+              style={{
+                left: '70%',
+                top: '65%',
+                transform: 'translate(-50%, -50%) rotate(-15deg)',
+              }}
+            >
+              {/* Organic tunnel shape */}
+              <div 
+                className="w-20 h-10 rounded-full"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(100, 80, 60, 0.3) 0%, rgba(60, 50, 40, 0.5) 100%)',
+                  boxShadow: 'inset 0 0 15px rgba(40, 30, 25, 0.5), 0 4px 12px rgba(60, 45, 35, 0.3)',
+                  border: '2px solid rgba(80, 60, 45, 0.3)',
+                }}
+              >
+                {/* Hollow center */}
+                <div 
+                  className="absolute inset-2 rounded-full"
+                  style={{
+                    background: 'radial-gradient(ellipse, rgba(30, 25, 20, 0.6) 0%, rgba(50, 40, 30, 0.3) 100%)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Fish Waste with subtle organic algae growth - immersive design */}
         {currentPet === 'fish' && (
@@ -2263,7 +2385,7 @@ const ClassroomPets = () => {
               alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
               className={`object-contain transition-all duration-700 ease-out ${
                 currentPet === 'fish'
-                  ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28'
+                  ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 animate-fish-shimmer'
                   : currentScene === 'room'
                   ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
                   : currentScene === 'habitat'
@@ -2272,7 +2394,9 @@ const ClassroomPets = () => {
               } ${
                 bunnyState.isNapping ? 'scale-75' :
                 bunnyState.action === 'eating' || bunnyState.action === 'drinking' ? 'scale-110' : ''
-              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''}`}
+              } ${currentPet === 'bunny' ? 'saturate-[0.95] contrast-[1.05]' : ''} ${
+                fishState.isResting ? 'opacity-80' : ''
+              }`}
               style={{
                 // Bunny gets simple drop shadow, fish gets warm underwater tones with depth dimension
                 filter: currentPet === 'fish' 
@@ -2409,7 +2533,50 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Foreground matte so the bunny feels "in" the scene */}
+        {/* Fish Toy Selection Menu - Right Side */}
+        {currentPet === 'fish' && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-secondary/30 max-h-[60vh]">
+            <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
+            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-secondary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
+              {fishToys.map((toy) => (
+                <button
+                  key={toy.id}
+                  onClick={() => setSelectedFishToy(toy)}
+                  disabled={gameState.locked || fishState.action !== 'idle'}
+                  className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                    selectedFishToy.id === toy.id 
+                      ? 'bg-secondary text-secondary-foreground scale-110 shadow-md' 
+                      : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
+                >
+                  {/* Stylized toy icons */}
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    {toy.id === 'tunnel' && (
+                      <div className="w-5 h-3 rounded-full border-2 border-current opacity-70" />
+                    )}
+                    {toy.id === 'bubbler' && (
+                      <div className="flex flex-col gap-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
+                        <div className="w-2 h-2 rounded-full bg-current opacity-60" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-current opacity-80" />
+                      </div>
+                    )}
+                    {toy.id === 'snail' && (
+                      <div className="w-4 h-3 rounded-full bg-current opacity-60" />
+                    )}
+                    {toy.id === 'crab' && (
+                      <div className="w-5 h-3 rounded-lg bg-current opacity-60" />
+                    )}
+                  </div>
+                  <span className="text-[10px] font-medium leading-tight">{toy.name.split(' ')[0]}</span>
+                  <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {currentPet === 'bunny' && (
           <div
             className={`absolute inset-x-0 bottom-0 z-20 h-28 sm:h-32 pointer-events-none ${
@@ -2481,6 +2648,12 @@ const ClassroomPets = () => {
                 </div>
               </div>
               <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
+                <span className="text-sm leading-none">⚡</span>
+                <div className="status-bar w-full h-2 mt-1">
+                  <div className={`status-bar-fill ${getStatusColor(fishState.energy)}`} style={{ width: `${fishState.energy}%` }} />
+                </div>
+              </div>
+              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
                 <span className="text-sm leading-none">🧽</span>
                 <div className="status-bar w-full h-2 mt-1">
                   <div className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} style={{ width: `${fishState.tankCleanliness}%` }} />
@@ -2519,14 +2692,48 @@ const ClassroomPets = () => {
               <span className="text-[9px] font-medium leading-none">Clean</span>
             </button>
           )}
-          <button
-            onClick={() => playWithToy(selectedToy)}
-            disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')}
-            className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
-          >
-            <span className="leading-none">{selectedToy.emoji || '🎪'}</span>
-            <span className="text-[9px] font-medium leading-none">Play</span>
-          </button>
+          {currentPet === 'bunny' ? (
+            <button
+              onClick={() => playWithToy(selectedToy)}
+              disabled={gameState.locked || bunnyState.action !== 'idle'}
+              className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+            >
+              <span className="leading-none">{selectedToy.emoji || '🎪'}</span>
+              <span className="text-[9px] font-medium leading-none">Play</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                if (gameState.locked || fishState.action !== 'idle') return;
+                const toy = selectedFishToy;
+                setFishState(prev => ({ ...prev, action: 'playing' }));
+                
+                // Show fish friend if playing with snail or crab
+                if (toy.id === 'snail' || toy.id === 'crab') {
+                  setActiveFishFriend({
+                    id: toy.id,
+                    x: fishState.position.x + (Math.random() > 0.5 ? 15 : -15),
+                    y: fishState.position.y + 5,
+                  });
+                  setTimeout(() => setActiveFishFriend(null), 4000);
+                }
+                
+                setTimeout(() => {
+                  setFishState(prev => ({ 
+                    ...prev, 
+                    action: 'idle',
+                    happiness: Math.min(100, prev.happiness + toy.happinessBoost),
+                    energy: Math.max(0, prev.energy - toy.energyCost)
+                  }));
+                }, 4000);
+              }}
+              disabled={gameState.locked || fishState.action !== 'idle'}
+              className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+            >
+              <span className="leading-none">🎮</span>
+              <span className="text-[9px] font-medium leading-none">Play</span>
+            </button>
+          )}
           {currentPet === 'bunny' && (
             <button
               onClick={takeNap}
@@ -2536,6 +2743,17 @@ const ClassroomPets = () => {
             >
               <span className="leading-none">😴</span>
               <span className="text-[9px] font-medium leading-none">Nap</span>
+            </button>
+          )}
+          {currentPet === 'fish' && (
+            <button
+              onClick={takeFishRest}
+              disabled={gameState.locked || fishState.action !== 'idle' || currentScene !== 'shell' || fishState.isResting}
+              className={`pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl ${currentScene !== 'shell' ? 'opacity-50' : ''}`}
+              title={currentScene !== 'shell' ? 'Rest only in Shell Cave' : 'Rest in shell'}
+            >
+              <span className="leading-none">💤</span>
+              <span className="text-[9px] font-medium leading-none">Rest</span>
             </button>
           )}
           {currentPet === 'bunny' && (
