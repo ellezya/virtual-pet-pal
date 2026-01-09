@@ -1515,7 +1515,9 @@ const ClassroomPets = () => {
   };
 
   const getFishImage = () => {
-    if (fishState.action === 'eating') return fishSpriteAlpha?.eating ?? fishEating;
+    // IMPORTANT: Avoid using the "fish-eating" sprite frame (it reads as vomiting).
+    // Instead, keep Tula on her normal (happy) sprite and animate a gentle nibble.
+    if (fishState.action === 'eating') return fishSpriteAlpha?.happy ?? fishHappy;
     if (fishState.action === 'playing') return fishSpriteAlpha?.playing ?? fishPlaying;
     if (fishState.mood === 'sad') return fishSpriteAlpha?.sad ?? fishSad;
     return fishSpriteAlpha?.happy ?? fishHappy;
@@ -2420,7 +2422,7 @@ const ClassroomPets = () => {
             className={`relative ${
               currentPet === 'fish' 
                 ? fishState.action === 'eating'
-                  ? 'animate-fish-eating'
+                  ? 'animate-fish-nibble'
                   : fishState.mood === 'happy' 
                     ? 'animate-fish-wiggle-fast' 
                     : fishState.mood === 'calm' 
@@ -2490,6 +2492,34 @@ const ClassroomPets = () => {
                 }`,
               }}
             />
+
+            {/* Gentle "eating bubbles" at mouth (subtle, no puke look) */}
+            {currentPet === 'fish' && fishState.action === 'eating' && (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  top: '40%',
+                  left: fishState.facingRight ? '26%' : '74%',
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={`eat-bubble-${i}`}
+                    className="absolute rounded-full bg-foreground/25"
+                    style={{
+                      width: 3 + i,
+                      height: 3 + i,
+                      left: `${i * 6}px`,
+                      top: `${i * 3}px`,
+                      animation: `bubble-rise ${2.8 + i * 0.4}s ease-in-out infinite`,
+                      animationDelay: `${i * 0.3}s`,
+                      filter: 'blur(0.2px)',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             
             {/* Sparkle effects on Tula's body scales only (not face) */}
             {/* When fish flips, the sparkle container stays in local coords, so we counter-flip it */}
