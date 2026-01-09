@@ -770,24 +770,40 @@ const ClassroomPets = () => {
         return;
       }
 
-      // Special handling for yarn - bunny bats at it, gets tangled, then wiggles free
+      // Special handling for yarn - bunny hops to it, bats at it, gets tangled, then wiggles free
       if (toy.id === 'yarn') {
-        setYarnTanglePhase('batting');
-        setBunnyState(prev => ({ ...prev, targetObject: null, action: 'playing' }));
-        playPlay();
+        const yarnX = envObjects['toy-area'].x;
+        const yarnY = envObjects['toy-area'].y;
         
-        // Phase 1: Batting at yarn (1.5s)
+        // First hop to yarn
+        setBunnyState(prev => ({ ...prev, targetObject: null, isHopping: true, facingRight: yarnX > prev.position.x }));
+        playHop();
+        
+        setTimeout(() => {
+          setBunnyState(prev => ({ 
+            ...prev, 
+            position: { x: yarnX - 5, y: yarnY },
+            isHopping: false,
+            action: 'playing'
+          }));
+          
+          // Start batting phase
+          setYarnTanglePhase('batting');
+          playPlay();
+        }, 600);
+        
+        // Phase 2: Get tangled (after batting)
         setTimeout(() => {
           setYarnTanglePhase('tangled');
-        }, 1500);
+        }, 2100);
         
-        // Phase 2: Tangled up! (2s)
+        // Phase 3: Wiggle free
         setTimeout(() => {
           setYarnTanglePhase('free');
-          playHop(); // Little hop to break free
-        }, 3500);
+          playHop();
+        }, 4000);
         
-        // Phase 3: Free and done
+        // Phase 4: Done
         setTimeout(() => {
           setYarnTanglePhase('none');
           setBunnyState(prev => ({ ...prev, action: 'idle' }));
@@ -1360,12 +1376,28 @@ const ClassroomPets = () => {
                   // Hollow tree trunk - larger display
                   <HollowTreeTrunkSVG large />
                 ) : selectedToy.id === 'yarn' ? (
-                  // Yarn ball with animated state
-                  <div className={`relative ${yarnTanglePhase === 'batting' ? 'animate-wiggle' : ''}`}>
+                  // Yarn ball with animated state based on phase
+                  <div className={`relative transition-transform duration-300 ${
+                    yarnTanglePhase === 'batting' ? 'animate-wiggle scale-110' : 
+                    yarnTanglePhase === 'tangled' ? 'scale-90' : ''
+                  }`}>
                     <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🧶</div>
-                    {/* Yarn trail when tangled */}
+                    {/* Yarn strands flying when batting */}
+                    {yarnTanglePhase === 'batting' && (
+                      <div className="absolute -top-1 -right-2 text-sm animate-bounce">🧵</div>
+                    )}
+                    {/* Yarn wrapped around when tangled */}
                     {yarnTanglePhase === 'tangled' && (
-                      <div className="absolute -top-2 -right-4 text-lg animate-pulse">〰️</div>
+                      <>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs animate-pulse">〰️</div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs animate-pulse" style={{ animationDelay: '0.2s' }}>〰️</div>
+                      </>
+                    )}
+                    {/* Yarn bouncing away when free */}
+                    {yarnTanglePhase === 'free' && (
+                      <div className="animate-bounce">
+                        <div className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg">🧶</div>
+                      </div>
                     )}
                   </div>
                 ) : selectedToy.id === 'cardboard' ? (
