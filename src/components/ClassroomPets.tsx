@@ -299,8 +299,12 @@ const ClassroomPets = () => {
   const currentZoneData = getCurrentZoneData();
   
   // Toys only appear on grass in park scene
+  // Clamp toy position using the same banister-aware logic as Lola
   const toyAreaPosition = {
-    x: currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12,
+    x: clampZoneX(
+      currentScene === 'park' ? parkZones.grass : currentZoneData,
+      currentScene === 'park' ? parkZones.grass.xMin + 12 : currentZoneData.xMin + 12
+    ),
     y: currentScene === 'park' ? parkZones.grass.y + 4 : currentZoneData.y + 4
   };
   
@@ -429,10 +433,10 @@ const ClassroomPets = () => {
           ? parkZones[currentParkZone] 
           : getActiveZones()[currentCouchZone];
         
-        // Clamp poop near Lola's X position with small random offset
-        const poopX = Math.max(
-          zone.xMin,
-          Math.min(zone.xMax, bunnyState.position.x + (Math.random() - 0.5) * 10)
+        // Clamp poop near Lola's X position with small random offset, using the same banister-aware clamping
+        const poopX = clampZoneX(
+          zone,
+          bunnyState.position.x + (Math.random() - 0.5) * 10
         );
         const newPoop = {
           id: Date.now(),
