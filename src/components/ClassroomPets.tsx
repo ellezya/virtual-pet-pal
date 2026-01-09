@@ -63,10 +63,10 @@ const ClassroomPets = () => {
   };
   
   // Bed zones for the room/bedroom scene (bed centered-left in video)
-  // Bounds define the *center point* of Lola; we additionally pad the right edge to keep her sprite inside the footboard banister.
+  // These are "center-point" bounds; final clamping adds per-side padding to keep Lola inside the visible frame/banisters.
   const bedZones = {
-    seat: { xMin: 35, xMax: 40, y: 75 },    // Bed surface
-    back: { xMin: 35, xMax: 40, y: 65 },    // Pillows area - matching width
+    seat: { xMin: 30, xMax: 60, y: 75 },    // Bed surface
+    back: { xMin: 30, xMax: 60, y: 65 },    // Pillows area - matching width
   };
   
   // Park zones - interactive play areas with depth perception
@@ -90,10 +90,14 @@ const ClassroomPets = () => {
   };
 
   const clampZoneX = (zone: { xMin: number; xMax: number }, x: number) => {
-    // Room bed has a visible footboard banister; keep Lola's sprite from crossing it.
-    const rightPad = currentScene === 'room' ? 3 : 0;
-    const max = Math.max(zone.xMin, zone.xMax - rightPad);
-    return Math.max(zone.xMin, Math.min(max, x));
+    // Room bed has a prominent left footboard banister + right headboard post.
+    // Pad the zone so Lola's sprite can't visually cross those posts.
+    const leftPad = currentScene === 'room' ? 8 : 0;
+    const rightPad = currentScene === 'room' ? 6 : 0;
+
+    const min = zone.xMin + leftPad;
+    const max = Math.max(min, zone.xMax - rightPad);
+    return Math.max(min, Math.min(max, x));
   };
 
   // Get ground Y position based on current scene
