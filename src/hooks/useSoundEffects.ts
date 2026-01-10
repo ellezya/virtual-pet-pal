@@ -813,13 +813,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     [getAudioContext, getMusicBus]
   );
 
-  // Play a Malte Marten-style handpan phrase - meditative, spacious, flowing
+  // Play a Malte Marten-style handpan phrase - melodic, flowing, rhythmic
   const playHandpanPhrase = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
     // D Minor / Kurd scale - common handpan tuning, very meditative
-    // D3, A3, Bb3, C4, D4, E4, F4, A4
     const scale = {
       D3: 146.83,
       A3: 220.00,
@@ -828,56 +827,90 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       D4: 293.66,
       E4: 329.63,
       F4: 349.23,
+      G4: 392.00,
       A4: 440.00,
     };
     
-    // Malte Marten-style phrases - spacious, melodic, flowing
+    // Flowing, rhythmic phrases - faster note sequences with overlap
     const phrases = [
-      // Phrase 1: Gentle ascending meditation
+      // Phrase 1: Flowing ascending run
       [
-        { note: scale.D3, delay: 0, dur: 4.0, vel: 0.7 },
-        { note: scale.A3, delay: 2.5, dur: 3.5, vel: 0.6 },
-        { note: scale.D4, delay: 5.0, dur: 4.5, vel: 0.5 },
+        { note: scale.D3, delay: 0, dur: 2.5, vel: 0.7 },
+        { note: scale.A3, delay: 0.4, dur: 2.0, vel: 0.55 },
+        { note: scale.C4, delay: 0.8, dur: 1.8, vel: 0.5 },
+        { note: scale.D4, delay: 1.2, dur: 2.0, vel: 0.55 },
+        { note: scale.E4, delay: 1.6, dur: 2.2, vel: 0.5 },
+        { note: scale.A4, delay: 2.2, dur: 2.5, vel: 0.45 },
       ],
-      // Phrase 2: Soft descending flow
+      // Phrase 2: Rhythmic descending melody
       [
-        { note: scale.A4, delay: 0, dur: 3.5, vel: 0.55 },
-        { note: scale.F4, delay: 2.0, dur: 3.0, vel: 0.5 },
-        { note: scale.D4, delay: 4.0, dur: 4.0, vel: 0.6 },
-        { note: scale.A3, delay: 6.5, dur: 5.0, vel: 0.45 },
+        { note: scale.A4, delay: 0, dur: 1.5, vel: 0.5 },
+        { note: scale.F4, delay: 0.35, dur: 1.5, vel: 0.5 },
+        { note: scale.E4, delay: 0.7, dur: 1.5, vel: 0.55 },
+        { note: scale.D4, delay: 1.05, dur: 1.8, vel: 0.55 },
+        { note: scale.C4, delay: 1.5, dur: 1.8, vel: 0.5 },
+        { note: scale.A3, delay: 2.0, dur: 2.5, vel: 0.6 },
+        { note: scale.D3, delay: 2.6, dur: 3.0, vel: 0.65 },
       ],
-      // Phrase 3: Two resonant notes
+      // Phrase 3: Dancing pattern
       [
-        { note: scale.D4, delay: 0, dur: 5.0, vel: 0.65 },
-        { note: scale.E4, delay: 3.5, dur: 5.0, vel: 0.5 },
+        { note: scale.D4, delay: 0, dur: 1.2, vel: 0.55 },
+        { note: scale.E4, delay: 0.3, dur: 1.2, vel: 0.5 },
+        { note: scale.D4, delay: 0.6, dur: 1.2, vel: 0.5 },
+        { note: scale.C4, delay: 0.9, dur: 1.5, vel: 0.55 },
+        { note: scale.A3, delay: 1.3, dur: 1.8, vel: 0.6 },
+        { note: scale.C4, delay: 1.7, dur: 1.5, vel: 0.5 },
+        { note: scale.D4, delay: 2.1, dur: 2.0, vel: 0.55 },
       ],
-      // Phrase 4: Single deep meditation note
+      // Phrase 4: Rhythmic bass with melody
       [
-        { note: scale.D3, delay: 0, dur: 6.0, vel: 0.75 },
+        { note: scale.D3, delay: 0, dur: 2.0, vel: 0.7 },
+        { note: scale.A3, delay: 0.5, dur: 1.5, vel: 0.5 },
+        { note: scale.D3, delay: 1.0, dur: 1.8, vel: 0.65 },
+        { note: scale.C4, delay: 1.4, dur: 1.5, vel: 0.5 },
+        { note: scale.D4, delay: 1.8, dur: 2.0, vel: 0.55 },
       ],
-      // Phrase 5: Flowing arpeggio
+      // Phrase 5: Fast arpeggio up and down
       [
-        { note: scale.A3, delay: 0, dur: 3.0, vel: 0.55 },
-        { note: scale.C4, delay: 1.5, dur: 2.8, vel: 0.5 },
-        { note: scale.E4, delay: 3.0, dur: 3.0, vel: 0.45 },
-        { note: scale.A4, delay: 4.8, dur: 4.0, vel: 0.4 },
+        { note: scale.A3, delay: 0, dur: 1.5, vel: 0.55 },
+        { note: scale.C4, delay: 0.25, dur: 1.4, vel: 0.5 },
+        { note: scale.D4, delay: 0.5, dur: 1.4, vel: 0.5 },
+        { note: scale.E4, delay: 0.75, dur: 1.4, vel: 0.5 },
+        { note: scale.F4, delay: 1.0, dur: 1.5, vel: 0.5 },
+        { note: scale.E4, delay: 1.3, dur: 1.4, vel: 0.5 },
+        { note: scale.D4, delay: 1.6, dur: 1.5, vel: 0.55 },
+        { note: scale.C4, delay: 1.9, dur: 1.8, vel: 0.55 },
+        { note: scale.A3, delay: 2.3, dur: 2.2, vel: 0.6 },
       ],
-      // Phrase 6: Minor third harmony
+      // Phrase 6: Gentle thirds harmony
       [
-        { note: scale.D4, delay: 0, dur: 4.5, vel: 0.6 },
-        { note: scale.F4, delay: 0.1, dur: 4.5, vel: 0.4 }, // Played together
+        { note: scale.D4, delay: 0, dur: 1.8, vel: 0.55 },
+        { note: scale.F4, delay: 0.05, dur: 1.8, vel: 0.4 },
+        { note: scale.C4, delay: 0.6, dur: 1.8, vel: 0.55 },
+        { note: scale.E4, delay: 0.65, dur: 1.8, vel: 0.4 },
+        { note: scale.A3, delay: 1.2, dur: 2.2, vel: 0.6 },
+        { note: scale.C4, delay: 1.25, dur: 2.0, vel: 0.45 },
       ],
-      // Phrase 7: Breathing space - just bass
+      // Phrase 7: Playful bounce
       [
-        { note: scale.A3, delay: 0, dur: 5.5, vel: 0.7 },
+        { note: scale.E4, delay: 0, dur: 1.0, vel: 0.5 },
+        { note: scale.D4, delay: 0.25, dur: 1.0, vel: 0.5 },
+        { note: scale.E4, delay: 0.5, dur: 1.2, vel: 0.55 },
+        { note: scale.F4, delay: 0.8, dur: 1.0, vel: 0.5 },
+        { note: scale.E4, delay: 1.05, dur: 1.2, vel: 0.5 },
+        { note: scale.D4, delay: 1.35, dur: 1.5, vel: 0.55 },
+        { note: scale.A3, delay: 1.8, dur: 2.5, vel: 0.6 },
       ],
-      // Phrase 8: Gentle cascading
+      // Phrase 8: Rolling wave
       [
-        { note: scale.F4, delay: 0, dur: 2.5, vel: 0.5 },
-        { note: scale.E4, delay: 1.2, dur: 2.5, vel: 0.5 },
-        { note: scale.D4, delay: 2.4, dur: 3.0, vel: 0.55 },
-        { note: scale.C4, delay: 3.8, dur: 3.5, vel: 0.5 },
-        { note: scale.A3, delay: 5.5, dur: 4.5, vel: 0.6 },
+        { note: scale.A3, delay: 0, dur: 1.8, vel: 0.6 },
+        { note: scale.D4, delay: 0.3, dur: 1.5, vel: 0.5 },
+        { note: scale.F4, delay: 0.6, dur: 1.5, vel: 0.5 },
+        { note: scale.A4, delay: 0.9, dur: 1.8, vel: 0.45 },
+        { note: scale.F4, delay: 1.3, dur: 1.5, vel: 0.5 },
+        { note: scale.D4, delay: 1.6, dur: 1.5, vel: 0.5 },
+        { note: scale.A3, delay: 2.0, dur: 2.0, vel: 0.6 },
+        { note: scale.D3, delay: 2.5, dur: 2.5, vel: 0.65 },
       ],
     ];
     
@@ -898,12 +931,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // Play immediately
     tick();
 
-    // Play phrases with meditative pauses (10-15 seconds apart)
+    // Play phrases more frequently for continuous melodic flow (5-6 seconds apart)
     const musicInterval = setInterval(() => {
-      if (Math.random() < 0.55) { // Slightly less frequent for more space
+      if (Math.random() < 0.75) { // More frequent
         tick();
       }
-    }, 12000); // Longer intervals for meditation
+    }, 5000); // Shorter intervals for flowing melody
 
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [playHandpanPhrase]);
