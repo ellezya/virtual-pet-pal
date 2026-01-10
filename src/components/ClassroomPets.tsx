@@ -36,8 +36,8 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
-    const saved = localStorage.getItem('selectedPet');
-    return saved === 'fish' ? 'fish' : 'bunny';
+    // Tula (fish) is hidden for now - always default to bunny
+    return 'bunny';
   });
   const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>(() => {
     const savedPet = localStorage.getItem('selectedPet');
@@ -1649,12 +1649,14 @@ const ClassroomPets = () => {
             {((bunnyState.hunger + bunnyState.hydration + bunnyState.happiness + bunnyState.energy + bunnyState.rest + bunnyState.cleanliness) / 6) > 50 ? '💕' : '💔'}
           </span>
         </button>
+        {/* Tula (fish) button hidden - keeping code for future use
         <button 
           onClick={() => { setCurrentPet('fish'); setCurrentScene('reef'); localStorage.setItem('selectedPet', 'fish'); }} 
           className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentPet === 'fish' ? 'bg-secondary text-secondary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
         >
           🐠
         </button>
+        */}
         
         <div className="w-px bg-border mx-1" />
         
