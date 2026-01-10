@@ -868,29 +868,16 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     const ctx = getAudioContext();
     const bus = getMusicBus();
 
-    // Create pink-ish noise for natural water sound
-    const bufferSize = ctx.sampleRate * 10; // 10 seconds of noise
+    // Create filtered white noise for gentle water/fountain sound
+    const bufferSize = ctx.sampleRate * 4; // 4 seconds of noise (loops)
     const noiseBuffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
     
     for (let channel = 0; channel < 2; channel++) {
       const output = noiseBuffer.getChannelData(channel);
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
       
       for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        
-        // Pink noise algorithm (Paul Kellet's refined method)
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        b3 = 0.86650 * b3 + white * 0.3104856;
-        b4 = 0.55000 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.0168980;
-        
-        // Add subtle variation for flowing water texture
-        const variation = Math.sin(i / ctx.sampleRate * 0.3) * 0.1;
-        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * (0.08 + variation);
-        b6 = white * 0.115926;
+        // Simple white noise
+        output[i] = (Math.random() * 2 - 1) * 0.5;
       }
     }
 
@@ -898,31 +885,32 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     noiseSource.buffer = noiseBuffer;
     noiseSource.loop = true;
 
-    // Bandpass filter to shape water-like frequencies (300-1200 Hz range)
+    // Bandpass filter to shape water-like frequencies (soft, flowing)
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.value = 600;
-    filter.Q.value = 0.5; // Wide bandwidth for natural sound
+    filter.frequency.value = 800; // Center frequency for water sound
+    filter.Q.value = 0.3; // Very wide bandwidth for natural flow
 
-    // Secondary high-shelf to add gentle sparkle (like water droplets)
-    const highShelf = ctx.createBiquadFilter();
-    highShelf.type = 'highshelf';
-    highShelf.frequency.value = 2000;
-    highShelf.gain.value = -6; // Subtle high end
+    // Low-pass to remove harshness
+    const lowPass = ctx.createBiquadFilter();
+    lowPass.type = 'lowpass';
+    lowPass.frequency.value = 1500;
+    lowPass.Q.value = 0.5;
 
     // Gain for volume control with gentle fade-in
     const gainNode = ctx.createGain();
     const t = ctx.currentTime;
     gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.08, t + 3); // Soft fade in over 3 seconds
+    gainNode.gain.linearRampToValueAtTime(0.15, t + 2); // Audible level, fade in 2s
 
-    // Connect: noise -> bandpass -> highshelf -> gain -> music bus
+    // Connect: noise -> bandpass -> lowpass -> gain -> music bus
     noiseSource.connect(filter);
-    filter.connect(highShelf);
-    highShelf.connect(gainNode);
+    filter.connect(lowPass);
+    lowPass.connect(gainNode);
     gainNode.connect(bus);
 
     noiseSource.start();
+    console.log('[audio] Fountain sound started');
 
     ambientNodesRef.current.fountainNodes = {
       noiseSource,
