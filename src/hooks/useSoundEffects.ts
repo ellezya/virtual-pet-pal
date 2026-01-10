@@ -1375,19 +1375,16 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     // Guard: don't double-start if core nodes are already running
     const hasCoreNodes =
-      !!ambientNodesRef.current.musicInterval;
+      !!ambientNodesRef.current.musicInterval || !!ambientNodesRef.current.brookStreamNode;
 
     if (hasCoreNodes) return;
-
-    // HARD GUARANTEE: if we are starting Tula ambience, first kill *everything*.
-    stopAmbient();
 
     unlockAudio();
 
     // Tula: calming Malte Marten-style handpan + babbling brook
     startHandpanMusic();
     startBabblingBrook();
-  }, [stopAmbient, unlockAudio, startHandpanMusic, startBabblingBrook]);
+  }, [unlockAudio, startHandpanMusic, startBabblingBrook]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
