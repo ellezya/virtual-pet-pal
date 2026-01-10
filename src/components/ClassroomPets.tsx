@@ -3062,14 +3062,21 @@ const ClassroomPets = () => {
             >
               {/* Fish net icon for tank cleaning */}
               <svg viewBox="0 0 24 24" width="24" height="24" className="drop-shadow-sm">
+                {/* Handle */}
+                <line x1="4" y1="4" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                {/* Net frame - square with rounded corners */}
                 <path 
-                  d="M4 4L8 8M8 8C8 8 12 4 16 8C20 12 16 16 16 16L20 20M8 8L12 12M12 12C12 12 14 10 16 12C18 14 16 16 16 16M12 12L16 16" 
+                  d="M10 12 L10 20 Q10 22 12 22 L20 22 Q22 22 22 20 L22 12 Q22 10 20 10 L12 10 Q10 10 10 12 Z" 
                   stroke="currentColor" 
                   strokeWidth="1.5" 
-                  strokeLinecap="round" 
                   fill="none"
                 />
-                <ellipse cx="12" cy="14" rx="5" ry="4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="2 1" />
+                {/* Net mesh lines */}
+                <line x1="13" y1="10" x2="13" y2="22" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+                <line x1="16" y1="10" x2="16" y2="22" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+                <line x1="19" y1="10" x2="19" y2="22" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+                <line x1="10" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
+                <line x1="10" y1="18" x2="22" y2="18" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
               </svg>
               <span className="text-[9px] font-medium leading-none">Net</span>
             </button>
