@@ -139,7 +139,7 @@ const ClassroomPets = () => {
     toggleAmbient,
     isAmbientPlaying,
     windIntensity,
-  } = useSoundEffects(currentPet);
+  } = useSoundEffects(currentPet, currentScene);
   const prevHoppingRef = useRef(false);
 
   // Hanging plants were previously driven by wind audio; wind ambience is disabled now.
