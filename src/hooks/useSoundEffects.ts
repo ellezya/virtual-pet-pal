@@ -1212,12 +1212,16 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     prevPetRef.current = currentPet;
     currentPetRef.current = currentPet;
 
-    if (!isAmbientPlaying || !hasUnlockedRef.current) return;
-
-    // Always stop first
+    // ALWAYS stop when switching pets (even if the UI toggle says "off").
+    // This prevents any older/untracked ambience from bleeding into Tula.
     stopAmbientRef.current();
 
-    // Only restart if Tula is selected
+    // Only restart if:
+    // - user wants ambient on
+    // - audio has been unlocked by a gesture
+    // - Tula is selected
+    if (!isAmbientPlaying) return;
+    if (!hasUnlockedRef.current) return;
     if (currentPet !== 'fish') return;
 
     const timer = setTimeout(() => {
