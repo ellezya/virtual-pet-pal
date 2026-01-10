@@ -568,6 +568,22 @@
     }
   }
 
+  /* Fish poop floating/bobbing in water */
+  @keyframes fish-poop-float {
+    0%, 100% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-4px) translateX(2px) rotate(2deg);
+    }
+    50% {
+      transform: translateY(-2px) translateX(-1px) rotate(-1deg);
+    }
+    75% {
+      transform: translateY(-5px) translateX(-2px) rotate(1deg);
+    }
+  }
+
   /* Eating face overlay styling */
   .fish-eating-face svg path {
     stroke: hsl(var(--foreground) / 0.7);
