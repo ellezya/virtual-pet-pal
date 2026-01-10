@@ -33,7 +33,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     windLfo: OscillatorNode | null;
     birdInterval: ReturnType<typeof setInterval> | null;
     childrenInterval: ReturnType<typeof setInterval> | null;
-    waterBubblesInterval: ReturnType<typeof setInterval> | null;
+    
     waterFlowNode: AudioBufferSourceNode | null;
     waterFlowGain: GainNode | null;
     musicOscillators: OscillatorNode[];
@@ -46,7 +46,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     windLfo: null,
     birdInterval: null,
     childrenInterval: null,
-    waterBubblesInterval: null,
+    
     waterFlowNode: null,
     waterFlowGain: null,
     
@@ -564,110 +564,79 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     noise.stop(time + 0.4);
   }, [getAudioContext]);
 
-  // Play underwater bubble sounds for fish tank
-  const playWaterBubble = useCallback(() => {
+
+
+  // Start warm, gentle stream sound using brown noise - meditation quality
+  const startWaterFlowSound = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Random number of bubbles (2-5)
-    const bubbleCount = 2 + Math.floor(Math.random() * 4);
-    
-    for (let i = 0; i < bubbleCount; i++) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      
-      osc.type = 'sine';
-      // Rising pitch as bubble goes up
-      const startFreq = 180 + Math.random() * 120;
-      osc.frequency.setValueAtTime(startFreq, time + i * 0.12);
-      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.8, time + i * 0.12 + 0.15);
-      
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, time + i * 0.12);
-      
-      gain.gain.setValueAtTime(0, time + i * 0.12);
-      gain.gain.linearRampToValueAtTime(ambientVolume * 0.25, time + i * 0.12 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + i * 0.12 + 0.18);
-      
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.start(time + i * 0.12);
-      osc.stop(time + i * 0.12 + 0.2);
-    }
-  }, [getAudioContext]);
-
-
-  // Start continuous relaxing underwater water flow sound
-  const startWaterFlowSound = useCallback(() => {
-    const ctx = getAudioContext();
-    
-    // Create filtered noise for gentle water flow
-    const bufferSize = ctx.sampleRate * 4;
+    // Create brown noise (much warmer than white/pink, not static-y)
+    const bufferSize = ctx.sampleRate * 6;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
-    // Create smoother noise by averaging consecutive samples
+    // Brown noise algorithm - integrates white noise for warm, deep sound
+    let lastOut = 0.0;
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.3;
-    }
-    // Smooth the noise for a more gentle water sound
-    for (let pass = 0; pass < 3; pass++) {
-      for (let i = 1; i < bufferSize - 1; i++) {
-        data[i] = (data[i - 1] + data[i] + data[i + 1]) / 3;
-      }
+      const white = Math.random() * 2 - 1;
+      // Brown noise formula - accumulates for deeper, warmer sound
+      data[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = data[i];
+      data[i] *= 3.5; // Compensate for gain loss
     }
     
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
     noise.loop = true;
     
-    // Low-pass filter for soft, muffled underwater sound
-    const filter1 = ctx.createBiquadFilter();
-    filter1.type = 'lowpass';
-    filter1.frequency.setValueAtTime(250, ctx.currentTime);
-    filter1.Q.setValueAtTime(0.5, ctx.currentTime);
+    // Bandpass filter centered on warm frequencies (not too low = muffled, not too high = static)
+    const warmFilter = ctx.createBiquadFilter();
+    warmFilter.type = 'bandpass';
+    warmFilter.frequency.setValueAtTime(350, time); // Sweet spot for water
+    warmFilter.Q.setValueAtTime(0.6, time); // Wide band for natural sound
     
-    // Second filter for extra smoothness
-    const filter2 = ctx.createBiquadFilter();
-    filter2.type = 'lowpass';
-    filter2.frequency.setValueAtTime(400, ctx.currentTime);
-    filter2.Q.setValueAtTime(0.3, ctx.currentTime);
+    // Gentle high shelf to add presence without harshness
+    const presenceFilter = ctx.createBiquadFilter();
+    presenceFilter.type = 'highshelf';
+    presenceFilter.frequency.setValueAtTime(800, time);
+    presenceFilter.gain.setValueAtTime(-3, time); // Slight cut to avoid harshness
     
-    // Very slow modulation for gentle wave movement
+    // Very slow, subtle modulation for organic movement
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.08, ctx.currentTime); // Very slow waves
-    lfoGain.gain.setValueAtTime(60, ctx.currentTime);
+    lfo.frequency.setValueAtTime(0.05, time); // Very slow - breathing rhythm
+    lfoGain.gain.setValueAtTime(80, time); // Subtle frequency movement
     lfo.connect(lfoGain);
-    lfoGain.connect(filter1.frequency);
+    lfoGain.connect(warmFilter.frequency);
     
-    // Second LFO for more organic movement
-    const lfo2 = ctx.createOscillator();
-    const lfo2Gain = ctx.createGain();
-    lfo2.type = 'sine';
-    lfo2.frequency.setValueAtTime(0.12, ctx.currentTime);
-    lfo2Gain.gain.setValueAtTime(40, ctx.currentTime);
-    lfo2.connect(lfo2Gain);
-    lfo2Gain.connect(filter2.frequency);
+    // Second even slower LFO for volume - creates gentle "waves"
+    const volLfo = ctx.createOscillator();
+    const volLfoGain = ctx.createGain();
+    volLfo.type = 'sine';
+    volLfo.frequency.setValueAtTime(0.03, time); // Super slow
+    volLfoGain.gain.setValueAtTime(0.08, time); // Very subtle volume changes
     
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(ambientVolume * 0.5, ctx.currentTime);
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(ambientVolume * 0.4, time);
     
-    noise.connect(filter1);
-    filter1.connect(filter2);
-    filter2.connect(gain);
-    gain.connect(ctx.destination);
+    // Connect volume LFO
+    volLfo.connect(volLfoGain);
+    volLfoGain.connect(masterGain.gain);
+    
+    // Signal chain
+    noise.connect(warmFilter);
+    warmFilter.connect(presenceFilter);
+    presenceFilter.connect(masterGain);
+    masterGain.connect(ctx.destination);
     
     lfo.start();
-    lfo2.start();
+    volLfo.start();
     noise.start();
     
     ambientNodesRef.current.waterFlowNode = noise;
-    ambientNodesRef.current.waterFlowGain = gain;
+    ambientNodesRef.current.waterFlowGain = masterGain;
   }, [getAudioContext, ambientVolume]);
 
   // A shared music bus so changes always take effect and we can reliably stop/restart.
@@ -1110,11 +1079,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       } catch {}
       ambientNodesRef.current.musicGain = null;
     }
-    // Stop water sounds
-    if (ambientNodesRef.current.waterBubblesInterval) {
-      clearInterval(ambientNodesRef.current.waterBubblesInterval);
-      ambientNodesRef.current.waterBubblesInterval = null;
-    }
     if (ambientNodesRef.current.waterFlowNode) {
       try {
         ambientNodesRef.current.waterFlowNode.stop();
@@ -1401,9 +1365,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       }
       if (ambientNodesRef.current.musicInterval) {
         clearInterval(ambientNodesRef.current.musicInterval);
-      }
-      if (ambientNodesRef.current.waterBubblesInterval) {
-        clearInterval(ambientNodesRef.current.waterBubblesInterval);
       }
       if (ambientNodesRef.current.waterFlowNode) {
         try {
