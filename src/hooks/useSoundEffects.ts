@@ -1045,7 +1045,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     windNode.connect(windFilter);
     windFilter.connect(windGain);
-    windGain.connect(ctx.destination);
+    windGain.connect(bus);
     windNode.start();
 
     ambientNodesRef.current.windNode = windNode;
