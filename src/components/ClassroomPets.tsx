@@ -1683,6 +1683,19 @@ const ClassroomPets = () => {
               loop
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                // HARD MUTE: some browsers can still leak audio from MP4s; force it off.
+                e.currentTarget.muted = true;
+                e.currentTarget.defaultMuted = true;
+                e.currentTarget.volume = 0;
+              }}
+              onVolumeChange={(e) => {
+                if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
+                  e.currentTarget.muted = true;
+                  e.currentTarget.defaultMuted = true;
+                  e.currentTarget.volume = 0;
+                }
+              }}
               className="w-full h-full object-cover"
               style={{
                 transform: 'scale(1.2)',
@@ -1722,6 +1735,18 @@ const ClassroomPets = () => {
               loop
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                e.currentTarget.muted = true;
+                e.currentTarget.defaultMuted = true;
+                e.currentTarget.volume = 0;
+              }}
+              onVolumeChange={(e) => {
+                if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
+                  e.currentTarget.muted = true;
+                  e.currentTarget.defaultMuted = true;
+                  e.currentTarget.volume = 0;
+                }
+              }}
               className="w-full h-full object-cover"
               style={{
                 transform: 'scale(1.2)',
@@ -1769,6 +1794,18 @@ const ClassroomPets = () => {
               loop
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                e.currentTarget.muted = true;
+                e.currentTarget.defaultMuted = true;
+                e.currentTarget.volume = 0;
+              }}
+              onVolumeChange={(e) => {
+                if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
+                  e.currentTarget.muted = true;
+                  e.currentTarget.defaultMuted = true;
+                  e.currentTarget.volume = 0;
+                }
+              }}
               className="w-full h-full object-cover"
               style={{
                 transform: 'scale(1.0)',
@@ -1793,6 +1830,18 @@ const ClassroomPets = () => {
               loop
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                e.currentTarget.muted = true;
+                e.currentTarget.defaultMuted = true;
+                e.currentTarget.volume = 0;
+              }}
+              onVolumeChange={(e) => {
+                if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
+                  e.currentTarget.muted = true;
+                  e.currentTarget.defaultMuted = true;
+                  e.currentTarget.volume = 0;
+                }
+              }}
               className="w-full h-full object-cover scale-110"
               style={{ filter: currentScene === 'shell' ? 'saturate(0.9) brightness(0.8)' : 'saturate(1.3) brightness(1.1)' }}
             >
