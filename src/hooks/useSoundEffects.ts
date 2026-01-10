@@ -30,10 +30,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
+    secondaryMusicInterval: ReturnType<typeof setInterval> | null;
   }>({
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
+    secondaryMusicInterval: null,
   });
   
   // Keep currentPet ref updated
@@ -833,17 +835,23 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       playHandpanPhrase();
     };
 
-    // Play immediately
+    // Play immediately, then stagger phrases for continuous flow
     tick();
+    setTimeout(tick, 1500); // Overlap second phrase
+    setTimeout(tick, 3000); // Third phrase for density
 
-    // Play phrases more frequently for continuous melodic flow (5-6 seconds apart)
+    // Continuous phrases every 2.5-3.5 seconds (randomized to feel natural)
     const musicInterval = setInterval(() => {
-      if (Math.random() < 0.75) { // More frequent
-        tick();
-      }
-    }, 5000); // Shorter intervals for flowing melody
+      tick();
+    }, 2500 + Math.random() * 1000); // Always play, no gaps
+
+    // Secondary interval for overlapping melodic density
+    const secondaryInterval = setInterval(() => {
+      tick();
+    }, 3500 + Math.random() * 1500);
 
     ambientNodesRef.current.musicInterval = musicInterval;
+    ambientNodesRef.current.secondaryMusicInterval = secondaryInterval;
   }, [playHandpanPhrase]);
 
   // Start soft lo-fi pad chords (Lola)
@@ -936,6 +944,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     if (ambientNodesRef.current.musicInterval) {
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
+    }
+    if (ambientNodesRef.current.secondaryMusicInterval) {
+      clearInterval(ambientNodesRef.current.secondaryMusicInterval);
+      ambientNodesRef.current.secondaryMusicInterval = null;
     }
 
     // Hard-stop any currently playing music oscillators (lo-fi chords can ring out otherwise)
@@ -1193,6 +1205,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     return () => {
       if (ambientNodesRef.current.musicInterval) {
         clearInterval(ambientNodesRef.current.musicInterval);
+      }
+      if (ambientNodesRef.current.secondaryMusicInterval) {
+        clearInterval(ambientNodesRef.current.secondaryMusicInterval);
       }
       if (ambientNodesRef.current.musicGain) {
         try {
