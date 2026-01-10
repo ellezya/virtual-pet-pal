@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import brookAmbient from '@/assets/brook-ambient.mp3';
+import morningBreezebirds from '@/assets/morning-breeze-birds.mp3';
 
 interface SoundEffectsReturn {
   playHop: () => void;
@@ -36,6 +37,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     birdInterval: ReturnType<typeof setInterval> | null;
     windNode: AudioBufferSourceNode | null;
     windGain: GainNode | null;
+    breezeAudio: HTMLAudioElement | null;
   }>({
     musicOscillators: [],
     musicGain: null,
@@ -45,6 +47,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     birdInterval: null,
     windNode: null,
     windGain: null,
+    breezeAudio: null,
   });
   
   // Keep currentPet ref updated
@@ -977,102 +980,18 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     ambientNodesRef.current.musicInterval = musicInterval;
 
-    // === Start bird chirps ===
-    const playBird = () => {
-      const t = ctx.currentTime;
-      const baseFreq = 1800 + Math.random() * 800;
-      const chirpCount = 2 + Math.floor(Math.random() * 3);
-      
-      for (let j = 0; j < chirpCount; j++) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = 'sine';
-        const startFreq = baseFreq + Math.random() * 400;
-        osc.frequency.setValueAtTime(startFreq, t + j * 0.08);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 1.3, t + j * 0.08 + 0.03);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 0.9, t + j * 0.08 + 0.06);
-        
-        gain.gain.setValueAtTime(0, t + j * 0.08);
-        gain.gain.linearRampToValueAtTime(ambientVolume * 0.25, t + j * 0.08 + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + j * 0.08 + 0.07);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(t + j * 0.08);
-        osc.stop(t + j * 0.08 + 0.1);
-      }
-    };
+    // === Start morning breeze & birds ambient (from audio file) ===
+    const breezeAudio = new Audio(morningBreezebirds);
+    breezeAudio.loop = true;
+    breezeAudio.volume = 0.4;
+    breezeAudio.play().catch(() => {
+      console.log('[audio] Breeze autoplay blocked, waiting for user gesture');
+    });
 
-    // Initial bird chirp after short delay
-    setTimeout(playBird, 1500);
-    
-    // Random bird chirps every 4-8 seconds
-    const birdInterval = setInterval(() => {
-      if (Math.random() > 0.3) { // 70% chance to chirp
-        playBird();
-      }
-    }, 4000 + Math.random() * 4000);
-    
-    ambientNodesRef.current.birdInterval = birdInterval;
+    console.log('[audio] Morning breeze & birds started');
+    ambientNodesRef.current.breezeAudio = breezeAudio;
 
-    // === Start gentle breeze ambient ===
-    // Create a longer buffer for smoother looping wind sound
-    const windBufferSize = ctx.sampleRate * 8; // 8 seconds for smooth loop
-    const windBuffer = ctx.createBuffer(2, windBufferSize, ctx.sampleRate); // Stereo
-    
-    // Generate smooth wind noise using filtered brownian motion
-    for (let channel = 0; channel < 2; channel++) {
-      const data = windBuffer.getChannelData(channel);
-      let lastOut = 0;
-      let slowMod = 0;
-      
-      for (let i = 0; i < windBufferSize; i++) {
-        // Slow modulation for wind gusts
-        slowMod += 0.00003;
-        const gustMod = 0.7 + 0.3 * Math.sin(slowMod * 2) * Math.sin(slowMod * 0.7);
-        
-        // Brownian noise
-        const white = Math.random() * 2 - 1;
-        lastOut = (lastOut + (0.015 * white)) / 1.015;
-        data[i] = lastOut * 4 * gustMod;
-        
-        // Cross-fade at loop point for seamless loop
-        if (i < 4000) {
-          data[i] *= i / 4000;
-        } else if (i > windBufferSize - 4000) {
-          data[i] *= (windBufferSize - i) / 4000;
-        }
-      }
-    }
-
-    const windNode = ctx.createBufferSource();
-    windNode.buffer = windBuffer;
-    windNode.loop = true;
-
-    // Gentle bandpass filter for airy breeze sound
-    const windFilter = ctx.createBiquadFilter();
-    windFilter.type = 'bandpass';
-    windFilter.frequency.setValueAtTime(250, ctx.currentTime);
-    windFilter.Q.setValueAtTime(0.5, ctx.currentTime);
-
-    const windGain = ctx.createGain();
-    windGain.gain.setValueAtTime(0, ctx.currentTime);
-    // Fade in over 2 seconds to a clearly audible level
-    windGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 2);
-
-    windNode.connect(windFilter);
-    windFilter.connect(windGain);
-    windGain.connect(ctx.destination);
-    windNode.start();
-
-    console.log('[audio] Wind/breeze started');
-
-    ambientNodesRef.current.windNode = windNode;
-    ambientNodesRef.current.windGain = windGain;
-
-    // Animate wind intensity for UI effects
+    // Animate wind intensity for UI effects (plant sway, etc.)
     let windPhase = 0;
     const animateWind = () => {
       windPhase += 0.01;
@@ -1155,6 +1074,15 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
         ambientNodesRef.current.brookAudio.currentTime = 0;
       } catch {}
       ambientNodesRef.current.brookAudio = null;
+    }
+
+    // Stop breeze & birds audio
+    if (ambientNodesRef.current.breezeAudio) {
+      try {
+        ambientNodesRef.current.breezeAudio.pause();
+        ambientNodesRef.current.breezeAudio.currentTime = 0;
+      } catch {}
+      ambientNodesRef.current.breezeAudio = null;
     }
 
 
