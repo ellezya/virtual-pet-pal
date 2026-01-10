@@ -27,25 +27,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const audioContextRef = useRef<AudioContext | null>(null);
   const currentPetRef = useRef<PetType>(currentPet);
   const ambientNodesRef = useRef<{
-    wind: AudioBufferSourceNode | null;
-    windGain: GainNode | null;
-    windAnalyser: AnalyserNode | null;
-    windLfo: OscillatorNode | null;
-    birdInterval: ReturnType<typeof setInterval> | null;
-    childrenInterval: ReturnType<typeof setInterval> | null;
-    
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
   }>({
-    wind: null,
-    windGain: null,
-    windAnalyser: null,
-    windLfo: null,
-    birdInterval: null,
-    childrenInterval: null,
-    
-    
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
@@ -894,55 +879,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.musicInterval = musicInterval;
   }, [getAudioContext, getMusicBus]);
 
-  // Start continuous wind/breeze sound
-  const startWindSound = useCallback(() => {
-    const ctx = getAudioContext();
-
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.5;
-    }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, ctx.currentTime);
-
-    // Slow gust movement: modulate filter cutoff
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.2, ctx.currentTime);
-    lfoGain.gain.setValueAtTime(100, ctx.currentTime);
-    lfo.connect(lfoGain);
-    lfoGain.connect(filter.frequency);
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(ambientVolume, ctx.currentTime);
-
-    // Analyser to drive curtains (UI only)
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 256;
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    gain.connect(analyser);
-
-    lfo.start();
-    noise.start();
-
-    ambientNodesRef.current.wind = noise as any;
-    ambientNodesRef.current.windGain = gain;
-    ambientNodesRef.current.windAnalyser = analyser;
-    ambientNodesRef.current.windLfo = lfo;
-  }, [getAudioContext, ambientVolume]);
 
 
   const stopAmbient = useCallback(() => {
@@ -952,32 +888,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }
     setWindIntensity(0);
 
-    if (ambientNodesRef.current.wind) {
-      try {
-        (ambientNodesRef.current.wind as any).stop();
-      } catch {}
-      ambientNodesRef.current.wind = null;
-    }
-    if (ambientNodesRef.current.windLfo) {
-      try {
-        ambientNodesRef.current.windLfo.stop();
-      } catch {}
-      try {
-        ambientNodesRef.current.windLfo.disconnect();
-      } catch {}
-      ambientNodesRef.current.windLfo = null;
-    }
-    ambientNodesRef.current.windGain = null;
-    ambientNodesRef.current.windAnalyser = null;
-
-    if (ambientNodesRef.current.birdInterval) {
-      clearInterval(ambientNodesRef.current.birdInterval);
-      ambientNodesRef.current.birdInterval = null;
-    }
-    if (ambientNodesRef.current.childrenInterval) {
-      clearInterval(ambientNodesRef.current.childrenInterval);
-      ambientNodesRef.current.childrenInterval = null;
-    }
     if (ambientNodesRef.current.musicInterval) {
       clearInterval(ambientNodesRef.current.musicInterval);
       ambientNodesRef.current.musicInterval = null;
@@ -1072,45 +982,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     });
   }, [startAmbient, stopAmbient, unlockAudio]);
 
-  // Measure wind loudness (proxy) from WebAudio analyser so visuals can match the breeze.
-  // If wind is not part of the current ambience, keep this at 0 and don't run a RAF loop.
-  useEffect(() => {
-    if (!isAmbientPlaying) {
-      setWindIntensity(0);
-      return;
-    }
-
-    const analyser = ambientNodesRef.current.windAnalyser;
-    if (!analyser) {
-      setWindIntensity(0);
-      return;
-    }
-
-    const tick = () => {
-      const buf = new Uint8Array(analyser.fftSize);
-      analyser.getByteTimeDomainData(buf);
-
-      let sum = 0;
-      for (let i = 0; i < buf.length; i++) {
-        const v = (buf[i] - 128) / 128;
-        sum += v * v;
-      }
-      const rms = Math.sqrt(sum / buf.length); // ~0..0.25
-      const normalized = Math.max(0, Math.min(1, (rms - 0.05) / 0.15));
-      setWindIntensity(normalized);
-
-      windMeterRafRef.current = requestAnimationFrame(tick);
-    };
-
-    windMeterRafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (windMeterRafRef.current) {
-        cancelAnimationFrame(windMeterRafRef.current);
-        windMeterRafRef.current = null;
-      }
-    };
-  }, [isAmbientPlaying]);
 
   // Unlock audio on first user interaction and start ambient if enabled
   useEffect(() => {
@@ -1264,17 +1135,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (ambientNodesRef.current.wind) {
-        try {
-          (ambientNodesRef.current.wind as any).stop();
-        } catch {}
-      }
-      if (ambientNodesRef.current.birdInterval) {
-        clearInterval(ambientNodesRef.current.birdInterval);
-      }
-      if (ambientNodesRef.current.childrenInterval) {
-        clearInterval(ambientNodesRef.current.childrenInterval);
-      }
       if (ambientNodesRef.current.musicInterval) {
         clearInterval(ambientNodesRef.current.musicInterval);
       }
