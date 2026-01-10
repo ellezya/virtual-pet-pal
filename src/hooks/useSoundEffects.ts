@@ -889,20 +889,20 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // Bandpass filter to shape water-like frequencies (soft, flowing)
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.value = 800; // Center frequency for water sound
-    filter.Q.value = 0.3; // Very wide bandwidth for natural flow
+    filter.frequency.value = 400; // Lower center frequency for softer water sound
+    filter.Q.value = 0.5; // Narrower bandwidth to reduce static
 
-    // Low-pass to remove harshness
+    // Low-pass to remove harshness - much more aggressive
     const lowPass = ctx.createBiquadFilter();
     lowPass.type = 'lowpass';
-    lowPass.frequency.value = 1500;
-    lowPass.Q.value = 0.5;
+    lowPass.frequency.value = 600; // Much lower to eliminate static harshness
+    lowPass.Q.value = 0.7;
 
     // Gain for volume control with gentle fade-in
     const gainNode = ctx.createGain();
     const t = ctx.currentTime;
     gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.75, t + 2); // Loud fountain
+    gainNode.gain.linearRampToValueAtTime(0.15, t + 2); // Gentle fountain volume
 
     // Connect: noise -> bandpass -> lowpass -> gain -> speakers
     noiseSource.connect(filter);
