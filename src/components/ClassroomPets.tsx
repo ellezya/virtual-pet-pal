@@ -2219,52 +2219,52 @@ const ClassroomPets = () => {
 
         {/* Fish Poop - brownish-orange clumps of three tiny circles */}
         {currentPet === 'fish' && fishPoops.length > 0 && (
-          <div className="absolute inset-0 pointer-events-none z-[7]">
+          <div className="absolute inset-0 pointer-events-none z-[12]">
             {fishPoops.map(poop => (
               <div
                 key={poop.id}
-                className="absolute transform -translate-x-1/2 animate-fade-in"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 animate-fade-in"
                 style={{
                   left: `${poop.x}%`,
                   top: `${poop.y}%`,
                 }}
               >
                 {/* Three-circle clump arrangement */}
-                <div className="relative" style={{ width: '12px', height: '10px' }}>
+                <div className="relative" style={{ width: '18px', height: '16px' }}>
                   {/* Top circle */}
                   <div 
                     className="absolute rounded-full"
                     style={{
-                      width: '5px',
-                      height: '5px',
-                      left: '3px',
+                      width: '8px',
+                      height: '8px',
+                      left: '5px',
                       top: '0px',
-                      background: 'radial-gradient(circle at 30% 30%, rgb(205, 133, 63), rgb(139, 90, 43))',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(210, 140, 80), rgb(160, 100, 50))',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)',
                     }}
                   />
                   {/* Bottom-left circle */}
                   <div 
                     className="absolute rounded-full"
                     style={{
-                      width: '4px',
-                      height: '4px',
+                      width: '7px',
+                      height: '7px',
                       left: '0px',
-                      top: '5px',
-                      background: 'radial-gradient(circle at 30% 30%, rgb(210, 140, 70), rgb(150, 100, 50))',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                      top: '7px',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(200, 130, 70), rgb(150, 95, 45))',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)',
                     }}
                   />
                   {/* Bottom-right circle */}
                   <div 
                     className="absolute rounded-full"
                     style={{
-                      width: '4px',
-                      height: '4px',
-                      left: '6px',
-                      top: '6px',
-                      background: 'radial-gradient(circle at 30% 30%, rgb(200, 125, 55), rgb(130, 85, 40))',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                      width: '7px',
+                      height: '7px',
+                      left: '10px',
+                      top: '8px',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(195, 125, 65), rgb(145, 90, 40))',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2)',
                     }}
                   />
                 </div>
