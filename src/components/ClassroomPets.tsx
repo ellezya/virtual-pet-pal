@@ -2733,23 +2733,23 @@ const ClassroomPets = () => {
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    // Keep sparkles off Tula's face - mask hides left 50% where face is
+                    // Keep sparkles strictly off Tula's face - mask hides left 70% where face/body front is
                     WebkitMaskImage:
-                      'linear-gradient(90deg, transparent 0%, transparent 50%, black 65%, black 100%)',
+                      'linear-gradient(90deg, transparent 0%, transparent 70%, black 80%, black 100%)',
                     maskImage:
-                      'linear-gradient(90deg, transparent 0%, transparent 50%, black 65%, black 100%)',
+                      'linear-gradient(90deg, transparent 0%, transparent 70%, black 80%, black 100%)',
                   }}
                 >
-                  {/* Sparkle dots along body/tail area only */}
+                  {/* Sparkle dots along body/tail area only - positioned at 80%+ to stay on tail */}
                   {[
-                    { x: '66%', y: '35%', size: 4, delay: 0, duration: 2.5 },
-                    { x: '74%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
-                    { x: '82%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
-                    { x: '70%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                    { x: '78%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
-                    { x: '88%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
-                    { x: '72%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
-                    { x: '84%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
+                    { x: '82%', y: '35%', size: 4, delay: 0, duration: 2.5 },
+                    { x: '88%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
+                    { x: '94%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
+                    { x: '85%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                    { x: '90%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
+                    { x: '96%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
+                    { x: '84%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
+                    { x: '92%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
                   ].map((sparkle, i) => (
                     <div
                       key={`sparkle-${i}`}
@@ -2765,11 +2765,11 @@ const ClassroomPets = () => {
                     />
                   ))}
 
-                  {/* Star sparkles for extra shimmer - body area only */}
+                  {/* Star sparkles for extra shimmer - tail area only */}
                   {[
-                    { x: '72%', y: '40%', size: 8, delay: 0.3, duration: 3 },
-                    { x: '78%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
-                    { x: '86%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
+                    { x: '85%', y: '40%', size: 8, delay: 0.3, duration: 3 },
+                    { x: '90%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
+                    { x: '96%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
                   ].map((star, i) => (
                     <div
                       key={`star-${i}`}
