@@ -2700,65 +2700,11 @@ const ClassroomPets = () => {
                 </div>
               )}
 
-              {/* Sparkle + bubble effects anchored to Tula's body (they flip + scale with her) */}
+              {/* Tail bubble effects anchored to Tula's body (they flip + scale with her) */}
               {currentPet === 'fish' && (
                 <div
                   className="absolute inset-0 pointer-events-none"
-                  style={{
-                    // HARD GUARANTEE: never show sparkles over Tula's face.
-                    // This layer lives inside the flipped fish container, so ONE mask works
-                    // for both swim directions (the mask flips along with her).
-                    WebkitMaskImage:
-                      'linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)',
-                    maskImage:
-                      'linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)',
-                  }}
                 >
-                  {/* Sparkle dots along body/tail area only */}
-                  {[
-                    { x: '66%', y: '35%', size: 4, delay: 0, duration: 2.5 },
-                    { x: '74%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
-                    { x: '82%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
-                    { x: '70%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                    { x: '78%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
-                    { x: '88%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
-                    { x: '72%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
-                    { x: '84%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
-                  ].map((sparkle, i) => (
-                    <div
-                      key={`sparkle-${i}`}
-                      className="fish-sparkle"
-                      style={{
-                        left: sparkle.x,
-                        top: sparkle.y,
-                        width: sparkle.size,
-                        height: sparkle.size,
-                        animation: `scale-sparkle-1 ${sparkle.duration}s ease-in-out infinite`,
-                        animationDelay: `${sparkle.delay}s`,
-                      }}
-                    />
-                  ))}
-
-                  {/* Star sparkles for extra shimmer - body area only */}
-                  {[
-                    { x: '72%', y: '40%', size: 8, delay: 0.3, duration: 3 },
-                    { x: '78%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
-                    { x: '86%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
-                  ].map((star, i) => (
-                    <div
-                      key={`star-${i}`}
-                      className="fish-sparkle-star"
-                      style={{
-                        left: star.x,
-                        top: star.y,
-                        width: star.size,
-                        height: star.size,
-                        animation: `scale-sparkle-2 ${star.duration}s ease-in-out infinite`,
-                        animationDelay: `${star.delay}s`,
-                      }}
-                    />
-                  ))}
-
                   {/* Tiny bubbles trailing from Tula's tail as she swims */}
                   {[
                     { x: '92%', y: '42%', size: 3, delay: 0, duration: 2.0 },
