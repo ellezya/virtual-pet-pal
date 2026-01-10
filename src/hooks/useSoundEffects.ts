@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
+import brookAmbient from '@/assets/brook-ambient.mp3';
 
 interface SoundEffectsReturn {
   playHop: () => void;
@@ -31,22 +32,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
     secondaryMusicInterval: ReturnType<typeof setInterval> | null;
-    fountainNodes: {
-      noiseSource: AudioBufferSourceNode | null;
-      masterGain: GainNode | null;
-      filterNode: BiquadFilterNode | null;
-      lowPassNode: BiquadFilterNode | null;
-      lfo: OscillatorNode | null;
-      lfoGain: GainNode | null;
-      freqLfo: OscillatorNode | null;
-      freqLfoGain: GainNode | null;
-    } | null;
+    brookAudio: HTMLAudioElement | null;
   }>({
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
     secondaryMusicInterval: null,
-    fountainNodes: null,
+    brookAudio: null,
   });
   
   // Keep currentPet ref updated
@@ -862,144 +854,42 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.secondaryMusicInterval = secondaryInterval;
   }, [playHandpanPhrase]);
 
-  // Start a small tabletop fountain sound (distinct trickle / flow, not static)
-  const startFountainSound = useCallback(() => {
+  // Start brook ambient sound (real audio file)
+  const startBrookSound = useCallback(() => {
     // Don't start if already running
-    if (ambientNodesRef.current.fountainNodes) return;
+    if (ambientNodesRef.current.brookAudio) return;
 
-    const ctx = getAudioContext();
+    const audio = new Audio(brookAmbient);
+    audio.loop = true;
+    audio.volume = 0.35; // Adjust as needed
+    audio.play().catch(() => {
+      // Autoplay blocked - will retry on user interaction
+      console.log('[audio] Brook autoplay blocked, waiting for user gesture');
+    });
 
-    // Create "brown-ish" noise (less hiss than pure white noise)
-    const bufferSize = ctx.sampleRate * 3;
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = (Math.random() * 2 - 1) * 0.6;
-      // simple integrator -> more low-frequency energy
-      last = last * 0.985 + white * 0.015;
-      data[i] = last;
-    }
+    console.log('[audio] Brook ambient sound started');
+    ambientNodesRef.current.brookAudio = audio;
+  }, []);
 
-    const noiseSource = ctx.createBufferSource();
-    noiseSource.buffer = noiseBuffer;
-    noiseSource.loop = true;
+  // Stop brook sound
+  const stopBrookSound = useCallback(() => {
+    const audio = ambientNodesRef.current.brookAudio;
+    if (!audio) return;
 
-    // Shape into "water" with a resonant band + soft lowpass
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(520, ctx.currentTime);
-    filter.Q.setValueAtTime(0.9, ctx.currentTime);
-
-    const lowPass = ctx.createBiquadFilter();
-    lowPass.type = 'lowpass';
-    lowPass.frequency.setValueAtTime(1400, ctx.currentTime);
-    lowPass.Q.setValueAtTime(0.6, ctx.currentTime);
-
-    // Master gain (overall loudness)
-    const masterGain = ctx.createGain();
-    const t = ctx.currentTime;
-    masterGain.gain.setValueAtTime(0, t);
-    masterGain.gain.linearRampToValueAtTime(0.18, t + 1.2);
-
-    // Add gentle "trickle" motion by modulating amplitude (avoids flat static)
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(2.2, t); // slow shimmer
-
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(0.06, t); // modulation depth
-
-    // Apply LFO to masterGain.gain
-    lfo.connect(lfoGain);
-    lfoGain.connect(masterGain.gain);
-
-    // Also drift bandpass frequency slightly to create a more "watery" character
-    const freqLfo = ctx.createOscillator();
-    freqLfo.type = 'sine';
-    freqLfo.frequency.setValueAtTime(0.35, t);
-
-    const freqLfoGain = ctx.createGain();
-    freqLfoGain.gain.setValueAtTime(140, t); // +/- Hz range
-
-    freqLfo.connect(freqLfoGain);
-    freqLfoGain.connect(filter.frequency);
-
-    // Connect chain -> speakers
-    noiseSource.connect(filter);
-    filter.connect(lowPass);
-    lowPass.connect(masterGain);
-    masterGain.connect(ctx.destination);
-
-    noiseSource.start();
-    lfo.start();
-    freqLfo.start();
-
-    console.log('[audio] Fountain sound started (tabletop flow)');
-
-    ambientNodesRef.current.fountainNodes = {
-      noiseSource,
-      masterGain,
-      filterNode: filter,
-      lowPassNode: lowPass,
-      lfo,
-      lfoGain,
-      freqLfo,
-      freqLfoGain,
-    };
-  }, [getAudioContext]);
-
-  // Stop fountain sound
-  const stopFountainSound = useCallback(() => {
-    const nodes = ambientNodesRef.current.fountainNodes;
-    if (!nodes) return;
-
-    try {
-      const ctx = getAudioContext();
-      if (nodes.masterGain) {
-        nodes.masterGain.gain.cancelScheduledValues(ctx.currentTime);
-        nodes.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+    // Fade out
+    const fadeOut = () => {
+      if (audio.volume > 0.05) {
+        audio.volume = Math.max(0, audio.volume - 0.05);
+        requestAnimationFrame(fadeOut);
+      } else {
+        audio.pause();
+        audio.currentTime = 0;
       }
+    };
+    fadeOut();
 
-      setTimeout(() => {
-        try {
-          nodes.noiseSource?.stop();
-        } catch {}
-        try {
-          nodes.noiseSource?.disconnect();
-        } catch {}
-        try {
-          nodes.lfo?.stop();
-        } catch {}
-        try {
-          nodes.lfo?.disconnect();
-        } catch {}
-        try {
-          nodes.freqLfo?.stop();
-        } catch {}
-        try {
-          nodes.freqLfo?.disconnect();
-        } catch {}
-        try {
-          nodes.lfoGain?.disconnect();
-        } catch {}
-        try {
-          nodes.freqLfoGain?.disconnect();
-        } catch {}
-        try {
-          nodes.filterNode?.disconnect();
-        } catch {}
-        try {
-          nodes.lowPassNode?.disconnect();
-        } catch {}
-        try {
-          nodes.masterGain?.disconnect();
-        } catch {}
-      }, 650);
-    } catch {}
-
-    ambientNodesRef.current.fountainNodes = null;
-  }, [getAudioContext]);
+    ambientNodesRef.current.brookAudio = null;
+  }, []);
 
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
@@ -1118,45 +1008,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       ambientNodesRef.current.musicGain = null;
     }
 
-    // Stop fountain sound
-    if (ambientNodesRef.current.fountainNodes) {
+    // Stop brook sound
+    if (ambientNodesRef.current.brookAudio) {
       try {
-        const nodes = ambientNodesRef.current.fountainNodes;
-        try {
-          nodes.noiseSource?.stop();
-        } catch {}
-        try {
-          nodes.noiseSource?.disconnect();
-        } catch {}
-        try {
-          nodes.lfo?.stop();
-        } catch {}
-        try {
-          nodes.lfo?.disconnect();
-        } catch {}
-        try {
-          nodes.freqLfo?.stop();
-        } catch {}
-        try {
-          nodes.freqLfo?.disconnect();
-        } catch {}
-        try {
-          nodes.lfoGain?.disconnect();
-        } catch {}
-        try {
-          nodes.freqLfoGain?.disconnect();
-        } catch {}
-        try {
-          nodes.filterNode?.disconnect();
-        } catch {}
-        try {
-          nodes.lowPassNode?.disconnect();
-        } catch {}
-        try {
-          nodes.masterGain?.disconnect();
-        } catch {}
+        ambientNodesRef.current.brookAudio.pause();
+        ambientNodesRef.current.brookAudio.currentTime = 0;
       } catch {}
-      ambientNodesRef.current.fountainNodes = null;
+      ambientNodesRef.current.brookAudio = null;
     }
 
 
@@ -1208,11 +1066,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     unlockAudio();
 
-    console.log('[audio] Starting handpan...');
+    console.log('[audio] Starting handpan and brook...');
 
-    // Tula: calming Malte Marten-style handpan only (fountain removed)
+    // Tula: calming Malte Marten-style handpan + brook ambient
     startHandpanMusic();
-  }, [unlockAudio, startHandpanMusic, startFountainSound]);
+    startBrookSound();
+  }, [unlockAudio, startHandpanMusic, startBrookSound]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
