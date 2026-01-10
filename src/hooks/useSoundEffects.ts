@@ -33,12 +33,18 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     musicInterval: ReturnType<typeof setInterval> | null;
     secondaryMusicInterval: ReturnType<typeof setInterval> | null;
     brookAudio: HTMLAudioElement | null;
+    birdInterval: ReturnType<typeof setInterval> | null;
+    windNode: AudioBufferSourceNode | null;
+    windGain: GainNode | null;
   }>({
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
     secondaryMusicInterval: null,
     brookAudio: null,
+    birdInterval: null,
+    windNode: null,
+    windGain: null,
   });
   
   // Keep currentPet ref updated
@@ -895,7 +901,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.brookAudio = null;
   }, []);
 
-  // Start soft lo-fi pad chords (Lola)
+  // Start soft lo-fi pad chords (Lola) with birds and wind
   const startLolaLofiMusic = useCallback(() => {
     // Enable lo-fi music for Lola
 
@@ -970,6 +976,91 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }, 8000);
 
     ambientNodesRef.current.musicInterval = musicInterval;
+
+    // === Start bird chirps ===
+    const playBird = () => {
+      const t = ctx.currentTime;
+      const baseFreq = 1800 + Math.random() * 800;
+      const chirpCount = 2 + Math.floor(Math.random() * 3);
+      
+      for (let j = 0; j < chirpCount; j++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        const startFreq = baseFreq + Math.random() * 400;
+        osc.frequency.setValueAtTime(startFreq, t + j * 0.08);
+        osc.frequency.exponentialRampToValueAtTime(startFreq * 1.3, t + j * 0.08 + 0.03);
+        osc.frequency.exponentialRampToValueAtTime(startFreq * 0.9, t + j * 0.08 + 0.06);
+        
+        gain.gain.setValueAtTime(0, t + j * 0.08);
+        gain.gain.linearRampToValueAtTime(ambientVolume * 0.25, t + j * 0.08 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + j * 0.08 + 0.07);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(t + j * 0.08);
+        osc.stop(t + j * 0.08 + 0.1);
+      }
+    };
+
+    // Initial bird chirp after short delay
+    setTimeout(playBird, 1500);
+    
+    // Random bird chirps every 4-8 seconds
+    const birdInterval = setInterval(() => {
+      if (Math.random() > 0.3) { // 70% chance to chirp
+        playBird();
+      }
+    }, 4000 + Math.random() * 4000);
+    
+    ambientNodesRef.current.birdInterval = birdInterval;
+
+    // === Start gentle wind ===
+    const windBufferSize = ctx.sampleRate * 4; // 4 second buffer
+    const windBuffer = ctx.createBuffer(1, windBufferSize, ctx.sampleRate);
+    const windData = windBuffer.getChannelData(0);
+    
+    // Create brownian noise for natural wind sound
+    let lastOut = 0;
+    for (let j = 0; j < windBufferSize; j++) {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + (0.02 * white)) / 1.02;
+      windData[j] = lastOut * 3.5;
+    }
+
+    const windNode = ctx.createBufferSource();
+    windNode.buffer = windBuffer;
+    windNode.loop = true;
+
+    const windFilter = ctx.createBiquadFilter();
+    windFilter.type = 'lowpass';
+    windFilter.frequency.setValueAtTime(400, ctx.currentTime);
+    windFilter.Q.setValueAtTime(0.5, ctx.currentTime);
+
+    const windGain = ctx.createGain();
+    windGain.gain.setValueAtTime(0, ctx.currentTime);
+    windGain.gain.linearRampToValueAtTime(ambientVolume * 0.15, ctx.currentTime + 2);
+
+    windNode.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(ctx.destination);
+    windNode.start();
+
+    ambientNodesRef.current.windNode = windNode;
+    ambientNodesRef.current.windGain = windGain;
+
+    // Animate wind intensity for UI effects
+    let windPhase = 0;
+    const animateWind = () => {
+      windPhase += 0.01;
+      const intensity = 0.3 + 0.2 * Math.sin(windPhase) + 0.1 * Math.sin(windPhase * 2.7);
+      setWindIntensity(Math.max(0, Math.min(1, intensity)));
+      windMeterRafRef.current = requestAnimationFrame(animateWind);
+    };
+    animateWind();
+
   }, [getAudioContext, getMusicBus]);
 
 
@@ -988,6 +1079,27 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     if (ambientNodesRef.current.secondaryMusicInterval) {
       clearInterval(ambientNodesRef.current.secondaryMusicInterval);
       ambientNodesRef.current.secondaryMusicInterval = null;
+    }
+
+    // Stop bird chirps
+    if (ambientNodesRef.current.birdInterval) {
+      clearInterval(ambientNodesRef.current.birdInterval);
+      ambientNodesRef.current.birdInterval = null;
+    }
+
+    // Stop wind sound
+    if (ambientNodesRef.current.windNode) {
+      try {
+        ambientNodesRef.current.windNode.stop();
+        ambientNodesRef.current.windNode.disconnect();
+      } catch {}
+      ambientNodesRef.current.windNode = null;
+    }
+    if (ambientNodesRef.current.windGain) {
+      try {
+        ambientNodesRef.current.windGain.disconnect();
+      } catch {}
+      ambientNodesRef.current.windGain = null;
     }
 
     // Hard-stop any currently playing music oscillators (lo-fi chords can ring out otherwise)
