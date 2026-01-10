@@ -1211,11 +1211,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     unlockAudio();
 
-    console.log('[audio] Starting handpan and fountain...');
+    console.log('[audio] Starting handpan...');
 
-    // Tula: calming Malte Marten-style handpan + soft fountain
+    // Tula: calming Malte Marten-style handpan only (fountain removed)
     startHandpanMusic();
-    startFountainSound();
   }, [unlockAudio, startHandpanMusic, startFountainSound]);
 
   // Toggle ambient sounds (music + ambience)
