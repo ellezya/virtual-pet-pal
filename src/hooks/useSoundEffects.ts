@@ -1074,6 +1074,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   }, [currentPet, stopAmbient]);
 
   const startAmbient = useCallback(() => {
+    // DISABLED: All ambient audio is currently turned off for debugging.
+    // When ready to re-enable, uncomment the code below.
+    stopAmbient();
+    return;
+
+    /*
     const pet = currentPetRef.current;
 
     // Ambient is Tula-only.
@@ -1105,7 +1111,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }, 3200);
 
     playWaterBubble();
-  }, [unlockAudio, startWaterFlowSound, startSteelPanMusic, playWaterBubble, stopAmbient]);
+    */
+  }, [stopAmbient]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
