@@ -1484,6 +1484,32 @@ const ClassroomPets = () => {
     }));
   };
 
+  // Make Tula poop on demand
+  const makeFishPoop = () => {
+    if (currentPet !== 'fish') return;
+    const pos = fishStateRef.current.position;
+    setFishPoops((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        x: pos.x + (Math.random() - 0.5) * 15,
+        y: Math.min(85, pos.y + 15 + Math.random() * 10),
+        createdAt: Date.now(),
+      },
+    ]);
+  };
+
+  // Trigger initial poop when component mounts for fish
+  useEffect(() => {
+    if (currentPet === 'fish') {
+      // Add a poop after a short delay
+      const timer = setTimeout(() => {
+        makeFishPoop();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPet]);
+
   const resetPet = () => {
     if (currentPet === 'bunny') {
       setBunnyState({
@@ -3034,8 +3060,18 @@ const ClassroomPets = () => {
               disabled={gameState.locked}
               className="pet-button-clean w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
             >
-              <span className="leading-none">🧽</span>
-              <span className="text-[9px] font-medium leading-none">Clean</span>
+              {/* Fish net icon for tank cleaning */}
+              <svg viewBox="0 0 24 24" width="24" height="24" className="drop-shadow-sm">
+                <path 
+                  d="M4 4L8 8M8 8C8 8 12 4 16 8C20 12 16 16 16 16L20 20M8 8L12 12M12 12C12 12 14 10 16 12C18 14 16 16 16 16M12 12L16 16" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round" 
+                  fill="none"
+                />
+                <ellipse cx="12" cy="14" rx="5" ry="4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="2 1" />
+              </svg>
+              <span className="text-[9px] font-medium leading-none">Net</span>
             </button>
           )}
           {currentPet === 'bunny' ? (
