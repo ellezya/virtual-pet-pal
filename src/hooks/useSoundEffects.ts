@@ -1052,77 +1052,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     if (hasCoreNodes) return;
 
-    // Clear any partial/stale nodes inline (including any leftover Lola ambience)
-    if (ambientNodesRef.current.wind) {
-      try {
-        (ambientNodesRef.current.wind as any).stop();
-      } catch {}
-      ambientNodesRef.current.wind = null;
-    }
-    if (ambientNodesRef.current.windLfo) {
-      try {
-        ambientNodesRef.current.windLfo.stop();
-      } catch {}
-      try {
-        ambientNodesRef.current.windLfo.disconnect();
-      } catch {}
-      ambientNodesRef.current.windLfo = null;
-    }
-    ambientNodesRef.current.windGain = null;
-    ambientNodesRef.current.windAnalyser = null;
-
-    if (ambientNodesRef.current.birdInterval) {
-      clearInterval(ambientNodesRef.current.birdInterval);
-      ambientNodesRef.current.birdInterval = null;
-    }
-    if (ambientNodesRef.current.childrenInterval) {
-      clearInterval(ambientNodesRef.current.childrenInterval);
-      ambientNodesRef.current.childrenInterval = null;
-    }
-
-    if (ambientNodesRef.current.musicInterval) {
-      clearInterval(ambientNodesRef.current.musicInterval);
-      ambientNodesRef.current.musicInterval = null;
-    }
-
-    // Hard-stop any currently playing music oscillators
-    if (ambientNodesRef.current.musicOscillators.length) {
-      ambientNodesRef.current.musicOscillators.forEach((osc) => {
-        try {
-          osc.stop();
-        } catch {}
-        try {
-          osc.disconnect();
-        } catch {}
-      });
-      ambientNodesRef.current.musicOscillators = [];
-    }
-
-    // Reset music bus
-    if (ambientNodesRef.current.musicGain) {
-      try {
-        ambientNodesRef.current.musicGain.disconnect();
-      } catch {}
-      ambientNodesRef.current.musicGain = null;
-    }
-
-    // Reset water sounds
-    if (ambientNodesRef.current.waterBubblesInterval) {
-      clearInterval(ambientNodesRef.current.waterBubblesInterval);
-      ambientNodesRef.current.waterBubblesInterval = null;
-    }
-    if (ambientNodesRef.current.waterFlowNode) {
-      try {
-        ambientNodesRef.current.waterFlowNode.stop();
-      } catch {}
-      ambientNodesRef.current.waterFlowNode = null;
-    }
-    if (ambientNodesRef.current.waterFlowGain) {
-      try {
-        ambientNodesRef.current.waterFlowGain.disconnect();
-      } catch {}
-      ambientNodesRef.current.waterFlowGain = null;
-    }
+    // HARD GUARANTEE: if we are starting Tula ambience, first kill *everything*.
+    // This prevents any previously-created Lola ambience (wind/birds/lofi) from bleeding through
+    // even if it was created by older code paths or untracked nodes.
+    stopAmbient();
 
     unlockAudio();
 
