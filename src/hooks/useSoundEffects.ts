@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
 import brookAmbient from '@/assets/brook-ambient.mp3';
 import morningBreezebirds from '@/assets/morning-breeze-birds.mp3';
+import cricketsBreeze from '@/assets/crickets-breeze-thunder.mp3';
 
 interface SoundEffectsReturn {
   playHop: () => void;
@@ -20,14 +21,16 @@ interface SoundEffectsReturn {
 }
 
 type PetType = 'bunny' | 'fish';
+type SceneType = 'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell';
 
-export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsReturn => {
+export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: SceneType = 'habitat'): SoundEffectsReturn => {
   /**
    * CRITICAL: WebAudio sound engine for Lola and Tula.
    * Keep this hook stable and self-contained (UI should only call the exported functions).
    */
   const audioContextRef = useRef<AudioContext | null>(null);
   const currentPetRef = useRef<PetType>(currentPet);
+  const currentSceneRef = useRef<SceneType>(currentScene);
   const ambientNodesRef = useRef<{
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
@@ -50,10 +53,14 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     breezeAudio: null,
   });
   
-  // Keep currentPet ref updated
+  // Keep currentPet and currentScene refs updated
   useEffect(() => {
     currentPetRef.current = currentPet;
   }, [currentPet]);
+
+  useEffect(() => {
+    currentSceneRef.current = currentScene;
+  }, [currentScene]);
 
 
   // Track if audio has been unlocked by user gesture
@@ -1003,6 +1010,30 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   }, [getAudioContext, getMusicBus]);
 
+  // Start room/sleeping ambient (crickets, breeze, distant thunder)
+  const startRoomAmbient = useCallback(() => {
+    console.log('[audio] Starting room ambient (crickets & thunder)...');
+    
+    const cricketsAudio = new Audio(cricketsBreeze);
+    cricketsAudio.loop = true;
+    cricketsAudio.volume = 0.35;
+    cricketsAudio.play().catch(() => {
+      console.log('[audio] Crickets autoplay blocked, waiting for user gesture');
+    });
+
+    ambientNodesRef.current.breezeAudio = cricketsAudio;
+
+    // Animate wind intensity for UI effects
+    let windPhase = 0;
+    const animateWind = () => {
+      windPhase += 0.008; // Slower for calm night feel
+      const intensity = 0.2 + 0.15 * Math.sin(windPhase) + 0.1 * Math.sin(windPhase * 1.5);
+      setWindIntensity(Math.max(0, Math.min(1, intensity)));
+      windMeterRafRef.current = requestAnimationFrame(animateWind);
+    };
+    animateWind();
+  }, []);
+
 
 
   const stopAmbient = useCallback(() => {
@@ -1105,15 +1136,15 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Start ambient for a specific pet
-  const startAmbientForPet = useCallback((pet: PetType) => {
+  // Start ambient for a specific pet and scene
+  const startAmbientForPetAndScene = useCallback((pet: PetType, scene: SceneType) => {
     // ALL AUDIO DISABLED
     if (allAudioDisabled) return;
 
-    console.log('[audio] startAmbientForPet called for', pet);
+    console.log('[audio] startAmbientForPetAndScene called for', pet, 'in scene', scene);
 
     // Guard: don't double-start if core nodes are already running
-    const hasCoreNodes = !!ambientNodesRef.current.musicInterval;
+    const hasCoreNodes = !!ambientNodesRef.current.musicInterval || !!ambientNodesRef.current.breezeAudio;
 
     console.log('[audio] hasCoreNodes:', hasCoreNodes);
 
@@ -1125,30 +1156,34 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       console.log('[audio] Starting handpan and brook for Tula...');
       startHandpanMusic();
       startBrookSound();
+    } else if (scene === 'room') {
+      // Room/sleeping scene gets crickets & thunder
+      startRoomAmbient();
     } else {
+      // Default Lola ambient (habitat, park, etc.)
       console.log('[audio] Starting lo-fi music for Lola...');
       startLolaLofiMusic();
     }
-  }, [unlockAudio, startHandpanMusic, startBrookSound, startLolaLofiMusic]);
+  }, [unlockAudio, startHandpanMusic, startBrookSound, startLolaLofiMusic, startRoomAmbient]);
 
   const startAmbient = useCallback(() => {
-    startAmbientForPet(currentPetRef.current);
-  }, [startAmbientForPet]);
+    startAmbientForPetAndScene(currentPetRef.current, currentSceneRef.current);
+  }, [startAmbientForPetAndScene]);
 
-  // 2) Restart ambient when pet changes (so each pet gets its own music)
+  // 2) Restart ambient when pet or scene changes
   useEffect(() => {
-    // Stop current ambient first, then restart with the new pet's music
+    // Stop current ambient first, then restart with the new pet/scene's music
     stopAmbient();
     
     // Small delay to ensure clean transition
     const timer = setTimeout(() => {
       if (shouldStartAmbientRef.current && hasUnlockedRef.current) {
-        startAmbientForPet(currentPetRef.current);
+        startAmbientForPetAndScene(currentPetRef.current, currentSceneRef.current);
       }
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [currentPet, stopAmbient, startAmbientForPet]);
+  }, [currentPet, currentScene, stopAmbient, startAmbientForPetAndScene]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
