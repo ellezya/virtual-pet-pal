@@ -2651,7 +2651,7 @@ const ClassroomPets = () => {
                 </div>
               )}
 
-              {/* Sparkle effects anchored to Tula's body (they flip + scale with her) */}
+              {/* Sparkle + bubble effects anchored to Tula's body (they flip + scale with her) */}
               {currentPet === 'fish' && (
                 <div
                   className="absolute inset-0 pointer-events-none"
@@ -2706,6 +2706,34 @@ const ClassroomPets = () => {
                         height: star.size,
                         animation: `scale-sparkle-2 ${star.duration}s ease-in-out infinite`,
                         animationDelay: `${star.delay}s`,
+                      }}
+                    />
+                  ))}
+
+                  {/* Tiny bubbles trailing from Tula's tail as she swims */}
+                  {[
+                    { x: '92%', y: '42%', size: 3, delay: 0, duration: 2.0 },
+                    { x: '96%', y: '48%', size: 4, delay: 0.4, duration: 2.3 },
+                    { x: '94%', y: '55%', size: 2, delay: 0.8, duration: 1.8 },
+                    { x: '100%', y: '45%', size: 3, delay: 1.2, duration: 2.1 },
+                    { x: '98%', y: '52%', size: 2, delay: 1.6, duration: 1.9 },
+                    { x: '104%', y: '48%', size: 3, delay: 2.0, duration: 2.2 },
+                    { x: '102%', y: '40%', size: 2, delay: 2.4, duration: 1.7 },
+                    { x: '106%', y: '54%', size: 2, delay: 2.8, duration: 2.0 },
+                  ].map((bubble, i) => (
+                    <div
+                      key={`tail-bubble-${i}`}
+                      className="absolute rounded-full"
+                      style={{
+                        left: bubble.x,
+                        top: bubble.y,
+                        width: bubble.size,
+                        height: bubble.size,
+                        background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), rgba(180, 220, 255, 0.3))',
+                        boxShadow: '0 0 2px rgba(255, 255, 255, 0.5), inset 0 0 1px rgba(255, 255, 255, 0.8)',
+                        animation: `tail-bubble-float ${bubble.duration}s ease-out infinite`,
+                        animationDelay: `${bubble.delay}s`,
+                        opacity: 0,
                       }}
                     />
                   ))}
