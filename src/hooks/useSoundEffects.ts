@@ -69,11 +69,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   // Used to detect when timers/audio stall (e.g. aggressive background throttling)
   const lastMusicTickRef = useRef<number>(Date.now());
 
+  // ALL AUDIO DISABLED per user request
+  const allAudioDisabled = true;
+
   const musicVolume = 0.12;
-
-  // User-requested sound policy: ONLY handpan music; no other SFX/ambience.
   const sfxEnabled = false;
-
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
@@ -824,6 +824,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Start calming handpan music (Tula) - Malte Marten style
   const startHandpanMusic = useCallback(() => {
+    // ALL AUDIO DISABLED
+    if (allAudioDisabled) return;
+
     const tick = () => {
       lastMusicTickRef.current = Date.now();
       playHandpanPhrase();
