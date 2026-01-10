@@ -2217,16 +2217,18 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Fish Poop - brownish-orange clumps of three tiny circles */}
+        {/* Fish Poop - brownish-orange clumps of three tiny circles, floating in water */}
         {currentPet === 'fish' && fishPoops.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-[12]">
-            {fishPoops.map(poop => (
+            {fishPoops.map((poop, index) => (
               <div
                 key={poop.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 animate-fade-in"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
                 style={{
                   left: `${poop.x}%`,
                   top: `${poop.y}%`,
+                  animation: `fish-poop-float ${2 + (index % 3) * 0.5}s ease-in-out infinite`,
+                  animationDelay: `${(index % 5) * 0.3}s`,
                 }}
               >
                 {/* Three-circle clump arrangement */}
