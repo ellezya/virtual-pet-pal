@@ -199,7 +199,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       // Start at a random point in the audio for variety
       const startOffset = Math.random() * 3; // Random start within first 3 seconds
       audio.currentTime = startOffset;
-      audio.volume = 0.25; // Subtle splash volume
+      audio.volume = 0.5; // Water splash volume
       audio.playbackRate = 1.1 + Math.random() * 0.3; // Slight pitch variation
       
       audio.play().catch(() => {});
