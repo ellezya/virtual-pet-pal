@@ -2593,31 +2593,30 @@ const ClassroomPets = () => {
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     // HARD GUARANTEE: never show sparkles over Tula's face.
-                    // We mask out the "head" side depending on swim direction.
-                    WebkitMaskImage: fishState.facingRight
-                      ? 'linear-gradient(90deg, transparent 0%, transparent 42%, black 55%, black 100%)'
-                      : 'linear-gradient(90deg, black 0%, black 45%, transparent 58%, transparent 100%)',
-                    maskImage: fishState.facingRight
-                      ? 'linear-gradient(90deg, transparent 0%, transparent 42%, black 55%, black 100%)'
-                      : 'linear-gradient(90deg, black 0%, black 45%, transparent 58%, transparent 100%)',
+                    // This layer lives inside the flipped fish container, so ONE mask works
+                    // for both swim directions (the mask flips along with her).
+                    WebkitMaskImage:
+                      'linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)',
+                    maskImage:
+                      'linear-gradient(90deg, transparent 0%, transparent 45%, black 60%, black 100%)',
                   }}
                 >
                   {/* Sparkle dots along body/tail area only */}
                   {[
-                    { xRight: '60%', xLeft: '40%', y: '35%', size: 4, delay: 0, duration: 2.5 },
-                    { xRight: '68%', xLeft: '32%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
-                    { xRight: '78%', xLeft: '22%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
-                    { xRight: '64%', xLeft: '36%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
-                    { xRight: '74%', xLeft: '26%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
-                    { xRight: '84%', xLeft: '16%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
-                    { xRight: '62%', xLeft: '38%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
-                    { xRight: '76%', xLeft: '24%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
+                    { x: '66%', y: '35%', size: 4, delay: 0, duration: 2.5 },
+                    { x: '74%', y: '42%', size: 3, delay: 0.8, duration: 2.2 },
+                    { x: '82%', y: '38%', size: 5, delay: 1.5, duration: 2.8 },
+                    { x: '70%', y: '55%', size: 3, delay: 2.1, duration: 2.4 },
+                    { x: '78%', y: '58%', size: 4, delay: 0.4, duration: 2.6 },
+                    { x: '88%', y: '48%', size: 3, delay: 1.8, duration: 2.3 },
+                    { x: '72%', y: '48%', size: 2, delay: 1.2, duration: 2.0 },
+                    { x: '84%', y: '52%', size: 3, delay: 2.5, duration: 2.7 },
                   ].map((sparkle, i) => (
                     <div
                       key={`sparkle-${i}`}
                       className="fish-sparkle"
                       style={{
-                        left: fishState.facingRight ? sparkle.xRight : sparkle.xLeft,
+                        left: sparkle.x,
                         top: sparkle.y,
                         width: sparkle.size,
                         height: sparkle.size,
@@ -2629,15 +2628,15 @@ const ClassroomPets = () => {
 
                   {/* Star sparkles for extra shimmer - body area only */}
                   {[
-                    { xRight: '66%', xLeft: '34%', y: '40%', size: 8, delay: 0.3, duration: 3 },
-                    { xRight: '72%', xLeft: '28%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
-                    { xRight: '82%', xLeft: '18%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
+                    { x: '72%', y: '40%', size: 8, delay: 0.3, duration: 3 },
+                    { x: '78%', y: '54%', size: 6, delay: 1.6, duration: 2.8 },
+                    { x: '86%', y: '45%', size: 7, delay: 2.2, duration: 3.2 },
                   ].map((star, i) => (
                     <div
                       key={`star-${i}`}
                       className="fish-sparkle-star"
                       style={{
-                        left: fishState.facingRight ? star.xRight : star.xLeft,
+                        left: star.x,
                         top: star.y,
                         width: star.size,
                         height: star.size,
