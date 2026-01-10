@@ -91,6 +91,38 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
+  // Global registry so we can hard-stop *all* WebAudio contexts (important in preview/HMR where
+  // old intervals/contexts can keep playing even after code changes).
+  const getGlobalAudioContextSet = () => {
+    const w = window as any;
+    if (!w.__lovableAudioContexts) w.__lovableAudioContexts = new Set<AudioContext>();
+    return w.__lovableAudioContexts as Set<AudioContext>;
+  };
+
+  const registerAudioContext = (ctx: AudioContext) => {
+    try {
+      getGlobalAudioContextSet().add(ctx);
+    } catch {
+      // ignore
+    }
+  };
+
+  const closeAllAudioContexts = () => {
+    try {
+      const set = getGlobalAudioContextSet();
+      set.forEach((c) => {
+        try {
+          void c.close();
+        } catch {
+          // ignore
+        }
+      });
+      set.clear();
+    } catch {
+      // ignore
+    }
+  };
+
   // Initialize audio context and attempt resume
   const getAudioContext = useCallback(() => {
     const AudioCtor = window.AudioContext || (window as any).webkitAudioContext;
@@ -98,9 +130,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // Recreate if missing or the browser closed it (some mobile browsers do this under memory pressure)
     if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
       audioContextRef.current = new AudioCtor();
+      registerAudioContext(audioContextRef.current);
     }
 
     const ctx = audioContextRef.current;
+    registerAudioContext(ctx);
 
     // Lightweight debug trail for when browsers suspend/close audio (helps diagnose random cut-outs)
     ctx.onstatechange = () => {
@@ -1015,13 +1049,16 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }
     ambientNodesRef.current.waterFlowGain = null;
 
-    // HARD RESET: close the AudioContext to guarantee any previously-created (untracked) nodes are silenced.
+    // HARD RESET: close the AudioContext(s) to guarantee any previously-created nodes are silenced.
+    // In preview/HMR, older module instances can leave behind contexts; close them all.
     if (audioContextRef.current) {
       try {
         void audioContextRef.current.close();
       } catch {}
       audioContextRef.current = null;
     }
+
+    closeAllAudioContexts();
   }, []);
 
   // Safety: ambience is Tula-only.

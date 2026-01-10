@@ -72,6 +72,21 @@ const ClassroomPets = () => {
     };
   }, []);
 
+  // HARD MUTE ALL MEDIA: guarantees that any video/audio elements never contribute sound.
+  // This is separate from the WebAudio SFX engine.
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLMediaElement>('audio, video');
+    els.forEach((el) => {
+      try {
+        el.muted = true;
+        (el as any).defaultMuted = true;
+        el.volume = 0;
+      } catch {
+        // ignore
+      }
+    });
+  }, [currentPet, currentScene]);
+
   // Create truly transparent fish sprites at runtime (removes baked-in white/checkerboard background)
   const [fishSpriteAlpha, setFishSpriteAlpha] = useState<{
     happy: string;
