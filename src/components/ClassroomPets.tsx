@@ -1458,28 +1458,23 @@ const ClassroomPets = () => {
         happiness: Math.min(100, prev.happiness + 10)
       }));
     } else {
-      // Clear all fish poops (but not algae - use filter for that)
+      // Net scoops out fish poop only (filter cleans the water/algae)
       setFishPoops([]);
       setFishState(prev => ({ 
         ...prev, 
-        tankCleanliness: Math.min(100, prev.tankCleanliness + 40), 
-        happiness: Math.min(100, prev.happiness + 10) 
+        happiness: Math.min(100, prev.happiness + 5) 
       }));
     }
   };
 
-  // Water filter cleans algae buildup but not poop
+  // Water filter cleans tank water/algae buildup (not poop - use net for that)
   const runWaterFilter = () => {
     if (gameState.locked || currentPet !== 'fish') return;
     playClean();
-    // Reset algae growth by updating createdAt to now
-    setFishPoops(prev => prev.map(poop => ({
-      ...poop,
-      createdAt: Date.now() // Reset algae age
-    })));
+    // Filter cleans the water - improves tank cleanliness
     setFishState(prev => ({ 
       ...prev, 
-      tankCleanliness: Math.min(100, prev.tankCleanliness + 30),
+      tankCleanliness: Math.min(100, prev.tankCleanliness + 40),
       happiness: Math.min(100, prev.happiness + 5)
     }));
   };
