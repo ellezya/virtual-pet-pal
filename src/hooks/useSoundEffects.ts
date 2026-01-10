@@ -1003,7 +1003,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     const windGain = ctx.createGain();
     windGain.gain.setValueAtTime(0, ctx.currentTime);
-    windGain.gain.linearRampToValueAtTime(ambientVolume * 0.15, ctx.currentTime + 2);
+    windGain.gain.linearRampToValueAtTime(ambientVolume * 0.5, ctx.currentTime + 2);
 
     windNode.connect(windFilter);
     windFilter.connect(windGain);
