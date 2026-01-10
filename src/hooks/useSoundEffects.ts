@@ -1040,21 +1040,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2) Restart ambient when pet changes (so each pet gets its own music)
-  useEffect(() => {
-    // Stop current ambient first, then restart with the new pet's music
-    stopAmbient();
-    
-    // Small delay to ensure clean transition
-    const timer = setTimeout(() => {
-      if (shouldStartAmbientRef.current && hasUnlockedRef.current) {
-        startAmbientForPet(currentPetRef.current);
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [currentPet, stopAmbient]);
-
   // Start ambient for a specific pet
   const startAmbientForPet = useCallback((pet: PetType) => {
     // ALL AUDIO DISABLED
@@ -1084,6 +1069,21 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const startAmbient = useCallback(() => {
     startAmbientForPet(currentPetRef.current);
   }, [startAmbientForPet]);
+
+  // 2) Restart ambient when pet changes (so each pet gets its own music)
+  useEffect(() => {
+    // Stop current ambient first, then restart with the new pet's music
+    stopAmbient();
+    
+    // Small delay to ensure clean transition
+    const timer = setTimeout(() => {
+      if (shouldStartAmbientRef.current && hasUnlockedRef.current) {
+        startAmbientForPet(currentPetRef.current);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [currentPet, stopAmbient, startAmbientForPet]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
