@@ -698,154 +698,215 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     return bus;
   }, [getAudioContext, musicVolume]);
 
-  // Play a soft, relaxing steel pan note with gentle bell-like quality
-  const playSteelPanNote = useCallback(
-    (frequency: number, startTime: number, duration: number) => {
+  // Play a calming Malte Marten-style handpan note
+  // Handpan has warm, resonant, meditative quality with rich harmonics and long sustain
+  const playHandpanNote = useCallback(
+    (frequency: number, startTime: number, duration: number, velocity: number = 0.8) => {
       const ctx = getAudioContext();
       const musicBus = getMusicBus();
 
       const noteGain = ctx.createGain();
-      noteGain.connect(musicBus);
+      
+      // Reverb-like effect using delay
+      const delayNode = ctx.createDelay();
+      delayNode.delayTime.setValueAtTime(0.15, startTime);
+      const delayGain = ctx.createGain();
+      delayGain.gain.setValueAtTime(0.3, startTime);
+      
+      // Soft low-pass filter for warmth
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2000 + frequency * 0.5, startTime);
+      filter.Q.setValueAtTime(0.7, startTime);
 
-      // Soft attack and gentle decay for relaxing sound
+      noteGain.connect(filter);
+      filter.connect(musicBus);
+      filter.connect(delayNode);
+      delayNode.connect(delayGain);
+      delayGain.connect(musicBus);
+
+      // Handpan has a soft "ping" attack then long, warm sustain
       noteGain.gain.setValueAtTime(0, startTime);
-      noteGain.gain.linearRampToValueAtTime(1, startTime + 0.05);
-      noteGain.gain.linearRampToValueAtTime(0.7, startTime + 0.3);
+      noteGain.gain.linearRampToValueAtTime(velocity, startTime + 0.008); // Fast ping
+      noteGain.gain.linearRampToValueAtTime(velocity * 0.6, startTime + 0.08); // Quick drop
+      noteGain.gain.exponentialRampToValueAtTime(velocity * 0.35, startTime + duration * 0.3);
       noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      // Fundamental frequency
+      // Fundamental - deep and warm
       const osc1 = ctx.createOscillator();
       osc1.type = 'sine';
       osc1.frequency.setValueAtTime(frequency, startTime);
+      
+      // Sub-harmonic for depth (characteristic of handpan)
+      const oscSub = ctx.createOscillator();
+      oscSub.type = 'sine';
+      oscSub.frequency.setValueAtTime(frequency * 0.5, startTime);
 
-      // Second harmonic (octave)
+      // Second harmonic (octave) - strong in handpan
       const osc2 = ctx.createOscillator();
       osc2.type = 'sine';
       osc2.frequency.setValueAtTime(frequency * 2, startTime);
+      // Slight detune for warmth
+      osc2.detune.setValueAtTime(3, startTime);
 
-      // Third harmonic for metallic shimmer
+      // Third harmonic - softer
       const osc3 = ctx.createOscillator();
       osc3.type = 'sine';
       osc3.frequency.setValueAtTime(frequency * 3, startTime);
 
-      // Fourth harmonic - subtle
-      const osc4 = ctx.createOscillator();
-      osc4.type = 'sine';
-      osc4.frequency.setValueAtTime(frequency * 4, startTime);
+      // Fifth harmonic for metallic shimmer (characteristic handpan sound)
+      const osc5 = ctx.createOscillator();
+      osc5.type = 'sine';
+      osc5.frequency.setValueAtTime(frequency * 5.02, startTime); // Slightly detuned
 
-      // Gains for each harmonic
+      // Individual gains with handpan-like harmonic structure
+      const gainSub = ctx.createGain();
       const gain1 = ctx.createGain();
       const gain2 = ctx.createGain();
       const gain3 = ctx.createGain();
-      const gain4 = ctx.createGain();
+      const gain5 = ctx.createGain();
 
+      gainSub.gain.setValueAtTime(0.4, startTime);
       gain1.gain.setValueAtTime(1.0, startTime);
-      gain2.gain.setValueAtTime(0.5, startTime);
-      gain3.gain.setValueAtTime(0.25, startTime);
-      gain4.gain.setValueAtTime(0.1, startTime);
+      gain2.gain.setValueAtTime(0.6, startTime);
+      gain3.gain.setValueAtTime(0.15, startTime);
+      gain5.gain.setValueAtTime(0.08, startTime);
 
-      // Faster decay for higher harmonics
-      gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.6);
-      gain3.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.4);
-      gain4.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.3);
+      // Harmonics decay at different rates - higher harmonics faster
+      gainSub.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.9);
+      gain2.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.5);
+      gain3.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.3);
+      gain5.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.15);
 
+      oscSub.connect(gainSub);
       osc1.connect(gain1);
       osc2.connect(gain2);
       osc3.connect(gain3);
-      osc4.connect(gain4);
+      osc5.connect(gain5);
 
+      gainSub.connect(noteGain);
       gain1.connect(noteGain);
       gain2.connect(noteGain);
       gain3.connect(noteGain);
-      gain4.connect(noteGain);
+      gain5.connect(noteGain);
 
-      [osc1, osc2, osc3, osc4].forEach((osc) => {
+      const oscillators = [oscSub, osc1, osc2, osc3, osc5];
+      oscillators.forEach((osc) => {
         osc.start(startTime);
-        osc.stop(startTime + duration);
+        osc.stop(startTime + duration + 0.1);
         osc.onended = () => {
-          try {
-            osc.disconnect();
-          } catch {}
+          try { osc.disconnect(); } catch {}
         };
       });
 
       // Cleanup
       window.setTimeout(() => {
-        try {
-          noteGain.disconnect();
-        } catch {}
-        [gain1, gain2, gain3, gain4].forEach((g) => {
-          try {
-            g.disconnect();
-          } catch {}
+        try { noteGain.disconnect(); } catch {}
+        try { filter.disconnect(); } catch {}
+        try { delayNode.disconnect(); } catch {}
+        try { delayGain.disconnect(); } catch {}
+        [gainSub, gain1, gain2, gain3, gain5].forEach((g) => {
+          try { g.disconnect(); } catch {}
         });
       }, Math.ceil((duration + 0.5) * 1000));
     },
     [getAudioContext, getMusicBus]
   );
 
-  // Play a soft, relaxing steel pan melody phrase
-  const playSteelPanPhrase = useCallback(() => {
+  // Play a Malte Marten-style handpan phrase - meditative, spacious, flowing
+  const playHandpanPhrase = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // Soft, relaxing pentatonic patterns - slower timing, longer notes
+    // D Minor / Kurd scale - common handpan tuning, very meditative
+    // D3, A3, Bb3, C4, D4, E4, F4, A4
+    const scale = {
+      D3: 146.83,
+      A3: 220.00,
+      Bb3: 233.08,
+      C4: 261.63,
+      D4: 293.66,
+      E4: 329.63,
+      F4: 349.23,
+      A4: 440.00,
+    };
+    
+    // Malte Marten-style phrases - spacious, melodic, flowing
     const phrases = [
-      // Phrase 1: Gentle ascending
+      // Phrase 1: Gentle ascending meditation
       [
-        { freq: 392.00, delay: 0, dur: 2.0 },      // G4
-        { freq: 440.00, delay: 1.0, dur: 1.8 },    // A4
-        { freq: 523.25, delay: 2.2, dur: 2.5 },    // C5
+        { note: scale.D3, delay: 0, dur: 4.0, vel: 0.7 },
+        { note: scale.A3, delay: 2.5, dur: 3.5, vel: 0.6 },
+        { note: scale.D4, delay: 5.0, dur: 4.5, vel: 0.5 },
       ],
-      // Phrase 2: Soft descending
+      // Phrase 2: Soft descending flow
       [
-        { freq: 659.25, delay: 0, dur: 2.2 },      // E5
-        { freq: 523.25, delay: 1.5, dur: 2.0 },    // C5
-        { freq: 440.00, delay: 3.0, dur: 2.5 },    // A4
+        { note: scale.A4, delay: 0, dur: 3.5, vel: 0.55 },
+        { note: scale.F4, delay: 2.0, dur: 3.0, vel: 0.5 },
+        { note: scale.D4, delay: 4.0, dur: 4.0, vel: 0.6 },
+        { note: scale.A3, delay: 6.5, dur: 5.0, vel: 0.45 },
       ],
-      // Phrase 3: Two gentle notes
+      // Phrase 3: Two resonant notes
       [
-        { freq: 523.25, delay: 0, dur: 2.5 },      // C5
-        { freq: 587.33, delay: 2.0, dur: 3.0 },    // D5
+        { note: scale.D4, delay: 0, dur: 5.0, vel: 0.65 },
+        { note: scale.E4, delay: 3.5, dur: 5.0, vel: 0.5 },
       ],
-      // Phrase 4: Single peaceful note
+      // Phrase 4: Single deep meditation note
       [
-        { freq: 392.00, delay: 0, dur: 3.5 },      // G4
+        { note: scale.D3, delay: 0, dur: 6.0, vel: 0.75 },
       ],
-      // Phrase 5: Gentle wave
+      // Phrase 5: Flowing arpeggio
       [
-        { freq: 440.00, delay: 0, dur: 2.0 },      // A4
-        { freq: 523.25, delay: 1.2, dur: 2.2 },    // C5
-        { freq: 440.00, delay: 2.8, dur: 2.5 },    // A4
+        { note: scale.A3, delay: 0, dur: 3.0, vel: 0.55 },
+        { note: scale.C4, delay: 1.5, dur: 2.8, vel: 0.5 },
+        { note: scale.E4, delay: 3.0, dur: 3.0, vel: 0.45 },
+        { note: scale.A4, delay: 4.8, dur: 4.0, vel: 0.4 },
+      ],
+      // Phrase 6: Minor third harmony
+      [
+        { note: scale.D4, delay: 0, dur: 4.5, vel: 0.6 },
+        { note: scale.F4, delay: 0.1, dur: 4.5, vel: 0.4 }, // Played together
+      ],
+      // Phrase 7: Breathing space - just bass
+      [
+        { note: scale.A3, delay: 0, dur: 5.5, vel: 0.7 },
+      ],
+      // Phrase 8: Gentle cascading
+      [
+        { note: scale.F4, delay: 0, dur: 2.5, vel: 0.5 },
+        { note: scale.E4, delay: 1.2, dur: 2.5, vel: 0.5 },
+        { note: scale.D4, delay: 2.4, dur: 3.0, vel: 0.55 },
+        { note: scale.C4, delay: 3.8, dur: 3.5, vel: 0.5 },
+        { note: scale.A3, delay: 5.5, dur: 4.5, vel: 0.6 },
       ],
     ];
     
     const phrase = phrases[Math.floor(Math.random() * phrases.length)];
     
     phrase.forEach(note => {
-      playSteelPanNote(note.freq, time + note.delay, note.dur);
+      playHandpanNote(note.note, time + note.delay, note.dur, note.vel);
     });
-  }, [getAudioContext, playSteelPanNote]);
+  }, [getAudioContext, playHandpanNote]);
 
-  // Start soft steel pan background music (Tula)
-  const startSteelPanMusic = useCallback(() => {
+  // Start calming handpan music (Tula) - Malte Marten style
+  const startHandpanMusic = useCallback(() => {
     const tick = () => {
       lastMusicTickRef.current = Date.now();
-      playSteelPanPhrase();
+      playHandpanPhrase();
     };
 
-    // Play immediately (so users can tell the music changed)
+    // Play immediately
     tick();
 
-    // Play phrases with longer pauses (7-10 seconds apart) for relaxation
+    // Play phrases with meditative pauses (10-15 seconds apart)
     const musicInterval = setInterval(() => {
-      if (Math.random() < 0.6) {
+      if (Math.random() < 0.55) { // Slightly less frequent for more space
         tick();
       }
-    }, 8000);
+    }, 12000); // Longer intervals for meditation
 
     ambientNodesRef.current.musicInterval = musicInterval;
-  }, [playSteelPanPhrase]);
+  }, [playHandpanPhrase]);
 
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
@@ -1074,12 +1135,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   }, [currentPet, stopAmbient]);
 
   const startAmbient = useCallback(() => {
-    // DISABLED: All ambient audio is currently turned off for debugging.
-    // When ready to re-enable, uncomment the code below.
-    stopAmbient();
-    return;
-
-    /*
     const pet = currentPetRef.current;
 
     // Ambient is Tula-only.
@@ -1091,28 +1146,18 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     // Guard: don't double-start if core nodes are already running
     const hasCoreNodes =
-      !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval;
+      !!ambientNodesRef.current.musicInterval;
 
     if (hasCoreNodes) return;
 
     // HARD GUARANTEE: if we are starting Tula ambience, first kill *everything*.
-    // This prevents any previously-created Lola ambience (wind/birds/lofi) from bleeding through
-    // even if it was created by older code paths or untracked nodes.
     stopAmbient();
 
     unlockAudio();
 
-    // Tula: steel pans + relaxing water only
-    startSteelPanMusic();
-    startWaterFlowSound();
-
-    ambientNodesRef.current.waterBubblesInterval = setInterval(() => {
-      if (Math.random() < 0.35) playWaterBubble();
-    }, 3200);
-
-    playWaterBubble();
-    */
-  }, [stopAmbient]);
+    // Tula: calming Malte Marten-style handpan only (no water for now)
+    startHandpanMusic();
+  }, [stopAmbient, unlockAudio, startHandpanMusic]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
