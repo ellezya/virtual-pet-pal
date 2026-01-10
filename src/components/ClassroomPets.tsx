@@ -2816,15 +2816,7 @@ const ClassroomPets = () => {
               )}
             </div>
             
-            {/* Idle behavior indicators */}
-            {currentPet === 'bunny' && bunnyState.idleBehavior !== 'none' && bunnyState.action === 'idle' && (
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-base animate-bounce-slow">
-                {bunnyState.idleBehavior === 'sniffing' && '👃'}
-                {bunnyState.idleBehavior === 'ear-scratch' && '✋'}
-                {bunnyState.idleBehavior === 'nibbling' && '🌿'}
-                {bunnyState.idleBehavior === 'looking' && '👀'}
-              </div>
-            )}
+            {/* Idle behavior indicators removed - keep face clean */}
             
             {/* Sleep Z's and Dream Bubbles - alternating */}
             {currentPet === 'bunny' && bunnyState.isNapping && (
