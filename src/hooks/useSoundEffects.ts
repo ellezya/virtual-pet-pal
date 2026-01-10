@@ -69,8 +69,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   // Used to detect when timers/audio stall (e.g. aggressive background throttling)
   const lastMusicTickRef = useRef<number>(Date.now());
 
-  // ALL AUDIO DISABLED per user request
-  const allAudioDisabled = true;
+  // Only handpan music enabled; all SFX disabled
+  const allAudioDisabled = false;
 
   const musicVolume = 0.12;
   const sfxEnabled = false;
