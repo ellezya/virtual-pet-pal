@@ -31,11 +31,17 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
     secondaryMusicInterval: ReturnType<typeof setInterval> | null;
+    fountainNodes: {
+      noiseSource: AudioBufferSourceNode | null;
+      gainNode: GainNode | null;
+      filterNode: BiquadFilterNode | null;
+    } | null;
   }>({
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
     secondaryMusicInterval: null,
+    fountainNodes: null,
   });
   
   // Keep currentPet ref updated
@@ -854,6 +860,94 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.secondaryMusicInterval = secondaryInterval;
   }, [playHandpanPhrase]);
 
+  // Start soft flowing fountain sound - gentle water ambience
+  const startFountainSound = useCallback(() => {
+    // Don't start if already running
+    if (ambientNodesRef.current.fountainNodes) return;
+
+    const ctx = getAudioContext();
+    const bus = getMusicBus();
+
+    // Create pink-ish noise for natural water sound
+    const bufferSize = ctx.sampleRate * 10; // 10 seconds of noise
+    const noiseBuffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+    
+    for (let channel = 0; channel < 2; channel++) {
+      const output = noiseBuffer.getChannelData(channel);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        
+        // Pink noise algorithm (Paul Kellet's refined method)
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        
+        // Add subtle variation for flowing water texture
+        const variation = Math.sin(i / ctx.sampleRate * 0.3) * 0.1;
+        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * (0.08 + variation);
+        b6 = white * 0.115926;
+      }
+    }
+
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+
+    // Bandpass filter to shape water-like frequencies (300-1200 Hz range)
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 600;
+    filter.Q.value = 0.5; // Wide bandwidth for natural sound
+
+    // Secondary high-shelf to add gentle sparkle (like water droplets)
+    const highShelf = ctx.createBiquadFilter();
+    highShelf.type = 'highshelf';
+    highShelf.frequency.value = 2000;
+    highShelf.gain.value = -6; // Subtle high end
+
+    // Gain for volume control with gentle fade-in
+    const gainNode = ctx.createGain();
+    const t = ctx.currentTime;
+    gainNode.gain.setValueAtTime(0, t);
+    gainNode.gain.linearRampToValueAtTime(0.08, t + 3); // Soft fade in over 3 seconds
+
+    // Connect: noise -> bandpass -> highshelf -> gain -> music bus
+    noiseSource.connect(filter);
+    filter.connect(highShelf);
+    highShelf.connect(gainNode);
+    gainNode.connect(bus);
+
+    noiseSource.start();
+
+    ambientNodesRef.current.fountainNodes = {
+      noiseSource,
+      gainNode,
+      filterNode: filter,
+    };
+  }, [getAudioContext, getMusicBus]);
+
+  // Stop fountain sound
+  const stopFountainSound = useCallback(() => {
+    const nodes = ambientNodesRef.current.fountainNodes;
+    if (!nodes) return;
+
+    try {
+      if (nodes.noiseSource) {
+        nodes.noiseSource.stop();
+        nodes.noiseSource.disconnect();
+      }
+      if (nodes.gainNode) nodes.gainNode.disconnect();
+      if (nodes.filterNode) nodes.filterNode.disconnect();
+    } catch {}
+
+    ambientNodesRef.current.fountainNodes = null;
+  }, []);
+
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
     // ALL AUDIO DISABLED except handpan
@@ -971,6 +1065,20 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       ambientNodesRef.current.musicGain = null;
     }
 
+    // Stop fountain sound
+    if (ambientNodesRef.current.fountainNodes) {
+      try {
+        const nodes = ambientNodesRef.current.fountainNodes;
+        if (nodes.noiseSource) {
+          nodes.noiseSource.stop();
+          nodes.noiseSource.disconnect();
+        }
+        if (nodes.gainNode) nodes.gainNode.disconnect();
+        if (nodes.filterNode) nodes.filterNode.disconnect();
+      } catch {}
+      ambientNodesRef.current.fountainNodes = null;
+    }
+
 
     // NOTE: Do NOT close the AudioContext here.
     // Closing/recreating contexts can break autoplay policy (resume must happen in a user gesture)
@@ -1020,11 +1128,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     unlockAudio();
 
-    console.log('[audio] Starting handpan...');
+    console.log('[audio] Starting handpan and fountain...');
 
-    // Tula: calming Malte Marten-style handpan
+    // Tula: calming Malte Marten-style handpan + soft fountain
     startHandpanMusic();
-  }, [unlockAudio, startHandpanMusic]);
+    startFountainSound();
+  }, [unlockAudio, startHandpanMusic, startFountainSound]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
