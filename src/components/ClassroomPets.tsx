@@ -2217,54 +2217,59 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Fish Waste with subtle organic algae growth - immersive design */}
-        {currentPet === 'fish' && (
+        {/* Fish Poop - brownish-orange clumps of three tiny circles */}
+        {currentPet === 'fish' && fishPoops.length > 0 && (
           <div className="absolute inset-0 pointer-events-none z-[7]">
-            {fishPoops.map(poop => {
-              const ageMinutes = (Date.now() - poop.createdAt) / 60000;
-              const algaeLevel = Math.min(1, ageMinutes * 0.25); // Full algae in ~4 minutes
-              const algaeSize = 0.3 + algaeLevel * 1.2;
-              
-              return (
-                <div
-                  key={poop.id}
-                  className="absolute transform -translate-x-1/2"
-                  style={{
-                    left: `${poop.x}%`,
-                    top: `${poop.y}%`,
-                  }}
-                >
-                  {/* Organic waste dot with growing algae halo */}
+            {fishPoops.map(poop => (
+              <div
+                key={poop.id}
+                className="absolute transform -translate-x-1/2 animate-fade-in"
+                style={{
+                  left: `${poop.x}%`,
+                  top: `${poop.y}%`,
+                }}
+              >
+                {/* Three-circle clump arrangement */}
+                <div className="relative" style={{ width: '12px', height: '10px' }}>
+                  {/* Top circle */}
                   <div 
-                    className="relative"
+                    className="absolute rounded-full"
                     style={{
-                      width: `${8 + algaeLevel * 12}px`,
-                      height: `${8 + algaeLevel * 12}px`,
+                      width: '5px',
+                      height: '5px',
+                      left: '3px',
+                      top: '0px',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(205, 133, 63), rgb(139, 90, 43))',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
                     }}
-                  >
-                    {/* Algae growth halo */}
-                    <div 
-                      className="absolute inset-0 rounded-full transition-all duration-1000"
-                      style={{
-                        background: `radial-gradient(circle, rgba(85, 107, 47, ${0.2 + algaeLevel * 0.4}) 0%, rgba(60, 80, 40, ${0.1 + algaeLevel * 0.2}) 50%, transparent 80%)`,
-                        transform: `scale(${algaeSize})`,
-                        filter: `blur(${1 + algaeLevel * 2}px)`,
-                      }}
-                    />
-                    {/* Core waste particle */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                      style={{
-                        width: '4px',
-                        height: '4px',
-                        background: `rgba(90, 70, 50, ${0.5 + algaeLevel * 0.3})`,
-                        boxShadow: `0 0 3px rgba(70, 90, 50, ${0.3 + algaeLevel * 0.4})`,
-                      }}
-                    />
-                  </div>
+                  />
+                  {/* Bottom-left circle */}
+                  <div 
+                    className="absolute rounded-full"
+                    style={{
+                      width: '4px',
+                      height: '4px',
+                      left: '0px',
+                      top: '5px',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(210, 140, 70), rgb(150, 100, 50))',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                  />
+                  {/* Bottom-right circle */}
+                  <div 
+                    className="absolute rounded-full"
+                    style={{
+                      width: '4px',
+                      height: '4px',
+                      left: '6px',
+                      top: '6px',
+                      background: 'radial-gradient(circle at 30% 30%, rgb(200, 125, 55), rgb(130, 85, 40))',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                  />
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
 
