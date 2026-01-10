@@ -981,6 +981,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   }, [currentPet, stopAmbient]);
 
   const startAmbient = useCallback(() => {
+    // ALL AUDIO DISABLED
+    if (allAudioDisabled) return;
+
     const pet = currentPetRef.current;
 
     console.log('[audio] startAmbient called for', pet);
@@ -1009,6 +1012,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
+    // ALL AUDIO DISABLED
+    if (allAudioDisabled) return;
+
     setIsAmbientPlaying((prev) => {
       const next = !prev;
       shouldStartAmbientRef.current = next;
