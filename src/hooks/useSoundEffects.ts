@@ -36,6 +36,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     waterBubblesInterval: ReturnType<typeof setInterval> | null;
     waterFlowNode: AudioBufferSourceNode | null;
     waterFlowGain: GainNode | null;
+    brookStreamNode: AudioBufferSourceNode | null;
+    brookStreamGain: GainNode | null;
+    brookTrickleNode: AudioBufferSourceNode | null;
+    brookTrickleGain: GainNode | null;
+    brookGurgleInterval: ReturnType<typeof setInterval> | null;
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
@@ -49,6 +54,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     waterBubblesInterval: null,
     waterFlowNode: null,
     waterFlowGain: null,
+    brookStreamNode: null,
+    brookStreamGain: null,
+    brookTrickleNode: null,
+    brookTrickleGain: null,
+    brookGurgleInterval: null,
     musicOscillators: [],
     musicGain: null,
     musicInterval: null,
@@ -615,6 +625,162 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }
   }, [getAudioContext]);
 
+  // Start calming babbling brook sound - gentle trickling water
+  const startBabblingBrook = useCallback(() => {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // === Layer 1: Continuous gentle stream base ===
+    const streamBufferSize = ctx.sampleRate * 4;
+    const streamBuffer = ctx.createBuffer(1, streamBufferSize, ctx.sampleRate);
+    const streamData = streamBuffer.getChannelData(0);
+    
+    // Create pink-ish noise for natural water sound
+    for (let i = 0; i < streamBufferSize; i++) {
+      streamData[i] = (Math.random() * 2 - 1) * 0.25;
+    }
+    // Smooth for softer flow
+    for (let pass = 0; pass < 4; pass++) {
+      for (let i = 1; i < streamBufferSize - 1; i++) {
+        streamData[i] = (streamData[i - 1] * 0.3 + streamData[i] * 0.4 + streamData[i + 1] * 0.3);
+      }
+    }
+    
+    const streamNoise = ctx.createBufferSource();
+    streamNoise.buffer = streamBuffer;
+    streamNoise.loop = true;
+    
+    // Bandpass filter for that characteristic brook sound (mid frequencies)
+    const streamFilter = ctx.createBiquadFilter();
+    streamFilter.type = 'bandpass';
+    streamFilter.frequency.setValueAtTime(800, time);
+    streamFilter.Q.setValueAtTime(0.8, time);
+    
+    // High shelf to add sparkle
+    const highShelf = ctx.createBiquadFilter();
+    highShelf.type = 'highshelf';
+    highShelf.frequency.setValueAtTime(2000, time);
+    highShelf.gain.setValueAtTime(3, time);
+    
+    // Slow modulation for organic movement
+    const streamLfo = ctx.createOscillator();
+    const streamLfoGain = ctx.createGain();
+    streamLfo.type = 'sine';
+    streamLfo.frequency.setValueAtTime(0.15, time);
+    streamLfoGain.gain.setValueAtTime(150, time);
+    streamLfo.connect(streamLfoGain);
+    streamLfoGain.connect(streamFilter.frequency);
+    
+    const streamGain = ctx.createGain();
+    streamGain.gain.setValueAtTime(ambientVolume * 0.35, time);
+    
+    streamNoise.connect(streamFilter);
+    streamFilter.connect(highShelf);
+    highShelf.connect(streamGain);
+    streamGain.connect(ctx.destination);
+    
+    streamLfo.start();
+    streamNoise.start();
+    
+    // === Layer 2: Higher trickling sounds ===
+    const trickleBufferSize = ctx.sampleRate * 2;
+    const trickleBuffer = ctx.createBuffer(1, trickleBufferSize, ctx.sampleRate);
+    const trickleData = trickleBuffer.getChannelData(0);
+    
+    for (let i = 0; i < trickleBufferSize; i++) {
+      trickleData[i] = (Math.random() * 2 - 1) * 0.15;
+    }
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 1; i < trickleBufferSize - 1; i++) {
+        trickleData[i] = (trickleData[i - 1] + trickleData[i] + trickleData[i + 1]) / 3;
+      }
+    }
+    
+    const trickleNoise = ctx.createBufferSource();
+    trickleNoise.buffer = trickleBuffer;
+    trickleNoise.loop = true;
+    
+    const trickleFilter = ctx.createBiquadFilter();
+    trickleFilter.type = 'highpass';
+    trickleFilter.frequency.setValueAtTime(1500, time);
+    trickleFilter.Q.setValueAtTime(0.5, time);
+    
+    const trickleFilter2 = ctx.createBiquadFilter();
+    trickleFilter2.type = 'bandpass';
+    trickleFilter2.frequency.setValueAtTime(3000, time);
+    trickleFilter2.Q.setValueAtTime(1.5, time);
+    
+    // Faster modulation for sparkling effect
+    const trickleLfo = ctx.createOscillator();
+    const trickleLfoGain = ctx.createGain();
+    trickleLfo.type = 'sine';
+    trickleLfo.frequency.setValueAtTime(0.4, time);
+    trickleLfoGain.gain.setValueAtTime(500, time);
+    trickleLfo.connect(trickleLfoGain);
+    trickleLfoGain.connect(trickleFilter2.frequency);
+    
+    const trickleGain = ctx.createGain();
+    trickleGain.gain.setValueAtTime(ambientVolume * 0.18, time);
+    
+    trickleNoise.connect(trickleFilter);
+    trickleFilter.connect(trickleFilter2);
+    trickleFilter2.connect(trickleGain);
+    trickleGain.connect(ctx.destination);
+    
+    trickleLfo.start();
+    trickleNoise.start();
+    
+    // Store references for cleanup
+    ambientNodesRef.current.brookStreamNode = streamNoise;
+    ambientNodesRef.current.brookStreamGain = streamGain;
+    ambientNodesRef.current.brookTrickleNode = trickleNoise;
+    ambientNodesRef.current.brookTrickleGain = trickleGain;
+    
+    // === Layer 3: Random gentle splashes/gurgles ===
+    const playBrookGurgle = () => {
+      const gCtx = getAudioContext();
+      const gTime = gCtx.currentTime;
+      
+      const osc = gCtx.createOscillator();
+      const oscGain = gCtx.createGain();
+      const filter = gCtx.createBiquadFilter();
+      
+      // Random pitch for variety
+      const baseFreq = 200 + Math.random() * 300;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq, gTime);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, gTime + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, gTime + 0.15);
+      
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, gTime);
+      
+      oscGain.gain.setValueAtTime(0, gTime);
+      oscGain.gain.linearRampToValueAtTime(ambientVolume * 0.12, gTime + 0.02);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, gTime + 0.2);
+      
+      osc.connect(filter);
+      filter.connect(oscGain);
+      oscGain.connect(gCtx.destination);
+      
+      osc.start(gTime);
+      osc.stop(gTime + 0.25);
+    };
+    
+    // Random gurgles every 1.5-4 seconds
+    const gurgleInterval = setInterval(() => {
+      if (Math.random() < 0.5) {
+        playBrookGurgle();
+        // Sometimes play a second gurgle right after
+        if (Math.random() < 0.3) {
+          setTimeout(playBrookGurgle, 80 + Math.random() * 120);
+        }
+      }
+    }, 1500 + Math.random() * 2500);
+    
+    ambientNodesRef.current.brookGurgleInterval = gurgleInterval;
+  }, [getAudioContext, ambientVolume]);
+
   // Start continuous relaxing underwater water flow sound
   const startWaterFlowSound = useCallback(() => {
     const ctx = getAudioContext();
@@ -1143,6 +1309,36 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     }
     ambientNodesRef.current.waterFlowGain = null;
 
+    // Stop babbling brook sounds
+    if (ambientNodesRef.current.brookGurgleInterval) {
+      clearInterval(ambientNodesRef.current.brookGurgleInterval);
+      ambientNodesRef.current.brookGurgleInterval = null;
+    }
+    if (ambientNodesRef.current.brookStreamNode) {
+      try {
+        ambientNodesRef.current.brookStreamNode.stop();
+      } catch {}
+      ambientNodesRef.current.brookStreamNode = null;
+    }
+    if (ambientNodesRef.current.brookStreamGain) {
+      try {
+        ambientNodesRef.current.brookStreamGain.disconnect();
+      } catch {}
+      ambientNodesRef.current.brookStreamGain = null;
+    }
+    if (ambientNodesRef.current.brookTrickleNode) {
+      try {
+        ambientNodesRef.current.brookTrickleNode.stop();
+      } catch {}
+      ambientNodesRef.current.brookTrickleNode = null;
+    }
+    if (ambientNodesRef.current.brookTrickleGain) {
+      try {
+        ambientNodesRef.current.brookTrickleGain.disconnect();
+      } catch {}
+      ambientNodesRef.current.brookTrickleGain = null;
+    }
+
     // HARD RESET: close the AudioContext(s) to guarantee any previously-created nodes are silenced.
     // In preview/HMR, older module instances can leave behind contexts; close them all.
     if (audioContextRef.current) {
@@ -1188,9 +1384,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     unlockAudio();
 
-    // Tula: calming Malte Marten-style handpan only (no water for now)
+    // Tula: calming Malte Marten-style handpan + babbling brook
     startHandpanMusic();
-  }, [stopAmbient, unlockAudio, startHandpanMusic]);
+    startBabblingBrook();
+  }, [stopAmbient, unlockAudio, startHandpanMusic, startBabblingBrook]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
