@@ -181,49 +181,53 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     noise.stop(time + 0.1);
   }, [getAudioContext, sfxEnabled]);
 
-  // Very soft watery swish for Tula swimming
+  // Soft brook water splash sample for Tula swimming
+  const swimAudioRef = useRef<HTMLAudioElement | null>(null);
+  
   const playSwim = useCallback(() => {
-    if (!sfxEnabled) return;
-
-    const ctx = getAudioContext();
-    const time = ctx.currentTime;
-
-    const bufferSize = Math.floor(ctx.sampleRate * 0.14);
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-
-    for (let i = 0; i < bufferSize; i++) {
-      // Slightly smoother noise than hop
-      const n = (Math.random() * 2 - 1) * 0.22;
-      data[i] = i === 0 ? n : (data[i - 1] * 0.65 + n * 0.35);
+    // Create a short sample from the brook audio for swim effect
+    try {
+      // Stop any currently playing swim sound
+      if (swimAudioRef.current) {
+        swimAudioRef.current.pause();
+        swimAudioRef.current.currentTime = 0;
+      }
+      
+      const audio = new Audio(brookAmbient);
+      swimAudioRef.current = audio;
+      
+      // Start at a random point in the audio for variety
+      const startOffset = Math.random() * 3; // Random start within first 3 seconds
+      audio.currentTime = startOffset;
+      audio.volume = 0.25; // Subtle splash volume
+      audio.playbackRate = 1.1 + Math.random() * 0.3; // Slight pitch variation
+      
+      audio.play().catch(() => {});
+      
+      // Fade out and stop after a short duration (0.4 seconds)
+      const fadeOutDuration = 400;
+      const startTime = Date.now();
+      const initialVolume = audio.volume;
+      
+      const fadeOut = () => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < fadeOutDuration) {
+          audio.volume = initialVolume * (1 - elapsed / fadeOutDuration);
+          requestAnimationFrame(fadeOut);
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      };
+      
+      setTimeout(() => {
+        requestAnimationFrame(fadeOut);
+      }, 150); // Let it play for 150ms before starting fade
+      
+    } catch {
+      // Fallback to silent if audio fails
     }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-
-    const band = ctx.createBiquadFilter();
-    band.type = 'bandpass';
-    band.frequency.setValueAtTime(320, time);
-    band.Q.setValueAtTime(0.7, time);
-
-    const low = ctx.createBiquadFilter();
-    low.type = 'lowpass';
-    low.frequency.setValueAtTime(900, time);
-    low.Q.setValueAtTime(0.3, time);
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(sfxVolume * 0.08, time + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
-
-    noise.connect(band);
-    band.connect(low);
-    low.connect(gain);
-    gain.connect(ctx.destination);
-
-    noise.start(time);
-    noise.stop(time + 0.2);
-  }, [getAudioContext, sfxEnabled]);
+  }, []);
 
   // Crunchy eating sound
   const playEat = useCallback(() => {
