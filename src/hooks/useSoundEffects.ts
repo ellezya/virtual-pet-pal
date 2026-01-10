@@ -730,12 +730,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     [getAudioContext, getMusicBus]
   );
 
-  // Play a Malte Marten-style handpan phrase - melodic, flowing, rhythmic
+  // Play a Malte Marten-style handpan phrase with subtle reggae vibe
+  // Reggae influence: off-beat emphasis, syncopation, laid-back groove
   const playHandpanPhrase = useCallback(() => {
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
-    // D Minor / Kurd scale - common handpan tuning, very meditative
+    // D Minor / Kurd scale - common handpan tuning, works well with reggae minor feel
     const scale = {
       D3: 146.83,
       A3: 220.00,
@@ -748,86 +749,82 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       A4: 440.00,
     };
     
-    // Flowing, rhythmic phrases - faster note sequences with overlap
+    // Reggae-influenced phrases: off-beat accents, syncopated rhythms, laid-back timing
+    // Slightly longer delays to create that "behind the beat" reggae feel
     const phrases = [
-      // Phrase 1: Flowing ascending run
+      // Phrase 1: Off-beat skank pattern with bass anchor
       [
-        { note: scale.D3, delay: 0, dur: 2.5, vel: 0.7 },
-        { note: scale.A3, delay: 0.4, dur: 2.0, vel: 0.55 },
-        { note: scale.C4, delay: 0.8, dur: 1.8, vel: 0.5 },
-        { note: scale.D4, delay: 1.2, dur: 2.0, vel: 0.55 },
-        { note: scale.E4, delay: 1.6, dur: 2.2, vel: 0.5 },
-        { note: scale.A4, delay: 2.2, dur: 2.5, vel: 0.45 },
+        { note: scale.D3, delay: 0, dur: 2.8, vel: 0.7 },        // Bass anchor on downbeat
+        { note: scale.A3, delay: 0.55, dur: 1.5, vel: 0.45 },    // Off-beat (the "and")
+        { note: scale.C4, delay: 1.05, dur: 1.5, vel: 0.4 },     // Off-beat
+        { note: scale.D3, delay: 1.5, dur: 2.0, vel: 0.6 },      // Bass on beat 2
+        { note: scale.F4, delay: 2.05, dur: 1.5, vel: 0.45 },    // Off-beat skank
+        { note: scale.D4, delay: 2.55, dur: 2.0, vel: 0.5 },     // Off-beat resolve
       ],
-      // Phrase 2: Rhythmic descending melody
+      // Phrase 2: One-drop style - emphasis on beat 3
       [
-        { note: scale.A4, delay: 0, dur: 1.5, vel: 0.5 },
-        { note: scale.F4, delay: 0.35, dur: 1.5, vel: 0.5 },
-        { note: scale.E4, delay: 0.7, dur: 1.5, vel: 0.55 },
-        { note: scale.D4, delay: 1.05, dur: 1.8, vel: 0.55 },
-        { note: scale.C4, delay: 1.5, dur: 1.8, vel: 0.5 },
-        { note: scale.A3, delay: 2.0, dur: 2.5, vel: 0.6 },
-        { note: scale.D3, delay: 2.6, dur: 3.0, vel: 0.65 },
+        { note: scale.A3, delay: 0, dur: 1.2, vel: 0.35 },       // Ghost note
+        { note: scale.D4, delay: 0.5, dur: 1.5, vel: 0.4 },      // Off-beat
+        { note: scale.D3, delay: 1.0, dur: 2.5, vel: 0.7 },      // ONE DROP - heavy bass
+        { note: scale.E4, delay: 1.55, dur: 1.5, vel: 0.45 },    // Off-beat
+        { note: scale.C4, delay: 2.05, dur: 1.5, vel: 0.4 },     // Off-beat
+        { note: scale.A3, delay: 2.6, dur: 2.2, vel: 0.55 },     // Resolve
       ],
-      // Phrase 3: Dancing pattern
+      // Phrase 3: Syncopated bubble pattern
       [
-        { note: scale.D4, delay: 0, dur: 1.2, vel: 0.55 },
-        { note: scale.E4, delay: 0.3, dur: 1.2, vel: 0.5 },
-        { note: scale.D4, delay: 0.6, dur: 1.2, vel: 0.5 },
-        { note: scale.C4, delay: 0.9, dur: 1.5, vel: 0.55 },
-        { note: scale.A3, delay: 1.3, dur: 1.8, vel: 0.6 },
-        { note: scale.C4, delay: 1.7, dur: 1.5, vel: 0.5 },
-        { note: scale.D4, delay: 2.1, dur: 2.0, vel: 0.55 },
+        { note: scale.D4, delay: 0, dur: 1.0, vel: 0.5 },
+        { note: scale.C4, delay: 0.45, dur: 1.0, vel: 0.45 },    // Syncopated
+        { note: scale.D4, delay: 0.75, dur: 1.0, vel: 0.4 },     // Quick bounce
+        { note: scale.A3, delay: 1.25, dur: 2.0, vel: 0.6 },     // Rest on bass
+        { note: scale.F4, delay: 1.8, dur: 1.0, vel: 0.4 },      // Off-beat pickup
+        { note: scale.E4, delay: 2.25, dur: 1.5, vel: 0.45 },    // Off-beat
+        { note: scale.D4, delay: 2.7, dur: 2.0, vel: 0.5 },      // Resolve
       ],
-      // Phrase 4: Rhythmic bass with melody
+      // Phrase 4: Roots bass with steppers rhythm
       [
-        { note: scale.D3, delay: 0, dur: 2.0, vel: 0.7 },
-        { note: scale.A3, delay: 0.5, dur: 1.5, vel: 0.5 },
-        { note: scale.D3, delay: 1.0, dur: 1.8, vel: 0.65 },
-        { note: scale.C4, delay: 1.4, dur: 1.5, vel: 0.5 },
-        { note: scale.D4, delay: 1.8, dur: 2.0, vel: 0.55 },
+        { note: scale.D3, delay: 0, dur: 2.2, vel: 0.7 },        // Heavy bass
+        { note: scale.D3, delay: 0.75, dur: 1.8, vel: 0.55 },    // Steppers repeat
+        { note: scale.A3, delay: 1.3, dur: 1.5, vel: 0.45 },     // Off-beat
+        { note: scale.D3, delay: 1.5, dur: 1.8, vel: 0.6 },      // Steppers
+        { note: scale.C4, delay: 2.05, dur: 1.5, vel: 0.4 },     // Off-beat
+        { note: scale.D4, delay: 2.5, dur: 2.0, vel: 0.5 },      // Float up
       ],
-      // Phrase 5: Fast arpeggio up and down
+      // Phrase 5: Laid-back melodic run
+      [
+        { note: scale.A3, delay: 0, dur: 1.8, vel: 0.55 },
+        { note: scale.C4, delay: 0.55, dur: 1.5, vel: 0.45 },    // Behind the beat
+        { note: scale.D4, delay: 1.05, dur: 1.5, vel: 0.45 },    // Lazy
+        { note: scale.E4, delay: 1.6, dur: 1.5, vel: 0.45 },     // Lazy
+        { note: scale.D4, delay: 2.1, dur: 1.5, vel: 0.4 },      // Coming back
+        { note: scale.A3, delay: 2.6, dur: 2.5, vel: 0.6 },      // Home
+        { note: scale.D3, delay: 3.0, dur: 2.8, vel: 0.65 },     // Deep bass resolve
+      ],
+      // Phrase 6: Reggae thirds with off-beat emphasis
+      [
+        { note: scale.D4, delay: 0.15, dur: 1.8, vel: 0.5 },     // Off-beat start!
+        { note: scale.F4, delay: 0.2, dur: 1.8, vel: 0.35 },     // Harmony
+        { note: scale.C4, delay: 0.7, dur: 1.8, vel: 0.5 },      // Off-beat
+        { note: scale.E4, delay: 0.75, dur: 1.8, vel: 0.35 },    // Harmony
+        { note: scale.D3, delay: 1.25, dur: 2.5, vel: 0.65 },    // Bass drop
+        { note: scale.A3, delay: 1.85, dur: 2.0, vel: 0.5 },     // Off-beat
+      ],
+      // Phrase 7: Dub-style sparse pattern
+      [
+        { note: scale.D3, delay: 0, dur: 3.0, vel: 0.7 },        // Long bass note
+        { note: scale.A4, delay: 0.8, dur: 1.0, vel: 0.35 },     // High ping, off-beat
+        { note: scale.D3, delay: 1.6, dur: 2.5, vel: 0.6 },      // Bass again
+        { note: scale.F4, delay: 2.2, dur: 1.2, vel: 0.4 },      // Off-beat
+        { note: scale.D4, delay: 2.8, dur: 2.0, vel: 0.45 },     // Soft resolve
+      ],
+      // Phrase 8: Rocking steady groove
       [
         { note: scale.A3, delay: 0, dur: 1.5, vel: 0.55 },
-        { note: scale.C4, delay: 0.25, dur: 1.4, vel: 0.5 },
-        { note: scale.D4, delay: 0.5, dur: 1.4, vel: 0.5 },
-        { note: scale.E4, delay: 0.75, dur: 1.4, vel: 0.5 },
-        { note: scale.F4, delay: 1.0, dur: 1.5, vel: 0.5 },
-        { note: scale.E4, delay: 1.3, dur: 1.4, vel: 0.5 },
-        { note: scale.D4, delay: 1.6, dur: 1.5, vel: 0.55 },
-        { note: scale.C4, delay: 1.9, dur: 1.8, vel: 0.55 },
-        { note: scale.A3, delay: 2.3, dur: 2.2, vel: 0.6 },
-      ],
-      // Phrase 6: Gentle thirds harmony
-      [
-        { note: scale.D4, delay: 0, dur: 1.8, vel: 0.55 },
-        { note: scale.F4, delay: 0.05, dur: 1.8, vel: 0.4 },
-        { note: scale.C4, delay: 0.6, dur: 1.8, vel: 0.55 },
-        { note: scale.E4, delay: 0.65, dur: 1.8, vel: 0.4 },
-        { note: scale.A3, delay: 1.2, dur: 2.2, vel: 0.6 },
-        { note: scale.C4, delay: 1.25, dur: 2.0, vel: 0.45 },
-      ],
-      // Phrase 7: Playful bounce
-      [
-        { note: scale.E4, delay: 0, dur: 1.0, vel: 0.5 },
-        { note: scale.D4, delay: 0.25, dur: 1.0, vel: 0.5 },
-        { note: scale.E4, delay: 0.5, dur: 1.2, vel: 0.55 },
-        { note: scale.F4, delay: 0.8, dur: 1.0, vel: 0.5 },
-        { note: scale.E4, delay: 1.05, dur: 1.2, vel: 0.5 },
-        { note: scale.D4, delay: 1.35, dur: 1.5, vel: 0.55 },
-        { note: scale.A3, delay: 1.8, dur: 2.5, vel: 0.6 },
-      ],
-      // Phrase 8: Rolling wave
-      [
-        { note: scale.A3, delay: 0, dur: 1.8, vel: 0.6 },
-        { note: scale.D4, delay: 0.3, dur: 1.5, vel: 0.5 },
-        { note: scale.F4, delay: 0.6, dur: 1.5, vel: 0.5 },
-        { note: scale.A4, delay: 0.9, dur: 1.8, vel: 0.45 },
-        { note: scale.F4, delay: 1.3, dur: 1.5, vel: 0.5 },
-        { note: scale.D4, delay: 1.6, dur: 1.5, vel: 0.5 },
-        { note: scale.A3, delay: 2.0, dur: 2.0, vel: 0.6 },
-        { note: scale.D3, delay: 2.5, dur: 2.5, vel: 0.65 },
+        { note: scale.D4, delay: 0.5, dur: 1.2, vel: 0.4 },      // Off-beat
+        { note: scale.C4, delay: 0.95, dur: 1.2, vel: 0.4 },     // Off-beat
+        { note: scale.D3, delay: 1.35, dur: 2.2, vel: 0.65 },    // Bass anchor
+        { note: scale.E4, delay: 1.85, dur: 1.2, vel: 0.4 },     // Off-beat
+        { note: scale.D4, delay: 2.3, dur: 1.5, vel: 0.45 },     // Off-beat
+        { note: scale.A3, delay: 2.75, dur: 2.2, vel: 0.55 },    // Home
       ],
     ];
     
