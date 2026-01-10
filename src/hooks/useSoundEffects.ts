@@ -32,9 +32,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     musicInterval: ReturnType<typeof setInterval> | null;
     secondaryMusicInterval: ReturnType<typeof setInterval> | null;
     fountainNodes: {
-      noiseSource: AudioBufferSourceNode | null;
-      gainNode: GainNode | null;
-      filterNode: BiquadFilterNode | null;
+      dropletInterval: ReturnType<typeof setInterval> | null;
+      masterGain: GainNode | null;
     } | null;
   }>({
     musicOscillators: [],
@@ -860,65 +859,103 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.secondaryMusicInterval = secondaryInterval;
   }, [playHandpanPhrase]);
 
-  // Start soft flowing fountain sound - gentle water ambience
+  // Play a single water droplet sound - like drops hitting water surface
+  const playWaterDroplet = useCallback((masterGain: GainNode) => {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime;
+
+    // Randomize pitch for natural variation (higher = smaller droplet)
+    const baseFreq = 800 + Math.random() * 1200; // 800-2000 Hz range
+    const dropDuration = 0.08 + Math.random() * 0.06; // 80-140ms
+
+    // Create the "plop" oscillator - sine wave with quick pitch drop
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.3, t + dropDuration);
+
+    // Envelope for the droplet
+    const dropGain = ctx.createGain();
+    dropGain.gain.setValueAtTime(0, t);
+    dropGain.gain.linearRampToValueAtTime(0.15 + Math.random() * 0.1, t + 0.005); // Quick attack
+    dropGain.gain.exponentialRampToValueAtTime(0.001, t + dropDuration);
+
+    // Resonant filter for that "water in a bowl" sound
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(baseFreq * 0.8, t);
+    filter.Q.setValueAtTime(8 + Math.random() * 4, t); // Resonant
+
+    osc.connect(filter);
+    filter.connect(dropGain);
+    dropGain.connect(masterGain);
+
+    osc.start(t);
+    osc.stop(t + dropDuration + 0.05);
+
+    // Add a subtle "ripple" harmonic
+    if (Math.random() > 0.3) {
+      const ripple = ctx.createOscillator();
+      ripple.type = 'sine';
+      ripple.frequency.setValueAtTime(baseFreq * 0.5, t + 0.01);
+      ripple.frequency.exponentialRampToValueAtTime(baseFreq * 0.2, t + dropDuration * 1.5);
+
+      const rippleGain = ctx.createGain();
+      rippleGain.gain.setValueAtTime(0, t);
+      rippleGain.gain.linearRampToValueAtTime(0.05, t + 0.02);
+      rippleGain.gain.exponentialRampToValueAtTime(0.001, t + dropDuration * 1.5);
+
+      ripple.connect(rippleGain);
+      rippleGain.connect(masterGain);
+
+      ripple.start(t);
+      ripple.stop(t + dropDuration * 1.5 + 0.05);
+    }
+  }, [getAudioContext]);
+
+  // Start trickling fountain sound - individual water droplets
   const startFountainSound = useCallback(() => {
     // Don't start if already running
     if (ambientNodesRef.current.fountainNodes) return;
 
     const ctx = getAudioContext();
-    // Fountain should NOT be routed through the music bus (which is intentionally very quiet)
-    // otherwise it becomes nearly inaudible.
 
-    // Create filtered white noise for gentle water/fountain sound
-    const bufferSize = ctx.sampleRate * 4; // 4 seconds of noise (loops)
-    const noiseBuffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
-    
-    for (let channel = 0; channel < 2; channel++) {
-      const output = noiseBuffer.getChannelData(channel);
+    // Master gain for all droplets
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0, ctx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 1); // Fade in
+    masterGain.connect(ctx.destination);
+
+    // Play droplets at random intervals for natural trickling effect
+    const playRandomDroplet = () => {
+      playWaterDroplet(masterGain);
       
-      for (let i = 0; i < bufferSize; i++) {
-        // Simple white noise
-        output[i] = (Math.random() * 2 - 1) * 0.5;
+      // Sometimes play 2-3 droplets in quick succession (like water hitting)
+      if (Math.random() > 0.6) {
+        setTimeout(() => playWaterDroplet(masterGain), 30 + Math.random() * 50);
       }
-    }
+      if (Math.random() > 0.8) {
+        setTimeout(() => playWaterDroplet(masterGain), 60 + Math.random() * 80);
+      }
+    };
 
-    const noiseSource = ctx.createBufferSource();
-    noiseSource.buffer = noiseBuffer;
-    noiseSource.loop = true;
+    // Initial burst of droplets
+    playRandomDroplet();
+    setTimeout(playRandomDroplet, 100);
+    setTimeout(playRandomDroplet, 250);
 
-    // Bandpass filter to shape water-like frequencies (soft, flowing)
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 400; // Lower center frequency for softer water sound
-    filter.Q.value = 0.5; // Narrower bandwidth to reduce static
+    // Continuous droplets at varied intervals (80-250ms for active trickling)
+    const dropletInterval = setInterval(() => {
+      playRandomDroplet();
+    }, 80 + Math.random() * 170);
 
-    // Low-pass to remove harshness - much more aggressive
-    const lowPass = ctx.createBiquadFilter();
-    lowPass.type = 'lowpass';
-    lowPass.frequency.value = 600; // Much lower to eliminate static harshness
-    lowPass.Q.value = 0.7;
-
-    // Gain for volume control with gentle fade-in
-    const gainNode = ctx.createGain();
-    const t = ctx.currentTime;
-    gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.15, t + 2); // Gentle fountain volume
-
-    // Connect: noise -> bandpass -> lowpass -> gain -> speakers
-    noiseSource.connect(filter);
-    filter.connect(lowPass);
-    lowPass.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    noiseSource.start();
-    console.log('[audio] Fountain sound started');
+    console.log('[audio] Fountain sound started (trickling droplets)');
 
     ambientNodesRef.current.fountainNodes = {
-      noiseSource,
-      gainNode,
-      filterNode: filter,
+      dropletInterval,
+      masterGain,
     };
-  }, [getAudioContext, getMusicBus]);
+  }, [getAudioContext, playWaterDroplet]);
 
   // Stop fountain sound
   const stopFountainSound = useCallback(() => {
@@ -926,16 +963,22 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     if (!nodes) return;
 
     try {
-      if (nodes.noiseSource) {
-        nodes.noiseSource.stop();
-        nodes.noiseSource.disconnect();
+      if (nodes.dropletInterval) {
+        clearInterval(nodes.dropletInterval);
       }
-      if (nodes.gainNode) nodes.gainNode.disconnect();
-      if (nodes.filterNode) nodes.filterNode.disconnect();
+      if (nodes.masterGain) {
+        const ctx = getAudioContext();
+        nodes.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+        setTimeout(() => {
+          try {
+            nodes.masterGain?.disconnect();
+          } catch {}
+        }, 600);
+      }
     } catch {}
 
     ambientNodesRef.current.fountainNodes = null;
-  }, []);
+  }, [getAudioContext]);
 
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
@@ -1058,12 +1101,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     if (ambientNodesRef.current.fountainNodes) {
       try {
         const nodes = ambientNodesRef.current.fountainNodes;
-        if (nodes.noiseSource) {
-          nodes.noiseSource.stop();
-          nodes.noiseSource.disconnect();
+        if (nodes.dropletInterval) {
+          clearInterval(nodes.dropletInterval);
         }
-        if (nodes.gainNode) nodes.gainNode.disconnect();
-        if (nodes.filterNode) nodes.filterNode.disconnect();
+        if (nodes.masterGain) nodes.masterGain.disconnect();
       } catch {}
       ambientNodesRef.current.fountainNodes = null;
     }
