@@ -1018,67 +1018,59 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     ambientNodesRef.current.birdInterval = birdInterval;
 
     // === Start gentle breeze ambient ===
-    // Use pink noise filtered for a soft, natural wind sound
-    const createPinkNoise = () => {
-      const bufferSize = ctx.sampleRate * 6;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
+    // Create a longer buffer for smoother looping wind sound
+    const windBufferSize = ctx.sampleRate * 8; // 8 seconds for smooth loop
+    const windBuffer = ctx.createBuffer(2, windBufferSize, ctx.sampleRate); // Stereo
+    
+    // Generate smooth wind noise using filtered brownian motion
+    for (let channel = 0; channel < 2; channel++) {
+      const data = windBuffer.getChannelData(channel);
+      let lastOut = 0;
+      let slowMod = 0;
       
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-      for (let i = 0; i < bufferSize; i++) {
+      for (let i = 0; i < windBufferSize; i++) {
+        // Slow modulation for wind gusts
+        slowMod += 0.00003;
+        const gustMod = 0.7 + 0.3 * Math.sin(slowMod * 2) * Math.sin(slowMod * 0.7);
+        
+        // Brownian noise
         const white = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        b3 = 0.86650 * b3 + white * 0.3104856;
-        b4 = 0.55000 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.0168980;
-        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-        b6 = white * 0.115926;
+        lastOut = (lastOut + (0.015 * white)) / 1.015;
+        data[i] = lastOut * 4 * gustMod;
+        
+        // Cross-fade at loop point for seamless loop
+        if (i < 4000) {
+          data[i] *= i / 4000;
+        } else if (i > windBufferSize - 4000) {
+          data[i] *= (windBufferSize - i) / 4000;
+        }
       }
-      return buffer;
-    };
+    }
 
     const windNode = ctx.createBufferSource();
-    windNode.buffer = createPinkNoise();
+    windNode.buffer = windBuffer;
     windNode.loop = true;
 
-    // Gentle low-pass filter for soft breeze
+    // Gentle bandpass filter for airy breeze sound
     const windFilter = ctx.createBiquadFilter();
-    windFilter.type = 'lowpass';
-    windFilter.frequency.setValueAtTime(300, ctx.currentTime);
-    windFilter.Q.setValueAtTime(0.7, ctx.currentTime);
-
-    // Secondary high-pass to remove rumble
-    const windHighPass = ctx.createBiquadFilter();
-    windHighPass.type = 'highpass';
-    windHighPass.frequency.setValueAtTime(80, ctx.currentTime);
+    windFilter.type = 'bandpass';
+    windFilter.frequency.setValueAtTime(250, ctx.currentTime);
+    windFilter.Q.setValueAtTime(0.5, ctx.currentTime);
 
     const windGain = ctx.createGain();
     windGain.gain.setValueAtTime(0, ctx.currentTime);
-    windGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 3);
-
-    // Gentle volume modulation for natural feel
-    const modulateWind = () => {
-      const now = ctx.currentTime;
-      const baseVol = 0.12;
-      const variation = 0.03;
-      const newVol = baseVol + (Math.sin(now * 0.3) * variation) + (Math.sin(now * 0.7) * variation * 0.5);
-      windGain.gain.setTargetAtTime(Math.max(0.05, newVol), now, 0.5);
-    };
-    const windModInterval = setInterval(modulateWind, 500);
+    // Fade in over 2 seconds to a clearly audible level
+    windGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 2);
 
     windNode.connect(windFilter);
-    windFilter.connect(windHighPass);
-    windHighPass.connect(windGain);
+    windFilter.connect(windGain);
     windGain.connect(ctx.destination);
     windNode.start();
 
+    console.log('[audio] Wind/breeze started');
+
     ambientNodesRef.current.windNode = windNode;
     ambientNodesRef.current.windGain = windGain;
-    
-    // Store modulation interval for cleanup
-    (ambientNodesRef.current as any).windModInterval = windModInterval;
 
     // Animate wind intensity for UI effects
     let windPhase = 0;
