@@ -977,47 +977,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     ambientNodesRef.current.musicInterval = musicInterval;
 
-    // === Start bird chirps ===
-    const playBird = () => {
-      const t = ctx.currentTime;
-      const baseFreq = 1800 + Math.random() * 800;
-      const chirpCount = 2 + Math.floor(Math.random() * 3);
-      
-      for (let j = 0; j < chirpCount; j++) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = 'sine';
-        const startFreq = baseFreq + Math.random() * 400;
-        osc.frequency.setValueAtTime(startFreq, t + j * 0.08);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 1.3, t + j * 0.08 + 0.03);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 0.9, t + j * 0.08 + 0.06);
-        
-        gain.gain.setValueAtTime(0, t + j * 0.08);
-        gain.gain.linearRampToValueAtTime(ambientVolume * 0.25, t + j * 0.08 + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + j * 0.08 + 0.07);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start(t + j * 0.08);
-        osc.stop(t + j * 0.08 + 0.1);
-      }
-    };
+    // === Bird chirps disabled per user request ===
 
-    // Initial bird chirp after short delay
-    setTimeout(playBird, 1500);
-    
-    // Random bird chirps every 4-8 seconds
-    const birdInterval = setInterval(() => {
-      if (Math.random() > 0.3) { // 70% chance to chirp
-        playBird();
-      }
-    }, 4000 + Math.random() * 4000);
-    
-    ambientNodesRef.current.birdInterval = birdInterval;
-
-    // === Start gentle wind ===
+    // === Start gentle wind/breeze ===
     const windBufferSize = ctx.sampleRate * 4; // 4 second buffer
     const windBuffer = ctx.createBuffer(1, windBufferSize, ctx.sampleRate);
     const windData = windBuffer.getChannelData(0);
