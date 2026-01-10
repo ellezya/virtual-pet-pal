@@ -70,6 +70,10 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const lastMusicTickRef = useRef<number>(Date.now());
 
   const musicVolume = 0.12;
+
+  // User-requested sound policy: ONLY handpan music; no other SFX/ambience.
+  const sfxEnabled = false;
+
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
@@ -83,6 +87,22 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const registerAudioContext = (ctx: AudioContext) => {
     try {
       getGlobalAudioContextSet().add(ctx);
+    } catch {
+      // ignore
+    }
+  };
+
+  const closeAllAudioContexts = () => {
+    try {
+      const set = getGlobalAudioContextSet();
+      set.forEach((c) => {
+        try {
+          void c.close();
+        } catch {
+          // ignore
+        }
+      });
+      set.clear();
     } catch {
       // ignore
     }
@@ -123,6 +143,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Soft puff sound for hopping - like a gentle landing
   const playHop = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
 
@@ -152,10 +174,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     noise.start(time);
     noise.stop(time + 0.1);
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Very soft watery swish for Tula swimming
   const playSwim = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
 
@@ -194,10 +218,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     noise.start(time);
     noise.stop(time + 0.2);
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Crunchy eating sound
   const playEat = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -225,10 +251,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       osc.start(time + i * 0.15);
       osc.stop(time + i * 0.15 + 0.1);
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Gentle sipping/lapping sound
   const playDrink = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -255,10 +283,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       osc.start(time + i * 0.2);
       osc.stop(time + i * 0.2 + 0.15);
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Sweeping/brushing clean sound
   const playClean = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -291,10 +321,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     
     noise.start(time);
     noise.stop(time + 0.6);
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Playful bouncy sound
   const playPlay = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -316,10 +348,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       osc.start(time + i * 0.1);
       osc.stop(time + i * 0.1 + 0.15);
     });
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Soft, low-pitched magical poop sound
   const playPoop = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -386,10 +420,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       sparkleOsc.start(time + 0.4 + i * 0.05);
       sparkleOsc.stop(time + 0.4 + i * 0.05 + 0.25);
     });
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Rustling hay/straw sound
   const playHay = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -423,10 +459,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       noise.start(time + burst * 0.18);
       noise.stop(time + burst * 0.18 + 0.15);
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Flutter/wing flapping sound for baby birds
   const playFlutter = useCallback(() => {
+    if (!sfxEnabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -478,7 +516,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     
     chirpOsc.start(time + 0.1);
     chirpOsc.stop(time + 0.25);
-  }, [getAudioContext]);
+  }, [getAudioContext, sfxEnabled]);
 
   // Play a single bird chirp
   const playBirdChirp = useCallback(() => {
@@ -926,6 +964,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   // 1) On mount (incl. hot reload), hard-stop anything that might still be ringing.
   useEffect(() => {
     stopAmbient();
+
+    // Hard-stop any stale WebAudio from previous hot reloads/iterations so no "ghost" audio remains.
+    closeAllAudioContexts();
+    audioContextRef.current = null;
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
