@@ -101,8 +101,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const sfxVolume = 0.8;
   const ambientVolume = 0.35;
 
-  // Global registry so we can hard-stop *all* WebAudio contexts (important in preview/HMR where
-  // old intervals/contexts can keep playing even after code changes).
+  // Global registry for WebAudio contexts
   const getGlobalAudioContextSet = () => {
     const w = window as any;
     if (!w.__lovableAudioContexts) w.__lovableAudioContexts = new Set<AudioContext>();
@@ -112,22 +111,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const registerAudioContext = (ctx: AudioContext) => {
     try {
       getGlobalAudioContextSet().add(ctx);
-    } catch {
-      // ignore
-    }
-  };
-
-  const closeAllAudioContexts = () => {
-    try {
-      const set = getGlobalAudioContextSet();
-      set.forEach((c) => {
-        try {
-          void c.close();
-        } catch {
-          // ignore
-        }
-      });
-      set.clear();
     } catch {
       // ignore
     }
@@ -1339,16 +1322,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       ambientNodesRef.current.brookTrickleGain = null;
     }
 
-    // HARD RESET: close the AudioContext(s) to guarantee any previously-created nodes are silenced.
-    // In preview/HMR, older module instances can leave behind contexts; close them all.
-    if (audioContextRef.current) {
-      try {
-        void audioContextRef.current.close();
-      } catch {}
-      audioContextRef.current = null;
-    }
+    // NOTE: Do NOT close the AudioContext here.
+    // Closing/recreating contexts can break autoplay policy (resume must happen in a user gesture)
+    // and can lead to "silent" audio after background rebuilds.
+    // We stop/disconnect nodes above; keep the context alive.
 
-    closeAllAudioContexts();
   }, []);
 
   // Safety: ambience is Tula-only.
@@ -1366,6 +1344,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
   const startAmbient = useCallback(() => {
     const pet = currentPetRef.current;
 
+    console.log('[audio] startAmbient called for', pet);
+
     // Ambient is Tula-only.
     // If we're not on Tula, ensure everything is stopped and do not start anything.
     if (pet !== 'fish') {
@@ -1377,9 +1357,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     const hasCoreNodes =
       !!ambientNodesRef.current.musicInterval || !!ambientNodesRef.current.brookStreamNode;
 
+    console.log('[audio] hasCoreNodes:', hasCoreNodes);
+
     if (hasCoreNodes) return;
 
     unlockAudio();
+
+    console.log('[audio] Starting handpan and brook...');
 
     // Tula: calming Malte Marten-style handpan + babbling brook
     startHandpanMusic();
@@ -1572,7 +1556,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
        if (pet !== 'fish') return;
 
        const hasCoreNodes =
-         !!ambientNodesRef.current.waterFlowNode && !!ambientNodesRef.current.musicInterval;
+         !!ambientNodesRef.current.musicInterval &&
+         (!!ambientNodesRef.current.brookStreamNode || !!ambientNodesRef.current.brookTrickleNode);
 
       const now = Date.now();
       const musicStalled =
