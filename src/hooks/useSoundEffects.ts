@@ -34,8 +34,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     birdInterval: ReturnType<typeof setInterval> | null;
     childrenInterval: ReturnType<typeof setInterval> | null;
     
-    waterFlowNode: AudioBufferSourceNode | null;
-    waterFlowGain: GainNode | null;
     musicOscillators: OscillatorNode[];
     musicGain: GainNode | null;
     musicInterval: ReturnType<typeof setInterval> | null;
@@ -47,8 +45,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     birdInterval: null,
     childrenInterval: null,
     
-    waterFlowNode: null,
-    waterFlowGain: null,
     
     musicOscillators: [],
     musicGain: null,
@@ -566,78 +562,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
 
 
-  // Start warm, gentle stream sound using brown noise - meditation quality
-  const startWaterFlowSound = useCallback(() => {
-    const ctx = getAudioContext();
-    const time = ctx.currentTime;
-    
-    // Create brown noise (much warmer than white/pink, not static-y)
-    const bufferSize = ctx.sampleRate * 6;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    
-    // Brown noise algorithm - integrates white noise for warm, deep sound
-    let lastOut = 0.0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      // Brown noise formula - accumulates for deeper, warmer sound
-      data[i] = (lastOut + (0.02 * white)) / 1.02;
-      lastOut = data[i];
-      data[i] *= 3.5; // Compensate for gain loss
-    }
-    
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-    
-    // Bandpass filter centered on warm frequencies (not too low = muffled, not too high = static)
-    const warmFilter = ctx.createBiquadFilter();
-    warmFilter.type = 'bandpass';
-    warmFilter.frequency.setValueAtTime(350, time); // Sweet spot for water
-    warmFilter.Q.setValueAtTime(0.6, time); // Wide band for natural sound
-    
-    // Gentle high shelf to add presence without harshness
-    const presenceFilter = ctx.createBiquadFilter();
-    presenceFilter.type = 'highshelf';
-    presenceFilter.frequency.setValueAtTime(800, time);
-    presenceFilter.gain.setValueAtTime(-3, time); // Slight cut to avoid harshness
-    
-    // Very slow, subtle modulation for organic movement
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.05, time); // Very slow - breathing rhythm
-    lfoGain.gain.setValueAtTime(80, time); // Subtle frequency movement
-    lfo.connect(lfoGain);
-    lfoGain.connect(warmFilter.frequency);
-    
-    // Second even slower LFO for volume - creates gentle "waves"
-    const volLfo = ctx.createOscillator();
-    const volLfoGain = ctx.createGain();
-    volLfo.type = 'sine';
-    volLfo.frequency.setValueAtTime(0.03, time); // Super slow
-    volLfoGain.gain.setValueAtTime(0.08, time); // Very subtle volume changes
-    
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(ambientVolume * 0.4, time);
-    
-    // Connect volume LFO
-    volLfo.connect(volLfoGain);
-    volLfoGain.connect(masterGain.gain);
-    
-    // Signal chain
-    noise.connect(warmFilter);
-    warmFilter.connect(presenceFilter);
-    presenceFilter.connect(masterGain);
-    masterGain.connect(ctx.destination);
-    
-    lfo.start();
-    volLfo.start();
-    noise.start();
-    
-    ambientNodesRef.current.waterFlowNode = noise;
-    ambientNodesRef.current.waterFlowGain = masterGain;
-  }, [getAudioContext, ambientVolume]);
 
   // A shared music bus so changes always take effect and we can reliably stop/restart.
   const getMusicBus = useCallback(() => {
@@ -1079,18 +1003,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       } catch {}
       ambientNodesRef.current.musicGain = null;
     }
-    if (ambientNodesRef.current.waterFlowNode) {
-      try {
-        ambientNodesRef.current.waterFlowNode.stop();
-      } catch {}
-      ambientNodesRef.current.waterFlowNode = null;
-    }
-    if (ambientNodesRef.current.waterFlowGain) {
-      try {
-        ambientNodesRef.current.waterFlowGain.disconnect();
-      } catch {}
-    }
-    ambientNodesRef.current.waterFlowGain = null;
 
 
     // NOTE: Do NOT close the AudioContext here.
@@ -1365,11 +1277,6 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
       }
       if (ambientNodesRef.current.musicInterval) {
         clearInterval(ambientNodesRef.current.musicInterval);
-      }
-      if (ambientNodesRef.current.waterFlowNode) {
-        try {
-          ambientNodesRef.current.waterFlowNode.stop();
-        } catch {}
       }
       if (ambientNodesRef.current.musicGain) {
         try {
