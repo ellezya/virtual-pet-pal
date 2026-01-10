@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, Volume2, VolumeX, Bug } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -35,6 +36,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
     return 'bunny';
@@ -1628,13 +1630,23 @@ const ClassroomPets = () => {
               ))}
             </div>
           )}
-          <button 
-            onClick={signOut}
-            className="p-2 rounded-lg bg-muted hover:bg-destructive/20 hover:text-destructive transition-colors"
-            title="Sign out"
-          >
-            <LogOut size={14} />
-          </button>
+          {user ? (
+            <button 
+              onClick={signOut}
+              className="p-2 rounded-lg bg-muted hover:bg-destructive/20 hover:text-destructive transition-colors"
+              title="Sign out"
+            >
+              <LogOut size={14} />
+            </button>
+          ) : (
+            <button 
+              onClick={() => navigate('/auth')}
+              className="p-2 rounded-lg bg-muted hover:bg-primary/20 hover:text-primary transition-colors"
+              title="Sign in (for cloud sync)"
+            >
+              <LogIn size={14} />
+            </button>
+          )}
         </div>
       </header>
 
