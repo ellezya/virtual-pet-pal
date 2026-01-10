@@ -897,8 +897,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
-    // ALL AUDIO DISABLED except handpan
-    if (allAudioDisabled) return;
+    // Enable lo-fi music for Lola
 
     const ctx = getAudioContext();
     const bus = getMusicBus();
@@ -1041,25 +1040,27 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2) Any time we are on Lola, hard-stop all ambience.
+  // 2) Restart ambient when pet changes (so each pet gets its own music)
   useEffect(() => {
-    if (currentPet !== 'fish') stopAmbient();
+    // Stop current ambient first, then restart with the new pet's music
+    stopAmbient();
+    
+    // Small delay to ensure clean transition
+    const timer = setTimeout(() => {
+      if (shouldStartAmbientRef.current && hasUnlockedRef.current) {
+        startAmbientForPet(currentPetRef.current);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [currentPet, stopAmbient]);
 
-  const startAmbient = useCallback(() => {
+  // Start ambient for a specific pet
+  const startAmbientForPet = useCallback((pet: PetType) => {
     // ALL AUDIO DISABLED
     if (allAudioDisabled) return;
 
-    const pet = currentPetRef.current;
-
-    console.log('[audio] startAmbient called for', pet);
-
-    // Ambient is Tula-only.
-    // If we're not on Tula, ensure everything is stopped and do not start anything.
-    if (pet !== 'fish') {
-      stopAmbient();
-      return;
-    }
+    console.log('[audio] startAmbientForPet called for', pet);
 
     // Guard: don't double-start if core nodes are already running
     const hasCoreNodes = !!ambientNodesRef.current.musicInterval;
@@ -1070,12 +1071,19 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
     unlockAudio();
 
-    console.log('[audio] Starting handpan and brook...');
+    if (pet === 'fish') {
+      console.log('[audio] Starting handpan and brook for Tula...');
+      startHandpanMusic();
+      startBrookSound();
+    } else {
+      console.log('[audio] Starting lo-fi music for Lola...');
+      startLolaLofiMusic();
+    }
+  }, [unlockAudio, startHandpanMusic, startBrookSound, startLolaLofiMusic]);
 
-    // Tula: calming Malte Marten-style handpan + brook ambient
-    startHandpanMusic();
-    startBrookSound();
-  }, [unlockAudio, startHandpanMusic, startBrookSound]);
+  const startAmbient = useCallback(() => {
+    startAmbientForPet(currentPetRef.current);
+  }, [startAmbientForPet]);
 
   // Toggle ambient sounds (music + ambience)
   const toggleAmbient = useCallback(() => {
