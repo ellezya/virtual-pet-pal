@@ -2147,6 +2147,55 @@ const ClassroomPets = () => {
 
         {/* Tank decorations removed - clean immersive lofi backgrounds only */}
 
+        {/* Heart-shaped bubbles rising from aquarium floor */}
+        {currentPet === 'fish' && (
+          <div className="absolute inset-0 pointer-events-none z-[5]">
+            {[
+              { x: 8, delay: 0, duration: 6, size: 12 },
+              { x: 22, delay: 1.5, duration: 7, size: 10 },
+              { x: 38, delay: 3, duration: 5.5, size: 14 },
+              { x: 55, delay: 0.8, duration: 6.5, size: 11 },
+              { x: 72, delay: 2.2, duration: 5.8, size: 13 },
+              { x: 88, delay: 4, duration: 6.2, size: 10 },
+              { x: 15, delay: 5, duration: 7.2, size: 9 },
+              { x: 45, delay: 2.8, duration: 5.2, size: 12 },
+              { x: 65, delay: 4.5, duration: 6.8, size: 11 },
+              { x: 82, delay: 1, duration: 5.5, size: 10 },
+            ].map((bubble, i) => (
+              <div
+                key={`heart-bubble-${i}`}
+                className="absolute"
+                style={{
+                  left: `${bubble.x}%`,
+                  bottom: '5%',
+                  width: bubble.size,
+                  height: bubble.size,
+                  animation: `heart-bubble-rise ${bubble.duration}s ease-out infinite`,
+                  animationDelay: `${bubble.delay}s`,
+                  opacity: 0,
+                }}
+              >
+                {/* Heart shape using CSS */}
+                <svg
+                  viewBox="0 0 24 24"
+                  width={bubble.size}
+                  height={bubble.size}
+                  style={{
+                    filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.5))',
+                  }}
+                >
+                  <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    fill="rgba(255, 180, 200, 0.6)"
+                    stroke="rgba(255, 255, 255, 0.4)"
+                    strokeWidth="0.5"
+                  />
+                </svg>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Fish Waste with subtle organic algae growth - immersive design */}
         {currentPet === 'fish' && (
           <div className="absolute inset-0 pointer-events-none z-[7]">
