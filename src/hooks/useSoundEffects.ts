@@ -901,7 +901,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     const gainNode = ctx.createGain();
     const t = ctx.currentTime;
     gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.55, t + 2); // Louder fountain
+    gainNode.gain.linearRampToValueAtTime(0.75, t + 2); // Louder fountain
 
     // Connect: noise -> bandpass -> lowpass -> gain -> music bus
     noiseSource.connect(filter);
