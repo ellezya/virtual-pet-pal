@@ -550,6 +550,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Play distant children laughing/playing
   const playChildrenSound = useCallback(() => {
+    // ALL AUDIO DISABLED
+    if (allAudioDisabled) return;
+
     const ctx = getAudioContext();
     const time = ctx.currentTime;
     
@@ -824,9 +827,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Start calming handpan music (Tula) - Malte Marten style
   const startHandpanMusic = useCallback(() => {
-    // ALL AUDIO DISABLED
-    if (allAudioDisabled) return;
-
+    // Handpan is the ONLY allowed sound - don't check allAudioDisabled here
     const tick = () => {
       lastMusicTickRef.current = Date.now();
       playHandpanPhrase();
@@ -847,6 +848,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
 
   // Start soft lo-fi pad chords (Lola)
   const startLolaLofiMusic = useCallback(() => {
+    // ALL AUDIO DISABLED except handpan
+    if (allAudioDisabled) return;
+
     const ctx = getAudioContext();
     const bus = getMusicBus();
 
