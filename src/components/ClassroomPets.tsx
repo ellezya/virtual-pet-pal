@@ -152,8 +152,8 @@ const ClassroomPets = () => {
   // Couch zones for the habitat scene (couch on right side of screen)
   // Tight bounds to prevent Lola from "stepping off" the couch in this cropped video.
   const couchZones = {
-    seat: { xMin: 62, xMax: 88, y: 75 },    // Seat cushions - adjusted to be more visible
-    back: { xMin: 62, xMax: 88, y: 62 },    // Back cushions
+    seat: { xMin: 62, xMax: 88, y: 82 },    // Seat cushions - lowered to sit on couch
+    back: { xMin: 62, xMax: 88, y: 68 },    // Back cushions / pillows
   };
   
   // Bed Y calibration (persisted to localStorage)
