@@ -866,7 +866,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     if (ambientNodesRef.current.fountainNodes) return;
 
     const ctx = getAudioContext();
-    const bus = getMusicBus();
+    // Fountain should NOT be routed through the music bus (which is intentionally very quiet)
+    // otherwise it becomes nearly inaudible.
 
     // Create filtered white noise for gentle water/fountain sound
     const bufferSize = ctx.sampleRate * 4; // 4 seconds of noise (loops)
@@ -901,13 +902,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny'): SoundEffectsRetu
     const gainNode = ctx.createGain();
     const t = ctx.currentTime;
     gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(0.75, t + 2); // Louder fountain
+    gainNode.gain.linearRampToValueAtTime(0.75, t + 2); // Loud fountain
 
-    // Connect: noise -> bandpass -> lowpass -> gain -> music bus
+    // Connect: noise -> bandpass -> lowpass -> gain -> speakers
     noiseSource.connect(filter);
     filter.connect(lowPass);
     lowPass.connect(gainNode);
-    gainNode.connect(bus);
+    gainNode.connect(ctx.destination);
 
     noiseSource.start();
     console.log('[audio] Fountain sound started');
