@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   PROMPT_DISMISSED: 'lola_prompt_dismissed_at',
   FIRST_PLAY: 'lola_first_play_at',
   SESSION_START: 'lola_session_start',
+  CELEBRATED_MILESTONES: 'lola_celebrated_milestones',
 } as const;
 
 interface Progress {
@@ -31,6 +32,16 @@ interface Progress {
   schoolPoints: number;
 }
 
+interface Milestone {
+  id: string;
+  type: 'streak' | 'chores' | 'sessions' | 'school';
+  value: number;
+  title: string;
+  emoji: string;
+  message: string;
+  bonusMinutes: number;
+}
+
 interface ProgressContextType {
   progress: Progress;
   isGuest: boolean;
@@ -48,6 +59,12 @@ interface ProgressContextType {
   recordPlaySession: () => void;
   pendingUnlock: string | null;
   clearPendingUnlock: () => void;
+  // Milestones
+  pendingMilestone: Milestone | null;
+  clearPendingMilestone: () => void;
+  addBonusTime: (minutes: number) => void;
+  celebratedMilestones: string[];
+  triggerAccountPrompt: () => void;
 }
 
 const defaultProgress: Progress = {
@@ -79,6 +96,26 @@ const TOY_REQUIREMENTS: Record<string, { type: 'streak' | 'sessions' | 'chores' 
   trampoline: { type: 'school', value: 50 },
 };
 
+// Milestone definitions for celebrations
+const MILESTONES: Milestone[] = [
+  // Streak milestones
+  { id: 'streak-3', type: 'streak', value: 3, title: '3-Day Streak!', emoji: '🔥', message: 'Great start! Keep it up!', bonusMinutes: 5 },
+  { id: 'streak-7', type: 'streak', value: 7, title: '7-Day Streak!', emoji: '🎉', message: "A whole week! You're amazing!", bonusMinutes: 10 },
+  { id: 'streak-14', type: 'streak', value: 14, title: '2-Week Streak!', emoji: '🌟', message: "Two weeks strong! You're a superstar!", bonusMinutes: 15 },
+  { id: 'streak-30', type: 'streak', value: 30, title: '30-Day Streak!', emoji: '🏆', message: 'A whole month! Incredible!', bonusMinutes: 30 },
+  { id: 'streak-100', type: 'streak', value: 100, title: '100-Day Streak!', emoji: '👑', message: 'LEGENDARY! 100 days!', bonusMinutes: 60 },
+  // Chore milestones
+  { id: 'chores-5', type: 'chores', value: 5, title: '5 Chores Done!', emoji: '✨', message: 'Great helper!', bonusMinutes: 3 },
+  { id: 'chores-10', type: 'chores', value: 10, title: '10 Chores Done!', emoji: '🌈', message: 'Super helpful!', bonusMinutes: 5 },
+  { id: 'chores-25', type: 'chores', value: 25, title: '25 Chores Done!', emoji: '⭐', message: 'Chore champion!', bonusMinutes: 10 },
+  { id: 'chores-50', type: 'chores', value: 50, title: '50 Chores Done!', emoji: '🎖️', message: 'Master helper!', bonusMinutes: 15 },
+  { id: 'chores-100', type: 'chores', value: 100, title: '100 Chores Done!', emoji: '🏅', message: 'Chore legend!', bonusMinutes: 30 },
+  // Session milestones
+  { id: 'sessions-10', type: 'sessions', value: 10, title: '10 Play Sessions!', emoji: '🎮', message: 'Lola loves seeing you!', bonusMinutes: 5 },
+  { id: 'sessions-50', type: 'sessions', value: 50, title: '50 Play Sessions!', emoji: '🎈', message: 'Best friends forever!', bonusMinutes: 10 },
+  { id: 'sessions-100', type: 'sessions', value: 100, title: '100 Play Sessions!', emoji: '💫', message: 'Super duper best friends!', bonusMinutes: 15 },
+];
+
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
 
 export const ProgressProvider = ({ children }: { children: ReactNode }) => {
@@ -88,6 +125,16 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [showAccountPrompt, setShowAccountPrompt] = useState(false);
   const [pendingUnlock, setPendingUnlock] = useState<string | null>(null);
+  const [pendingMilestone, setPendingMilestone] = useState<Milestone | null>(null);
+  const [celebratedMilestones, setCelebratedMilestones] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.CELEBRATED_MILESTONES);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const prevProgressRef = useRef<Progress | null>(null);
   const sessionStartRef = useRef<number | null>(null);
   const minuteTrackerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -449,6 +496,78 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     setPendingUnlock(null);
   }, []);
 
+  // Clear pending milestone after celebration shown
+  const clearPendingMilestone = useCallback(() => {
+    setPendingMilestone(null);
+  }, []);
+
+  // Add bonus time to lola time remaining
+  const addBonusTime = useCallback((minutes: number) => {
+    updateProgress({ lolaTimeRemaining: progress.lolaTimeRemaining + minutes });
+    toast({
+      title: `+${minutes} bonus minutes! ⏰`,
+      description: "Added to your Lola time!",
+    });
+  }, [progress.lolaTimeRemaining, updateProgress, toast]);
+
+  // Trigger account prompt manually (for testing)
+  const triggerAccountPrompt = useCallback(() => {
+    setShowAccountPrompt(true);
+  }, []);
+
+  // Check for milestone achievements when progress changes
+  useEffect(() => {
+    if (!prevProgressRef.current) {
+      prevProgressRef.current = progress;
+      return;
+    }
+    
+    const prev = prevProgressRef.current;
+    
+    // Check for newly achieved milestones
+    for (const milestone of MILESTONES) {
+      if (celebratedMilestones.includes(milestone.id)) continue;
+      
+      let prevValue = 0;
+      let currentValue = 0;
+      
+      switch (milestone.type) {
+        case 'streak':
+          prevValue = prev.currentStreak;
+          currentValue = progress.currentStreak;
+          break;
+        case 'chores':
+          prevValue = prev.choresCompleted;
+          currentValue = progress.choresCompleted;
+          break;
+        case 'sessions':
+          prevValue = prev.playSessions;
+          currentValue = progress.playSessions;
+          break;
+        case 'school':
+          prevValue = prev.schoolPoints;
+          currentValue = progress.schoolPoints;
+          break;
+      }
+      
+      // Check if we just crossed this milestone threshold
+      if (currentValue >= milestone.value && prevValue < milestone.value) {
+        setPendingMilestone(milestone);
+        // Mark as celebrated
+        const newCelebrated = [...celebratedMilestones, milestone.id];
+        setCelebratedMilestones(newCelebrated);
+        try {
+          localStorage.setItem(STORAGE_KEYS.CELEBRATED_MILESTONES, JSON.stringify(newCelebrated));
+        } catch {
+          // ignore
+        }
+        break; // Only show one milestone at a time
+      }
+    }
+    
+    prevProgressRef.current = progress;
+  }, [progress, celebratedMilestones]);
+
   return (
     <ProgressContext.Provider value={{
       progress,
@@ -466,6 +585,11 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
       recordPlaySession,
       pendingUnlock,
       clearPendingUnlock,
+      pendingMilestone,
+      clearPendingMilestone,
+      addBonusTime,
+      celebratedMilestones,
+      triggerAccountPrompt,
     }}>
       {children}
     </ProgressContext.Provider>
