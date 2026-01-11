@@ -23,6 +23,8 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
     kids, 
     chores, 
     pendingCompletions,
+    loading,
+    createFamily,
     addKid,
     addChore,
     removeKid,
@@ -31,6 +33,14 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
     rejectCompletion
   } = useFamily();
   const { toast } = useToast();
+  const [creatingFamily, setCreatingFamily] = useState(false);
+
+  // Auto-create family if user doesn't have one
+  const handleCreateFamily = async () => {
+    setCreatingFamily(true);
+    await createFamily();
+    setCreatingFamily(false);
+  };
 
   // Add kid state
   const [showAddKid, setShowAddKid] = useState(false);
@@ -117,6 +127,19 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           </DialogDescription>
         </DialogHeader>
 
+        {/* Show create family button if no family */}
+        {!family ? (
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
+            <h3 className="text-xl font-semibold mb-2">Welcome to Family Mode!</h3>
+            <p className="text-muted-foreground mb-4">
+              Create a family to add kids, assign chores, and track Lola time.
+            </p>
+            <Button onClick={handleCreateFamily} disabled={creatingFamily} size="lg">
+              {creatingFamily ? 'Creating...' : '✨ Create My Family'}
+            </Button>
+          </div>
+        ) : (
         <Tabs defaultValue="approvals" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="approvals" className="relative">
@@ -407,6 +430,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
             )}
           </TabsContent>
         </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
