@@ -43,7 +43,8 @@ const ClassroomPets = () => {
   });
   const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>(() => {
     const savedPet = localStorage.getItem('selectedPet');
-    return savedPet === 'fish' ? 'reef' : 'habitat';
+    // Lola (bunny) defaults to room (couch space), Tula (fish) defaults to reef
+    return savedPet === 'fish' ? 'reef' : 'room';
   });
   // Fish scene type for cleaner logic
   type FishScene = 'reef' | 'castle' | 'shell';
