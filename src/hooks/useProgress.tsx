@@ -24,6 +24,11 @@ interface Progress {
   lastActiveDate: string | null;
   lolaTimeRemaining: number;
   petState: Record<string, any> | null;
+  // Unlockable toys
+  unlockedToys: string[];
+  playSessions: number;
+  choresCompleted: number;
+  schoolPoints: number;
 }
 
 interface ProgressContextType {
@@ -36,6 +41,13 @@ interface ProgressContextType {
   recordCareAction: (action: 'fed' | 'watered' | 'played' | 'slept') => void;
   savePetState: (state: Record<string, any>) => void;
   migrateToAccount: () => Promise<void>;
+  // Toys
+  unlockedToys: string[];
+  unlockToy: (toyId: string) => void;
+  checkToyUnlock: () => string | null; // Returns newly unlocked toy ID if any
+  recordPlaySession: () => void;
+  pendingUnlock: string | null;
+  clearPendingUnlock: () => void;
 }
 
 const defaultProgress: Progress = {
@@ -51,6 +63,20 @@ const defaultProgress: Progress = {
   lastActiveDate: null,
   lolaTimeRemaining: 30,
   petState: null,
+  unlockedToys: ['hayPile'],
+  playSessions: 0,
+  choresCompleted: 0,
+  schoolPoints: 0,
+};
+
+// Toy unlock requirements
+const TOY_REQUIREMENTS: Record<string, { type: 'streak' | 'sessions' | 'chores' | 'school'; value: number }> = {
+  hayPile: { type: 'streak', value: 0 }, // starter toy
+  balloon: { type: 'streak', value: 3 },
+  yarn: { type: 'streak', value: 7 },
+  cardboard: { type: 'sessions', value: 20 },
+  tunnel: { type: 'chores', value: 10 },
+  trampoline: { type: 'school', value: 50 },
 };
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -61,6 +87,7 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
   const [progress, setProgress] = useState<Progress>(defaultProgress);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+  const [pendingUnlock, setPendingUnlock] = useState<string | null>(null);
   const sessionStartRef = useRef<number | null>(null);
   const minuteTrackerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -95,6 +122,10 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
               lastActiveDate: data.last_active_date,
               lolaTimeRemaining: data.lola_time_remaining,
               petState: data.pet_state as Record<string, any> | null,
+              unlockedToys: data.unlocked_toys || ['hayPile'],
+              playSessions: data.play_sessions || 0,
+              choresCompleted: data.chores_completed || 0,
+              schoolPoints: data.school_points || 0,
             });
           } else {
             // Create new progress record for this user
@@ -145,6 +176,10 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
             last_active_date: newProgress.lastActiveDate,
             lola_time_remaining: newProgress.lolaTimeRemaining,
             pet_state: newProgress.petState,
+            unlocked_toys: newProgress.unlockedToys,
+            play_sessions: newProgress.playSessions,
+            chores_completed: newProgress.choresCompleted,
+            school_points: newProgress.schoolPoints,
           })
           .eq('user_id', user.id);
 
@@ -366,6 +401,54 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [progress.lastActiveDate, progress.currentStreak, progress.longestStreak, progress.daysActive, updateProgress]);
 
+  // Unlock a specific toy
+  const unlockToy = useCallback((toyId: string) => {
+    if (progress.unlockedToys.includes(toyId)) return;
+    
+    const newUnlocked = [...progress.unlockedToys, toyId];
+    updateProgress({ unlockedToys: newUnlocked });
+    setPendingUnlock(toyId);
+  }, [progress.unlockedToys, updateProgress]);
+
+  // Check if any toy should be unlocked based on current progress
+  const checkToyUnlock = useCallback((): string | null => {
+    for (const [toyId, req] of Object.entries(TOY_REQUIREMENTS)) {
+      if (progress.unlockedToys.includes(toyId)) continue;
+      
+      let current = 0;
+      switch (req.type) {
+        case 'streak':
+          current = progress.currentStreak;
+          break;
+        case 'sessions':
+          current = progress.playSessions;
+          break;
+        case 'chores':
+          current = progress.choresCompleted;
+          break;
+        case 'school':
+          current = progress.schoolPoints;
+          break;
+      }
+      
+      if (current >= req.value) {
+        unlockToy(toyId);
+        return toyId;
+      }
+    }
+    return null;
+  }, [progress, unlockToy]);
+
+  // Record a play session
+  const recordPlaySession = useCallback(() => {
+    updateProgress({ playSessions: progress.playSessions + 1 });
+  }, [progress.playSessions, updateProgress]);
+
+  // Clear pending unlock after celebration shown
+  const clearPendingUnlock = useCallback(() => {
+    setPendingUnlock(null);
+  }, []);
+
   return (
     <ProgressContext.Provider value={{
       progress,
@@ -377,6 +460,12 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
       recordCareAction,
       savePetState,
       migrateToAccount,
+      unlockedToys: progress.unlockedToys,
+      unlockToy,
+      checkToyUnlock,
+      recordPlaySession,
+      pendingUnlock,
+      clearPendingUnlock,
     }}>
       {children}
     </ProgressContext.Provider>
