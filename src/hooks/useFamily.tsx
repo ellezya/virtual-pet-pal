@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +49,13 @@ interface FamilyContextType {
   isParent: boolean;
   activeKid: Kid | null;
   
+  // Time tracking
+  timeRemaining: number; // seconds remaining for active kid
+  isTimeUp: boolean;
+  isTimePaused: boolean;
+  pauseTime: () => void;
+  resumeTime: () => void;
+  
   // Family management
   createFamily: (name?: string) => Promise<string | null>;
   updateFamilyName: (name: string) => Promise<void>;
@@ -96,6 +103,118 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isParent, setIsParent] = useState(false);
   const [activeKid, setActiveKid] = useState<Kid | null>(null);
+  
+  // Time tracking state
+  const [timeRemaining, setTimeRemaining] = useState(0); // in seconds
+  const [isTimePaused, setIsTimePaused] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSaveRef = useRef<number>(0);
+  
+  // Derived state
+  const isTimeUp = activeKid !== null && timeRemaining <= 0;
+  
+  // Initialize time when kid logs in
+  useEffect(() => {
+    if (activeKid) {
+      const totalMinutes = activeKid.lola_time_from_chores + activeKid.lola_time_from_school;
+      setTimeRemaining(totalMinutes * 60); // Convert to seconds
+      setIsTimePaused(false);
+    } else {
+      setTimeRemaining(0);
+      setIsTimePaused(false);
+    }
+  }, [activeKid?.id]);
+  
+  // Timer countdown effect
+  useEffect(() => {
+    if (!activeKid || isTimePaused || timeRemaining <= 0) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+    
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = Math.max(0, prev - 1);
+        
+        // Save to database every 30 seconds
+        const now = Date.now();
+        if (now - lastSaveRef.current >= 30000 && activeKid) {
+          lastSaveRef.current = now;
+          const minutesRemaining = Math.floor(newTime / 60);
+          const originalTotal = activeKid.lola_time_from_chores + activeKid.lola_time_from_school;
+          const minutesUsed = originalTotal - minutesRemaining;
+          
+          // Deduct from chores first, then school
+          let choreTime = Math.max(0, activeKid.lola_time_from_chores - minutesUsed);
+          let schoolTime = activeKid.lola_time_from_school;
+          if (minutesUsed > activeKid.lola_time_from_chores) {
+            schoolTime = Math.max(0, activeKid.lola_time_from_school - (minutesUsed - activeKid.lola_time_from_chores));
+          }
+          
+          supabase
+            .from('kids')
+            .update({
+              lola_time_from_chores: choreTime,
+              lola_time_from_school: schoolTime
+            })
+            .eq('id', activeKid.id)
+            .then(() => {
+              // Update local activeKid state
+              setActiveKid(prev => prev ? {
+                ...prev,
+                lola_time_from_chores: choreTime,
+                lola_time_from_school: schoolTime
+              } : null);
+            });
+        }
+        
+        return newTime;
+      });
+    }, 1000);
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [activeKid?.id, isTimePaused, timeRemaining > 0]);
+  
+  // Save remaining time when kid logs out or component unmounts
+  useEffect(() => {
+    return () => {
+      if (activeKid && timeRemaining > 0) {
+        const minutesRemaining = Math.floor(timeRemaining / 60);
+        const originalTotal = activeKid.lola_time_from_chores + activeKid.lola_time_from_school;
+        const minutesUsed = originalTotal - minutesRemaining;
+        
+        let choreTime = Math.max(0, activeKid.lola_time_from_chores - minutesUsed);
+        let schoolTime = activeKid.lola_time_from_school;
+        if (minutesUsed > activeKid.lola_time_from_chores) {
+          schoolTime = Math.max(0, activeKid.lola_time_from_school - (minutesUsed - activeKid.lola_time_from_chores));
+        }
+        
+        supabase
+          .from('kids')
+          .update({
+            lola_time_from_chores: choreTime,
+            lola_time_from_school: schoolTime
+          })
+          .eq('id', activeKid.id);
+      }
+    };
+  }, [activeKid?.id, timeRemaining]);
+  
+  const pauseTime = useCallback(() => {
+    setIsTimePaused(true);
+  }, []);
+  
+  const resumeTime = useCallback(() => {
+    setIsTimePaused(false);
+  }, []);
 
   const refreshFamily = useCallback(async () => {
     if (!user) {
@@ -515,6 +634,11 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
       loading,
       isParent,
       activeKid,
+      timeRemaining,
+      isTimeUp,
+      isTimePaused,
+      pauseTime,
+      resumeTime,
       createFamily,
       updateFamilyName,
       addKid,
