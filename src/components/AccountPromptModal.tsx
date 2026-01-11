@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 interface AccountPromptModalProps {
   open: boolean;
   onClose: () => void;
-  onContinueGuest: () => void;
+  onContinueGuest?: () => void;
 }
 
 const AccountPromptModal = ({ open, onClose, onContinueGuest }: AccountPromptModalProps) => {
@@ -33,7 +33,7 @@ const AccountPromptModal = ({ open, onClose, onContinueGuest }: AccountPromptMod
   };
 
   const handleContinueGuest = () => {
-    onContinueGuest();
+    onContinueGuest?.();
     onClose();
   };
 
