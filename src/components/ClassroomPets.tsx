@@ -1711,8 +1711,8 @@ const ClassroomPets = () => {
             </>
           )}
           
-          {/* Parent Mode: Show Dashboard Button with pending count */}
-          {isParent && !activeKid && (
+          {/* Parent/Family Mode: Show Dashboard Button for any logged-in user (not in kid mode) */}
+          {user && !activeKid && (
             <>
               {kids.length > 0 && (
                 <button
@@ -1726,7 +1726,7 @@ const ClassroomPets = () => {
               <button
                 onClick={() => setShowParentDashboard(true)}
                 className="p-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors relative"
-                title="Parent Dashboard"
+                title="Family Dashboard"
               >
                 <ClipboardList size={14} />
                 {pendingCompletions.length > 0 && (
