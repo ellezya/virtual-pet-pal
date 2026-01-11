@@ -49,13 +49,21 @@ const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock } = useProgress();
-  const { family, kids, isParent, activeKid, logoutKid, pendingCompletions } = useFamily();
+  const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
   
   // Family UI state
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [showKidLogin, setShowKidLogin] = useState(false);
   const [showKidChores, setShowKidChores] = useState(false);
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  
+  // Show time's up modal when time runs out
+  useEffect(() => {
+    if (isTimeUp && activeKid) {
+      setShowTimeUpModal(true);
+    }
+  }, [isTimeUp, activeKid]);
   
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
@@ -1669,11 +1677,22 @@ const ClassroomPets = () => {
           {/* Kid Mode: Show Lola Time and Chores Button */}
           {activeKid && (
             <>
-              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-lg">
+              <div 
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg cursor-pointer transition-colors ${
+                  timeRemaining <= 60 
+                    ? 'bg-destructive/20 text-destructive animate-pulse' 
+                    : timeRemaining <= 300 
+                    ? 'bg-warning/20 text-warning' 
+                    : 'bg-primary/10 text-primary'
+                }`}
+                onClick={() => isTimePaused ? resumeTime() : pauseTime()}
+                title={isTimePaused ? 'Resume timer' : 'Pause timer'}
+              >
                 <Timer size={12} />
-                <span className="text-xs font-bold">
-                  {activeKid.lola_time_from_chores + activeKid.lola_time_from_school} min
+                <span className="text-xs font-bold font-mono">
+                  {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
                 </span>
+                {isTimePaused && <span className="text-[10px]">⏸️</span>}
               </div>
               <button
                 onClick={() => setShowKidChores(true)}
@@ -3443,6 +3462,59 @@ const ClassroomPets = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Time's Up Modal */}
+      <Dialog open={showTimeUpModal} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm text-center border-4 border-warning/50" onPointerDownOutside={(e) => e.preventDefault()}>
+          <div className="space-y-4 py-4">
+            <div className="text-5xl">⏰</div>
+            <DialogTitle className="text-xl">Time's Up!</DialogTitle>
+            <p className="text-muted-foreground">
+              Great job playing with Lola today! Complete more chores to earn more Lola time.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => {
+                  setShowTimeUpModal(false);
+                  setShowKidChores(true);
+                }} 
+                className="w-full"
+              >
+                📋 View My Chores
+              </Button>
+              <Button 
+                onClick={() => {
+                  setShowTimeUpModal(false);
+                  logoutKid();
+                }} 
+                variant="outline"
+                className="w-full"
+              >
+                👋 Switch Player
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Time's Up Overlay - blocks game when time is up */}
+      {isTimeUp && activeKid && !showTimeUpModal && !showKidChores && (
+        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center space-y-4 p-8 bg-card rounded-2xl shadow-xl border-2 border-warning/50">
+            <div className="text-5xl">⏰</div>
+            <h2 className="text-xl font-bold">Lola Time Used Up</h2>
+            <p className="text-muted-foreground">Complete chores to earn more time!</p>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowKidChores(true)}>
+                📋 My Chores
+              </Button>
+              <Button variant="outline" onClick={logoutKid}>
+                👋 Switch
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
