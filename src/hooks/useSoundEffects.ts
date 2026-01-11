@@ -1010,10 +1010,21 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
 
   }, [getAudioContext, getMusicBus]);
 
-  // Start room/sleeping ambient - ONLY music, no nature sounds (no birds, breeze, crickets)
+  // Start room/sleeping ambient (crickets, breeze, thunder) + lo-fi music
   const startRoomAmbient = useCallback(() => {
-    console.log('[audio] Starting room ambient (music only)...');
+    console.log('[audio] Starting room ambient (crickets, thunder & music)...');
+    
+    // Original ambient sounds - crickets, breeze, distant thunder
+    const cricketsAudio = new Audio(cricketsBreeze);
+    cricketsAudio.loop = true;
+    cricketsAudio.volume = 0.35;
+    cricketsAudio.play().catch(() => {
+      console.log('[audio] Crickets autoplay blocked, waiting for user gesture');
+    });
 
+    ambientNodesRef.current.breezeAudio = cricketsAudio;
+
+    // Add lo-fi music on top
     const ctx = getAudioContext();
     const bus = getMusicBus();
 
@@ -1030,13 +1041,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
 
       const chordGain = ctx.createGain();
       chordGain.gain.setValueAtTime(0, t);
-      chordGain.gain.linearRampToValueAtTime(1, t + 1.2);  // Slower fade in for sleepy vibe
-      chordGain.gain.setValueAtTime(1, t + 7.0);
+      chordGain.gain.linearRampToValueAtTime(0.7, t + 1.2);  // Slightly quieter to blend with nature sounds
+      chordGain.gain.setValueAtTime(0.7, t + 7.0);
       chordGain.gain.exponentialRampToValueAtTime(0.001, t + 9.5);
 
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(450, t);  // Even softer for sleep
+      filter.frequency.setValueAtTime(450, t);  // Soft for sleep
       filter.Q.setValueAtTime(0.3, t);
 
       chordGain.connect(filter);
@@ -1046,7 +1057,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
         const osc = ctx.createOscillator();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(f, t);
-        osc.detune.setValueAtTime((Math.random() - 0.5) * 4, t);  // Less detune for cleaner sound
+        osc.detune.setValueAtTime((Math.random() - 0.5) * 4, t);
         osc.connect(chordGain);
         osc.start(t);
         osc.stop(t + 10);
@@ -1072,7 +1083,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
       }, 11000);
     };
 
-    // Start immediately
+    // Start music immediately
     lastMusicTickRef.current = Date.now();
     playChord(chords[0]);
 
@@ -1085,11 +1096,11 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
 
     ambientNodesRef.current.musicInterval = musicInterval;
 
-    // Gentle wind intensity for subtle UI animation (no audio, just visual)
+    // Animate wind intensity for UI effects
     let windPhase = 0;
     const animateWind = () => {
-      windPhase += 0.005; // Very slow for calm sleep feel
-      const intensity = 0.15 + 0.1 * Math.sin(windPhase);
+      windPhase += 0.008; // Slower for calm night feel
+      const intensity = 0.2 + 0.15 * Math.sin(windPhase) + 0.1 * Math.sin(windPhase * 1.5);
       setWindIntensity(Math.max(0, Math.min(1, intensity)));
       windMeterRafRef.current = requestAnimationFrame(animateWind);
     };
