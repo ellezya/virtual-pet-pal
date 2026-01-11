@@ -6,7 +6,7 @@ import { useFamily } from '@/hooks/useFamily';
 interface KidPinLoginProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 const KidPinLogin = ({ open, onClose, onSuccess }: KidPinLoginProps) => {
@@ -50,7 +50,7 @@ const KidPinLogin = ({ open, onClose, onSuccess }: KidPinLoginProps) => {
     if (success) {
       setPin('');
       setSelectedKid(null);
-      onSuccess();
+      onSuccess?.();
       onClose();
     } else {
       setError('Wrong PIN. Try again!');

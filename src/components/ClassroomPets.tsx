@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3 } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
+import { useFamily } from '@/hooks/useFamily';
 import AccountPrompt from '@/components/AccountPrompt';
+import AccountPromptModal from '@/components/AccountPromptModal';
 import SyncIndicator from '@/components/SyncIndicator';
 import { ToyBox, TOY_REQUIREMENTS } from '@/components/ToyBox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +13,9 @@ import { Button } from '@/components/ui/button';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import ParentDashboard from '@/components/ParentDashboard';
+import KidPinLogin from '@/components/KidPinLogin';
+import KidChoresList from '@/components/KidChoresList';
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
 import bunnySad from '@/assets/bunny-sad.png';
@@ -44,6 +49,14 @@ const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock } = useProgress();
+  const { family, kids, isParent, activeKid, logoutKid, pendingCompletions } = useFamily();
+  
+  // Family UI state
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [showKidLogin, setShowKidLogin] = useState(false);
+  const [showKidChores, setShowKidChores] = useState(false);
+  
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
     return 'bunny';
@@ -56,6 +69,19 @@ const ClassroomPets = () => {
   // Fish scene type for cleaner logic
   type FishScene = 'reef' | 'castle' | 'shell';
   const [showBoundsDebug, setShowBoundsDebug] = useState(false);
+  
+  // Trigger account modal after 5 minutes of play (only if not logged in or no family)
+  useEffect(() => {
+    if (user && family) return; // Already set up
+    
+    const timer = setTimeout(() => {
+      if (!user || !family) {
+        setShowAccountModal(true);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearTimeout(timer);
+  }, [user, family]);
 
   const sceneRef = useRef<HTMLElement | null>(null);
   const bunnyImgRef = useRef<HTMLImageElement | null>(null);
@@ -1640,6 +1666,59 @@ const ClassroomPets = () => {
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Kid Mode: Show Lola Time and Chores Button */}
+          {activeKid && (
+            <>
+              <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-lg">
+                <Timer size={12} />
+                <span className="text-xs font-bold">
+                  {activeKid.lola_time_from_chores + activeKid.lola_time_from_school} min
+                </span>
+              </div>
+              <button
+                onClick={() => setShowKidChores(true)}
+                className="p-2 rounded-lg bg-success/20 text-success hover:bg-success/30 transition-colors relative"
+                title="My Chores"
+              >
+                <ClipboardList size={14} />
+              </button>
+              <button
+                onClick={logoutKid}
+                className="p-2 rounded-lg bg-muted hover:bg-destructive/20 hover:text-destructive transition-colors"
+                title="Switch Kid"
+              >
+                <Users size={14} />
+              </button>
+            </>
+          )}
+          
+          {/* Parent Mode: Show Dashboard Button with pending count */}
+          {isParent && !activeKid && (
+            <>
+              {kids.length > 0 && (
+                <button
+                  onClick={() => setShowKidLogin(true)}
+                  className="p-2 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/30 transition-colors"
+                  title="Kid Login"
+                >
+                  <Users size={14} />
+                </button>
+              )}
+              <button
+                onClick={() => setShowParentDashboard(true)}
+                className="p-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors relative"
+                title="Parent Dashboard"
+              >
+                <ClipboardList size={14} />
+                {pendingCompletions.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                    {pendingCompletions.length}
+                  </span>
+                )}
+              </button>
+            </>
+          )}
+          
           {gameState.notifications.length > 0 && (
             <div className="flex gap-1">
               {gameState.notifications.slice(0, 2).map((notif, i) => (
@@ -1677,6 +1756,30 @@ const ClassroomPets = () => {
 
       {/* Account Prompt Modal */}
       {showAccountPrompt && <AccountPrompt onDismiss={dismissAccountPrompt} />}
+      
+      {/* Family Account Modal - triggered after 5 min of play */}
+      <AccountPromptModal 
+        open={showAccountModal} 
+        onClose={() => setShowAccountModal(false)} 
+      />
+      
+      {/* Parent Dashboard Modal */}
+      <ParentDashboard 
+        open={showParentDashboard} 
+        onClose={() => setShowParentDashboard(false)} 
+      />
+      
+      {/* Kid PIN Login Modal */}
+      <KidPinLogin 
+        open={showKidLogin} 
+        onClose={() => setShowKidLogin(false)} 
+      />
+      
+      {/* Kid Chores List Modal */}
+      <KidChoresList 
+        open={showKidChores} 
+        onClose={() => setShowKidChores(false)} 
+      />
 
       {/* Pet/Scene Selector - Same size as toy menu */}
       <nav className="shrink-0 flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">
