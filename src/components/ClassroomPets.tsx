@@ -2022,12 +2022,75 @@ const ClassroomPets = () => {
                 </>
               )}
 
-              <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono">
+              <div className="absolute top-2 left-2 rounded border border-border bg-background/80 text-foreground text-xs p-2 font-mono max-w-[320px]">
+                {/* Legend for line colors */}
+                <div className="mb-2 pb-2 border-b border-border/60">
+                  <div className="text-[10px] text-muted-foreground mb-1 font-semibold">Line Legend:</div>
+                  <div className="flex items-center gap-1 text-[9px]">
+                    <span className="w-3 h-0.5 bg-destructive/70 inline-block" /> Red = Base safe bounds (zone edges)
+                  </div>
+                  <div className="flex items-center gap-1 text-[9px]">
+                    <span className="w-3 h-0.5 bg-primary/60 inline-block" /> Blue = Bunny effective bounds (center+half-width)
+                  </div>
+                  <div className="flex items-center gap-1 text-[9px]">
+                    <span className="w-3 h-0.5 bg-secondary/60 inline-block" /> Gray = Toy effective bounds
+                  </div>
+                  {currentScene === 'room' && (
+                    <>
+                      <div className="flex items-center gap-1 text-[9px]">
+                        <span className="w-3 h-0.5 bg-cyan-400/80 inline-block" /> Cyan = Seat Y ground line
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px]">
+                        <span className="w-3 h-0.5 bg-pink-400/80 inline-block" /> Pink = Back Y ground line
+                      </div>
+                    </>
+                  )}
+                </div>
+                
                 Safe X (edge): {safeMin.toFixed(1)}% – {safeMax.toFixed(1)}%<br />
                 Bunny half used: {bunnyHalfUsed.toFixed(1)}% (measured {edgeClamp.bunnyHalfPct.toFixed(1)}%)<br />
                 Bunny X: {bunnyXRaw.toFixed(1)}% → center {bunnyXCenterClamped.toFixed(1)}% → edge {bunnyXEdgeClamped.toFixed(1)}%<br />
                 Toy half used: {toyHalfUsed.toFixed(1)}% (measured {edgeClamp.toyHalfPct.toFixed(1)}%)<br />
                 Toy X: {toyXRaw.toFixed(1)}% → edge {toyXEdgeClamped.toFixed(1)}%
+
+                {/* Lola Position Controls */}
+                <div className="mt-2 pt-2 border-t border-border/60 space-y-2 pointer-events-auto">
+                  <div className="text-[10px] text-muted-foreground font-semibold">Lola Position</div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="w-[48px] text-[10px] text-muted-foreground">X pos</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={bunnyState.position.x}
+                      onChange={(e) => setBunnyState((prev) => ({ 
+                        ...prev, 
+                        position: { ...prev.position, x: Number(e.target.value) } 
+                      }))}
+                      className="flex-1 accent-primary"
+                    />
+                    <span className="w-10 text-right text-[10px]">{bunnyState.position.x.toFixed(1)}%</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="w-[48px] text-[10px] text-muted-foreground">Y pos</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={bunnyState.position.y}
+                      onChange={(e) => setBunnyState((prev) => ({ 
+                        ...prev, 
+                        position: { ...prev.position, y: Number(e.target.value) } 
+                      }))}
+                      className="flex-1 accent-primary"
+                    />
+                    <span className="w-10 text-right text-[10px]">{bunnyState.position.y.toFixed(1)}%</span>
+                  </div>
+                </div>
 
                 {currentScene === 'room' && (
                   <div className="mt-2 pt-2 border-t border-border/60 space-y-2 pointer-events-auto">
