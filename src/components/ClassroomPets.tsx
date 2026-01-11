@@ -16,6 +16,7 @@ import { useSoundEffects } from '@/hooks/useSoundEffects';
 import ParentDashboard from '@/components/ParentDashboard';
 import KidPinLogin from '@/components/KidPinLogin';
 import KidChoresList from '@/components/KidChoresList';
+import MilestoneCelebration from '@/components/MilestoneCelebration';
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
 import bunnySad from '@/assets/bunny-sad.png';
@@ -48,7 +49,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock } = useProgress();
+  const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime, triggerAccountPrompt } = useProgress();
   const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
   
   // Family UI state
@@ -3515,6 +3516,13 @@ const ClassroomPets = () => {
           </div>
         </div>
       )}
+
+      {/* Milestone Celebration with Confetti */}
+      <MilestoneCelebration
+        milestone={pendingMilestone}
+        onClose={clearPendingMilestone}
+        onBonusTimeAdded={addBonusTime}
+      />
     </div>
   );
 };
