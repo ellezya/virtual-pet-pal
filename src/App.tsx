@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProgressProvider } from "@/hooks/useProgress";
+import { FamilyProvider } from "@/hooks/useFamily";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
@@ -19,18 +20,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ProgressProvider>
-            <Routes>
-              {/* Main game - accessible to everyone (guests use localStorage) */}
-              <Route path="/" element={<Index />} />
-              {/* Auth page for users who want to sign in (for cloud sync/admin) */}
-              <Route path="/auth" element={<Auth />} />
-              {/* Personal stats page */}
-              <Route path="/stats" element={<Stats />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ProgressProvider>
+          <FamilyProvider>
+            <ProgressProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/stats" element={<Stats />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ProgressProvider>
+          </FamilyProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
