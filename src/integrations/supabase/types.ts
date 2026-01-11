@@ -53,6 +53,102 @@ export type Database = {
           },
         ]
       }
+      chore_completions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          chore_id: string
+          completed_at: string | null
+          id: string
+          kid_id: string
+          minutes_earned: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          chore_id: string
+          completed_at?: string | null
+          id?: string
+          kid_id: string
+          minutes_earned: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          chore_id?: string
+          completed_at?: string | null
+          id?: string
+          kid_id?: string
+          minutes_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_completions_chore_id_fkey"
+            columns: ["chore_id"]
+            isOneToOne: false
+            referencedRelation: "chores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_completions_kid_id_fkey"
+            columns: ["kid_id"]
+            isOneToOne: false
+            referencedRelation: "kids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chores: {
+        Row: {
+          created_at: string | null
+          description: string
+          family_id: string
+          frequency: string
+          id: string
+          is_active: boolean | null
+          kid_id: string | null
+          minutes_earned: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          family_id: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          kid_id?: string | null
+          minutes_earned?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          family_id?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          kid_id?: string | null
+          minutes_earned?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chores_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chores_kid_id_fkey"
+            columns: ["kid_id"]
+            isOneToOne: false
+            referencedRelation: "kids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classroom_pets: {
         Row: {
           accessories: string[] | null
@@ -138,6 +234,148 @@ export type Database = {
           },
         ]
       }
+      families: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          created_at: string | null
+          family_id: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          family_id: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          family_id?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kids: {
+        Row: {
+          age: number | null
+          avatar_emoji: string | null
+          chores_completed: number | null
+          created_at: string | null
+          current_streak: number | null
+          days_active: number | null
+          family_id: string
+          id: string
+          last_active_date: string | null
+          last_fed: string | null
+          last_played: string | null
+          last_slept: string | null
+          last_watered: string | null
+          lola_time_from_chores: number | null
+          lola_time_from_school: number | null
+          longest_streak: number | null
+          name: string
+          pet_state: Json | null
+          pin_hash: string
+          play_sessions: number | null
+          total_minutes: number | null
+          total_sessions: number | null
+          unlocked_toys: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          age?: number | null
+          avatar_emoji?: string | null
+          chores_completed?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          days_active?: number | null
+          family_id: string
+          id?: string
+          last_active_date?: string | null
+          last_fed?: string | null
+          last_played?: string | null
+          last_slept?: string | null
+          last_watered?: string | null
+          lola_time_from_chores?: number | null
+          lola_time_from_school?: number | null
+          longest_streak?: number | null
+          name: string
+          pet_state?: Json | null
+          pin_hash: string
+          play_sessions?: number | null
+          total_minutes?: number | null
+          total_sessions?: number | null
+          unlocked_toys?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          age?: number | null
+          avatar_emoji?: string | null
+          chores_completed?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          days_active?: number | null
+          family_id?: string
+          id?: string
+          last_active_date?: string | null
+          last_fed?: string | null
+          last_played?: string | null
+          last_slept?: string | null
+          last_watered?: string | null
+          lola_time_from_chores?: number | null
+          lola_time_from_school?: number | null
+          longest_streak?: number | null
+          name?: string
+          pet_state?: Json | null
+          pin_hash?: string
+          play_sessions?: number | null
+          total_minutes?: number | null
+          total_sessions?: number | null
+          unlocked_toys?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kids_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_helpers: {
         Row: {
           assigned_date: string | null
@@ -180,6 +418,7 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           email: string | null
+          family_id: string | null
           first_play_at: string | null
           id: string
           is_premium: boolean | null
@@ -190,6 +429,7 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          family_id?: string | null
           first_play_at?: string | null
           id: string
           is_premium?: boolean | null
@@ -200,12 +440,21 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          family_id?: string | null
           first_play_at?: string | null
           id?: string
           is_premium?: boolean | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
@@ -308,16 +557,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_classroom_owner: { Args: { _classroom_id: string }; Returns: boolean }
+      is_family_member: { Args: { _family_id: string }; Returns: boolean }
       is_pet_owner: { Args: { _pet_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role:
+        | "guest"
+        | "individual"
+        | "parent"
+        | "child"
+        | "teacher"
+        | "school_admin"
+        | "staff"
       pet_type: "bunny" | "fish" | "hamster" | "turtle" | "bird"
     }
     CompositeTypes: {
@@ -446,6 +732,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "guest",
+        "individual",
+        "parent",
+        "child",
+        "teacher",
+        "school_admin",
+        "staff",
+      ],
       pet_type: ["bunny", "fish", "hamster", "turtle", "bird"],
     },
   },
