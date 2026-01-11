@@ -241,6 +241,7 @@ export type Database = {
       }
       user_progress: {
         Row: {
+          chores_completed: number | null
           created_at: string
           current_streak: number
           days_active: number
@@ -253,12 +254,16 @@ export type Database = {
           lola_time_remaining: number
           longest_streak: number
           pet_state: Json | null
+          play_sessions: number | null
+          school_points: number | null
           total_minutes: number
           total_sessions: number
+          unlocked_toys: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          chores_completed?: number | null
           created_at?: string
           current_streak?: number
           days_active?: number
@@ -271,12 +276,16 @@ export type Database = {
           lola_time_remaining?: number
           longest_streak?: number
           pet_state?: Json | null
+          play_sessions?: number | null
+          school_points?: number | null
           total_minutes?: number
           total_sessions?: number
+          unlocked_toys?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          chores_completed?: number | null
           created_at?: string
           current_streak?: number
           days_active?: number
@@ -289,8 +298,11 @@ export type Database = {
           lola_time_remaining?: number
           longest_streak?: number
           pet_state?: Json | null
+          play_sessions?: number | null
+          school_points?: number | null
           total_minutes?: number
           total_sessions?: number
+          unlocked_toys?: string[] | null
           updated_at?: string
           user_id?: string
         }

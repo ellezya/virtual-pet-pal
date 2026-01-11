@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
 import AccountPrompt from '@/components/AccountPrompt';
 import SyncIndicator from '@/components/SyncIndicator';
+import { ToyBox, TOY_REQUIREMENTS } from '@/components/ToyBox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -40,7 +43,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { recordCareAction, showAccountPrompt, dismissAccountPrompt } = useProgress();
+  const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock } = useProgress();
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
     return 'bunny';
@@ -456,6 +459,7 @@ const ClassroomPets = () => {
   
   const [selectedToy, setSelectedToy] = useState(toys[0]);
   const [yarnTanglePhase, setYarnTanglePhase] = useState<'none' | 'batting' | 'tangled' | 'free'>('none');
+  const [lockedToyModal, setLockedToyModal] = useState<typeof toys[0] | null>(null);
 
   // Measure visual widths (post-transform) and convert to %-based half-widths.
   useLayoutEffect(() => {
@@ -1143,7 +1147,11 @@ const ClassroomPets = () => {
 
   const playWithToy = (toy: typeof toys[0]) => {
     if (gameState.locked) return;
+    if (!unlockedToys.includes(toy.id)) return; // Can't play with locked toys
     recordCareAction('played');
+    recordPlaySession(); // Track for unlock progress
+    // Check for new unlocks after a short delay
+    setTimeout(() => checkToyUnlock(), 500);
     if (currentPet === 'bunny') {
       // Special handling for trampoline - bunny jumps directly on it
       if (toy.id === 'trampoline') {
@@ -2979,38 +2987,48 @@ const ClassroomPets = () => {
           </div>
         </div>
 
-        {/* Toy Selection Menu - Right Side - Scrollable Loop */}
+        {/* Toy Selection Menu - Right Side with ToyBox */}
         {currentPet === 'bunny' && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-primary/30 max-h-[60vh]">
             <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
             <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
-              {/* Triple the toys for infinite scroll illusion */}
-              {[...availableToys, ...availableToys, ...availableToys].map((toy, idx) => (
-                <button
-                  key={`${toy.id}-${idx}`}
-                  onClick={() => setSelectedToy(toy)}
-                  disabled={gameState.locked || bunnyState.action !== 'idle'}
-                  className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
-                    selectedToy.id === toy.id 
-                      ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
-                      : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  title={`${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})`}
-                >
-                  {toy.component ? (
-                    <div className="w-6 h-4 flex items-center justify-center">
-                      <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
-                        <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                  ) : (
-                    <span className="text-xl">{toy.emoji}</span>
-                  )}
-                  <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
-                  <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
-                </button>
-              ))}
+              {availableToys.map((toy) => {
+                const isUnlocked = unlockedToys.includes(toy.id);
+                const isSelected = selectedToy.id === toy.id;
+                
+                return (
+                  <button
+                    key={toy.id}
+                    onClick={() => isUnlocked ? setSelectedToy(toy) : setLockedToyModal(toy)}
+                    disabled={gameState.locked || bunnyState.action !== 'idle'}
+                    className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                      isSelected && isUnlocked
+                        ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
+                        : isUnlocked
+                        ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                        : 'bg-muted/30 text-muted-foreground cursor-pointer'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    title={isUnlocked ? `${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})` : `${toy.name} (Locked)`}
+                  >
+                    {toy.component ? (
+                      <div className={`w-6 h-4 flex items-center justify-center ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>
+                        <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
+                          <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                    ) : (
+                      <span className={`text-xl ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>{toy.emoji}</span>
+                    )}
+                    <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
+                    {isUnlocked ? (
+                      <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                    ) : (
+                      <Lock className="w-3 h-3 text-muted-foreground mt-0.5" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -3261,6 +3279,67 @@ const ClassroomPets = () => {
           )}
         </div>
       </footer>
+
+      {/* Locked Toy Modal */}
+      <Dialog open={!!lockedToyModal} onOpenChange={() => setLockedToyModal(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              {lockedToyModal?.emoji && <span className="text-2xl grayscale">{lockedToyModal.emoji}</span>}
+              {lockedToyModal?.name} - Locked
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <p className="text-muted-foreground">
+              Keep caring for Lola to unlock!
+            </p>
+            
+            <div className="space-y-2 text-sm">
+              {lockedToyModal && TOY_REQUIREMENTS[lockedToyModal.id] && (
+                <>
+                  <p className="font-medium">
+                    Requirement: {TOY_REQUIREMENTS[lockedToyModal.id].type === 'streak' 
+                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value}-day care streak`
+                      : TOY_REQUIREMENTS[lockedToyModal.id].type === 'sessions'
+                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value} play sessions`
+                      : TOY_REQUIREMENTS[lockedToyModal.id].type === 'chores'
+                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value} chores completed`
+                      : `${TOY_REQUIREMENTS[lockedToyModal.id].value} school points`}
+                  </p>
+                </>
+              )}
+            </div>
+            
+            <Button 
+              onClick={() => setLockedToyModal(null)} 
+              className="w-full"
+            >
+              Keep Playing
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unlock Celebration Modal */}
+      <Dialog open={!!pendingUnlock} onOpenChange={() => clearPendingUnlock()}>
+        <DialogContent className="max-w-sm text-center">
+          <div className="space-y-4 py-4">
+            <div className="text-5xl animate-bounce">🎉</div>
+            <DialogTitle className="text-xl">New toy unlocked!</DialogTitle>
+            <p className="text-lg font-medium text-primary">
+              {pendingUnlock && toys.find(t => t.id === pendingUnlock)?.emoji}{' '}
+              {pendingUnlock && toys.find(t => t.id === pendingUnlock)?.name}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Lola is so happy with you!
+            </p>
+            <Button onClick={() => clearPendingUnlock()} className="w-full">
+              Awesome! 🐰
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
