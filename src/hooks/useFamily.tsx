@@ -300,42 +300,19 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return null;
 
     try {
-      // Create family
-      const { data: familyData, error: familyError } = await supabase
-        .from('families')
-        .insert({ name })
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke('create-family', {
+        body: { name }
+      });
 
-      if (familyError) throw familyError;
+      if (error) throw error;
 
-      // Add user as family member
-      const { error: memberError } = await supabase
-        .from('family_members')
-        .insert({
-          family_id: familyData.id,
-          user_id: user.id,
-          role: 'parent'
-        });
-
-      if (memberError) throw memberError;
-
-      // Update profile with family_id
-      await supabase
-        .from('profiles')
-        .update({ family_id: familyData.id })
-        .eq('id', user.id);
-
-      // Add parent role
-      await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user.id,
-          role: 'parent'
-        });
+      const familyId = (data as any)?.family_id as string | undefined;
+      if (!familyId) {
+        throw new Error('Failed to create family');
+      }
 
       await refreshFamily();
-      return familyData.id;
+      return familyId;
     } catch (error: any) {
       console.error('Error creating family:', error);
       toast({
