@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useProgress } from '@/hooks/useProgress';
+import AccountPrompt from '@/components/AccountPrompt';
+import SyncIndicator from '@/components/SyncIndicator';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -37,6 +40,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const { recordCareAction, showAccountPrompt, dismissAccountPrompt } = useProgress();
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
     return 'bunny';
@@ -1089,6 +1093,7 @@ const ClassroomPets = () => {
 
   const feedPet = () => {
     if (gameState.locked) return;
+    recordCareAction('fed');
     if (currentPet === 'bunny') {
       // Fill the food bowl first
       setBowlLevels(prev => ({ ...prev, food: 100 }));
@@ -1120,6 +1125,7 @@ const ClassroomPets = () => {
 
   const waterBunny = () => {
     if (gameState.locked || currentPet !== 'bunny') return;
+    recordCareAction('watered');
     // Fill the water bowl first
     setBowlLevels(prev => ({ ...prev, water: 100 }));
     doAction('drinking', 'water-bowl', 3000);
@@ -1137,6 +1143,7 @@ const ClassroomPets = () => {
 
   const playWithToy = (toy: typeof toys[0]) => {
     if (gameState.locked) return;
+    recordCareAction('played');
     if (currentPet === 'bunny') {
       // Special handling for trampoline - bunny jumps directly on it
       if (toy.id === 'trampoline') {
@@ -1419,6 +1426,7 @@ const ClassroomPets = () => {
 
   const takeNap = () => {
     if (gameState.locked || currentPet !== 'bunny' || currentScene !== 'room') return;
+    recordCareAction('slept');
     setBunnyState(prev => ({ ...prev, action: 'napping', isNapping: true, idleBehavior: 'none' }));
     
     // Nap for 6 seconds
@@ -1631,6 +1639,7 @@ const ClassroomPets = () => {
               ))}
             </div>
           )}
+          <SyncIndicator />
           {user ? (
             <button 
               onClick={signOut}
@@ -1648,8 +1657,18 @@ const ClassroomPets = () => {
               <LogIn size={14} />
             </button>
           )}
+          <button 
+            onClick={() => navigate('/stats')}
+            className="p-2 rounded-lg bg-muted hover:bg-secondary/20 hover:text-secondary transition-colors"
+            title="My Stats"
+          >
+            <BarChart3 size={14} />
+          </button>
         </div>
       </header>
+
+      {/* Account Prompt Modal */}
+      {showAccountPrompt && <AccountPrompt onDismiss={dismissAccountPrompt} />}
 
       {/* Pet/Scene Selector - Same size as toy menu */}
       <nav className="shrink-0 flex gap-1 px-2 py-2 mx-1 bg-card/90 backdrop-blur-sm border-2 border-primary/30 rounded-xl">

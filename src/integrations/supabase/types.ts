@@ -176,25 +176,31 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_prompt_dismissed_at: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
+          first_play_at: string | null
           id: string
           is_premium: boolean | null
           updated_at: string | null
         }
         Insert: {
+          account_prompt_dismissed_at?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          first_play_at?: string | null
           id: string
           is_premium?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          account_prompt_dismissed_at?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          first_play_at?: string | null
           id?: string
           is_premium?: boolean | null
           updated_at?: string | null
@@ -232,6 +238,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_progress: {
+        Row: {
+          created_at: string
+          current_streak: number
+          days_active: number
+          id: string
+          last_active_date: string | null
+          last_fed: string | null
+          last_played: string | null
+          last_slept: string | null
+          last_watered: string | null
+          lola_time_remaining: number
+          longest_streak: number
+          pet_state: Json | null
+          total_minutes: number
+          total_sessions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          days_active?: number
+          id?: string
+          last_active_date?: string | null
+          last_fed?: string | null
+          last_played?: string | null
+          last_slept?: string | null
+          last_watered?: string | null
+          lola_time_remaining?: number
+          longest_streak?: number
+          pet_state?: Json | null
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          days_active?: number
+          id?: string
+          last_active_date?: string | null
+          last_fed?: string | null
+          last_played?: string | null
+          last_slept?: string | null
+          last_watered?: string | null
+          lola_time_remaining?: number
+          longest_streak?: number
+          pet_state?: Json | null
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
