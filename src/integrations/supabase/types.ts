@@ -199,6 +199,91 @@ export type Database = {
           },
         ]
       }
+      classroom_sessions: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          current_student_id: string | null
+          current_turn_started_at: string | null
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          is_paused: boolean
+          lola_energy: number
+          lola_happiness: number
+          lola_hunger: number
+          lola_sleeping: boolean
+          rotation_mode: string
+          rotation_queue: string[]
+          started_at: string
+          teacher_id: string
+          time_per_student: number
+          updated_at: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          current_student_id?: string | null
+          current_turn_started_at?: string | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_paused?: boolean
+          lola_energy?: number
+          lola_happiness?: number
+          lola_hunger?: number
+          lola_sleeping?: boolean
+          rotation_mode?: string
+          rotation_queue?: string[]
+          started_at?: string
+          teacher_id: string
+          time_per_student?: number
+          updated_at?: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          current_student_id?: string | null
+          current_turn_started_at?: string | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_paused?: boolean
+          lola_energy?: number
+          lola_happiness?: number
+          lola_hunger?: number
+          lola_sleeping?: boolean
+          rotation_mode?: string
+          rotation_queue?: string[]
+          started_at?: string
+          teacher_id?: string
+          time_per_student?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classroom_sessions_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classroom_sessions_current_student_id_fkey"
+            columns: ["current_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classroom_sessions_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classrooms: {
         Row: {
           classroom_code: string
