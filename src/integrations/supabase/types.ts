@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      behavior_incidents: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          description: string | null
+          id: string
+          incident_type: string
+          location: string
+          notes: string | null
+          parent_notified_at: string | null
+          reported_by: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type: string
+          location: string
+          notes?: string | null
+          parent_notified_at?: string | null
+          reported_by: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type?: string
+          location?: string
+          notes?: string | null
+          parent_notified_at?: string | null
+          reported_by?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "behavior_incidents_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "behavior_incidents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       care_logs: {
         Row: {
           action: string
@@ -572,6 +641,208 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_items: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          description: string | null
+          emoji: string
+          id: string
+          is_active: boolean
+          is_digital: boolean
+          name: string
+          point_cost: number
+          stock_quantity: number | null
+          updated_at: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          is_digital?: boolean
+          name: string
+          point_cost: number
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          is_digital?: boolean
+          name?: string
+          point_cost?: number
+          stock_quantity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_items_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          order_id: string
+          point_cost: number
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          order_id: string
+          point_cost: number
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          order_id?: string
+          point_cost?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "store_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "store_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          classroom_id: string
+          created_at: string
+          delivery_method: string
+          fulfilled_at: string | null
+          fulfilled_by: string | null
+          id: string
+          notes: string | null
+          status: string
+          student_id: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          classroom_id: string
+          created_at?: string
+          delivery_method?: string
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          student_id: string
+          total_points: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          classroom_id?: string
+          created_at?: string
+          delivery_method?: string
+          fulfilled_at?: string | null
+          fulfilled_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          student_id?: string
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_orders_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_orders_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_settings: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          delivery_days: string[]
+          delivery_window: string | null
+          id: string
+          is_store_open: boolean
+          order_cutoff_time: string
+          updated_at: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          delivery_days?: string[]
+          delivery_window?: string | null
+          id?: string
+          is_store_open?: boolean
+          order_cutoff_time?: string
+          updated_at?: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          delivery_days?: string[]
+          delivery_window?: string | null
+          id?: string
+          is_store_open?: boolean
+          order_cutoff_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_settings_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: true
+            referencedRelation: "classrooms"
             referencedColumns: ["id"]
           },
         ]
