@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ClassroomDisplayMode from '@/components/ClassroomDisplayMode';
 import QuickAwardDialog from '@/components/QuickAwardDialog';
+import StudentLinkCodeDisplay from '@/components/StudentLinkCodeDisplay';
 import { 
   Plus, 
   Award, 
@@ -29,7 +30,8 @@ import {
   Pause,
   SkipForward,
   Moon,
-  Mic
+  Mic,
+  Link
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
@@ -562,6 +564,13 @@ Michael Brown`}
                           </div>
                           
                           <div className="flex items-center gap-2">
+                            <StudentLinkCodeDisplay
+                              studentName={student.name}
+                              studentNumber={student.student_number}
+                              linkCode={(student as any).link_code || '------'}
+                              avatarEmoji={student.avatar_emoji}
+                              isLinked={!!student.linked_kid_id}
+                            />
                             <Button
                               size="sm"
                               onClick={() => openAwardDialog(student.id)}

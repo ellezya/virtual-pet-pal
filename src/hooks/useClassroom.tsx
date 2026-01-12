@@ -10,6 +10,7 @@ interface Student {
   student_number: string;
   school_points: number;
   linked_kid_id?: string | null;
+  link_code?: string | null;
   classroom_id: string;
 }
 

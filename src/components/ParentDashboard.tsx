@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFamily } from '@/hooks/useFamily';
 import { useToast } from '@/hooks/use-toast';
-import { Check, X, Plus, Trash2, Clock, Award } from 'lucide-react';
+import LinkStudentDialog from '@/components/LinkStudentDialog';
+import { Check, X, Plus, Trash2, Clock, Award, School, Link } from 'lucide-react';
 
 interface ParentDashboardProps {
   open: boolean;
@@ -34,6 +35,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
   } = useFamily();
   const { toast } = useToast();
   const [creatingFamily, setCreatingFamily] = useState(false);
+  const [showLinkStudent, setShowLinkStudent] = useState(false);
 
   // Auto-create family if user doesn't have one
   const handleCreateFamily = async () => {
@@ -141,7 +143,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           </div>
         ) : (
         <Tabs defaultValue="approvals" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="approvals" className="relative">
               Approvals
               {pendingCompletions.length > 0 && (
@@ -152,6 +154,10 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
             </TabsTrigger>
             <TabsTrigger value="kids">Kids</TabsTrigger>
             <TabsTrigger value="chores">Chores</TabsTrigger>
+            <TabsTrigger value="school">
+              <School className="w-4 h-4 mr-1" />
+              School
+            </TabsTrigger>
           </TabsList>
 
           {/* Approvals Tab */}
@@ -429,8 +435,38 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
               </Card>
             )}
           </TabsContent>
+
+          {/* School Tab */}
+          <TabsContent value="school" className="space-y-4">
+            <div className="text-center py-4">
+              <School className="w-12 h-12 mx-auto text-primary mb-3" />
+              <h3 className="text-lg font-semibold mb-2">Link to School</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Connect your child to their classroom. School points will automatically convert to Lola time!
+              </p>
+              <Button onClick={() => setShowLinkStudent(true)} className="gap-2">
+                <Link className="w-4 h-4" />
+                Link School Account
+              </Button>
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg">
+              <h4 className="font-medium mb-2">How it works:</h4>
+              <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                <li>Get a link code from your child's teacher</li>
+                <li>Enter the code to connect your child</li>
+                <li>School points automatically become Lola time!</li>
+              </ol>
+            </div>
+          </TabsContent>
         </Tabs>
         )}
+
+        {/* Link Student Dialog */}
+        <LinkStudentDialog 
+          open={showLinkStudent} 
+          onClose={() => setShowLinkStudent(false)} 
+        />
       </DialogContent>
     </Dialog>
   );
