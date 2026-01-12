@@ -132,10 +132,47 @@
 @layer base {
   * {
     @apply border-border;
+    /* Prevent text selection on mobile for better UX */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior: none;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+    /* Safe area insets for notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
   body {
     @apply bg-background text-foreground font-nunito;
+    /* Prevent iOS rubber-band scrolling */
+    overscroll-behavior: none;
+    /* Prevent text size adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
+    /* Touch action for better mobile scrolling */
+    touch-action: pan-x pan-y;
+    /* Minimum touch target considerations */
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Prevent iOS zoom on input focus - set font size to 16px minimum */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Better touch targets for interactive elements */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Allow smaller buttons with explicit class */
+  .btn-sm-touch {
+    min-height: 36px;
+    min-width: 36px;
   }
 }
 
@@ -221,6 +258,47 @@
   .lofi-grain {
     @apply pointer-events-none absolute inset-0 opacity-[0.03];
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* Mobile-first utility components */
+  .mobile-container {
+    @apply w-full max-w-full px-3 sm:px-4 md:px-6;
+  }
+
+  .mobile-card {
+    @apply rounded-xl p-3 sm:p-4 md:p-6;
+  }
+
+  .mobile-stack {
+    @apply flex flex-col gap-3 sm:gap-4;
+  }
+
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4;
+  }
+
+  .mobile-header {
+    @apply sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .mobile-bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-action-bar {
+    @apply flex flex-wrap items-center gap-2 overflow-x-auto pb-2 -mb-2 scrollbar-thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Touch-friendly button sizes */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .touch-target-sm {
+    @apply min-h-[36px] min-w-[36px] flex items-center justify-center;
   }
 }
 

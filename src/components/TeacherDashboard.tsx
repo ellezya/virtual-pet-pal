@@ -223,18 +223,18 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-background overflow-hidden flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <School className="w-6 h-6 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">Teacher Dashboard</h1>
+      {/* Header - Mobile optimized */}
+      <header className="mobile-header flex items-center justify-between p-3 sm:p-4 bg-card">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <School className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">Teacher Dashboard</h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} className="touch-target-sm">
           <X className="w-5 h-5" />
         </Button>
       </header>
 
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      <div className="flex-1 overflow-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
         {/* Classroom Selector */}
         {classrooms.length === 0 ? (
           <Card className="bg-card border-border">
@@ -331,23 +331,25 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
 
             {/* Quick Controls Bar - Mobile-First Teacher Controls */}
             <Card className="bg-card border-border">
-              <CardContent className="py-3">
-                <div className="flex items-center justify-between flex-wrap gap-3">
+              <CardContent className="py-2 sm:py-3">
+                <div className="mobile-action-bar">
                   {/* Display Mode Button */}
                   <Button
                     onClick={() => setShowDisplayMode(true)}
-                    className="bg-primary text-primary-foreground"
+                    className="bg-primary text-primary-foreground text-sm"
+                    size="sm"
                   >
-                    <Monitor className="w-4 h-4 mr-2" />
-                    {session ? 'View Display' : 'Start Display'}
+                    <Monitor className="w-4 h-4 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">{session ? 'View Display' : 'Start Display'}</span>
+                    <span className="xs:hidden">{session ? 'Display' : 'Start'}</span>
                   </Button>
 
                   {/* Session Quick Actions (only show if session active) */}
                   {session && (
-                    <div className="flex items-center gap-2">
-                      {/* Current student indicator */}
+                    <>
+                      {/* Current student indicator - collapsed on mobile */}
                       {currentStudent && (
-                        <Badge variant="outline" className="flex items-center gap-2 py-1.5 px-3">
+                        <Badge variant="outline" className="hidden sm:flex items-center gap-2 py-1.5 px-3">
                           <span className="text-lg">{currentStudent.avatar_emoji}</span>
                           <span className="font-mono">{currentStudent.student_number}</span>
                           <span className="text-primary font-bold">{formattedTime}</span>
@@ -355,53 +357,62 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                       )}
 
                       {/* Quick action buttons */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={togglePause}
-                        title={session.is_paused ? 'Resume' : 'Pause'}
-                      >
-                        {session.is_paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={skipStudent}
-                        title="Skip to next"
-                      >
-                        <SkipForward className="w-4 h-4" />
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={toggleSleep}
-                        title={session.lola_sleeping ? 'Wake Lola' : 'Sleep Lola'}
-                      >
-                        <Moon className="w-4 h-4" />
-                      </Button>
-                    </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={togglePause}
+                          title={session.is_paused ? 'Resume' : 'Pause'}
+                          className="touch-target-sm"
+                        >
+                          {session.is_paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={skipStudent}
+                          title="Skip to next"
+                          className="touch-target-sm"
+                        >
+                          <SkipForward className="w-4 h-4" />
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={toggleSleep}
+                          title={session.lola_sleeping ? 'Wake Lola' : 'Sleep Lola'}
+                          className="touch-target-sm"
+                        >
+                          <Moon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </>
                   )}
 
                   {/* Quick Award Button */}
                   <Button
                     variant="outline"
                     onClick={() => setShowQuickAward(true)}
-                    className="border-success text-success hover:bg-success/10"
+                    className="border-success text-success hover:bg-success/10 text-sm"
+                    size="sm"
                   >
-                    <Mic className="w-4 h-4 mr-2" />
-                    Quick Award
+                    <Mic className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">Quick Award</span>
+                    <span className="sm:hidden">Award</span>
                   </Button>
 
                   {/* Report Incident Button */}
                   <Button
                     variant="outline"
                     onClick={() => setShowIncidentReport(true)}
-                    className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                    className="border-orange-500 text-orange-500 hover:bg-orange-500/10 text-sm"
+                    size="sm"
                   >
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    Report Incident
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    <span className="hidden sm:inline">Report Incident</span>
+                    <span className="sm:hidden">Incident</span>
                   </Button>
                 </div>
               </CardContent>
@@ -409,7 +420,7 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
 
             {/* Search & Add Student */}
             <div className="flex gap-2 flex-wrap">
-              <div className="relative flex-1 min-w-[200px]">
+              <div className="relative flex-1 min-w-0 sm:min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or #number..."
@@ -543,23 +554,23 @@ Michael Brown`}
             </div>
 
             {/* Main Content Tabs */}
-            <Tabs defaultValue="students" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="students" className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  Students
+            <Tabs defaultValue="students" className="space-y-3 sm:space-y-4">
+              <TabsList className="grid w-full grid-cols-4 h-auto">
+                <TabsTrigger value="students" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Students</span>
                 </TabsTrigger>
-                <TabsTrigger value="incidents" className="flex items-center gap-1">
-                  <AlertTriangle className="w-4 h-4" />
-                  Incidents
+                <TabsTrigger value="incidents" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
+                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Incidents</span>
                 </TabsTrigger>
-                <TabsTrigger value="store" className="flex items-center gap-1">
-                  <Store className="w-4 h-4" />
-                  Store
+                <TabsTrigger value="store" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
+                  <Store className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Store</span>
                 </TabsTrigger>
-                <TabsTrigger value="activity" className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  Activity
+                <TabsTrigger value="activity" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">Activity</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -579,7 +590,7 @@ Michael Brown`}
                         <p>No students yet. Add your first student!</p>
                       </div>
                     ) : (
-                      <ScrollArea className="h-[400px] pr-4">
+                      <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
                         <div className="space-y-2">
                           {filteredStudents.map(student => {
                             const studentIncidents = getActiveIncidents(student.id);
@@ -587,24 +598,24 @@ Michael Brown`}
                             return (
                               <div
                                 key={student.id}
-                                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors gap-2"
                               >
-                                <div className="flex items-center gap-3">
-                                  <span className="text-2xl">{student.avatar_emoji}</span>
-                                  <div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-foreground">{student.name}</span>
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                  <span className="text-xl sm:text-2xl">{student.avatar_emoji}</span>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                                      <span className="font-medium text-foreground text-sm sm:text-base truncate">{student.name}</span>
                                       <Badge variant="outline" className="text-xs font-mono">
                                         {student.student_number}
                                       </Badge>
                                       {/* Incident Badge */}
                                       <StudentIncidentBadge incidents={studentIncidents} />
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                                       <Star className="w-3 h-3 text-warning" />
-                                      <span>{student.school_points} points</span>
+                                      <span>{student.school_points} pts</span>
                                       {student.linked_kid_id && (
-                                        <Badge variant="secondary" className="ml-2 text-xs">
+                                        <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">
                                           ✓ Linked
                                         </Badge>
                                       )}
@@ -612,7 +623,7 @@ Michael Brown`}
                                   </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 sm:gap-2 ml-auto sm:ml-0">
                                   <StudentLinkCodeDisplay
                                     studentName={student.name}
                                     studentNumber={student.student_number}
@@ -623,16 +634,16 @@ Michael Brown`}
                                   <Button
                                     size="sm"
                                     onClick={() => openAwardDialog(student.id)}
-                                    className="bg-success/20 text-success hover:bg-success/30"
+                                    className="bg-success/20 text-success hover:bg-success/30 text-xs sm:text-sm"
                                   >
-                                    <Award className="w-4 h-4 mr-1" />
-                                    Award
+                                    <Award className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                    <span className="hidden xs:inline">Award</span>
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => removeStudent(student.id)}
-                                    className="text-destructive hover:bg-destructive/10"
+                                    className="text-destructive hover:bg-destructive/10 touch-target-sm"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
