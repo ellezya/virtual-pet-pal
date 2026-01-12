@@ -1,15 +1,21 @@
 import React, { useState, useRef } from 'react';
 import { useClassroom, PRESET_POINT_REASONS } from '@/hooks/useClassroom';
 import { useClassroomSession } from '@/hooks/useClassroomSession';
+import { useIncidents } from '@/hooks/useIncidents';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ClassroomDisplayMode from '@/components/ClassroomDisplayMode';
 import QuickAwardDialog from '@/components/QuickAwardDialog';
 import StudentLinkCodeDisplay from '@/components/StudentLinkCodeDisplay';
+import IncidentReportDialog from '@/components/IncidentReportDialog';
+import IncidentsList from '@/components/IncidentsList';
+import StudentIncidentBadge from '@/components/StudentIncidentBadge';
+import SchoolStoreManager from '@/components/SchoolStoreManager';
 import { 
   Plus, 
   Award, 
@@ -31,7 +37,9 @@ import {
   SkipForward,
   Moon,
   Mic,
-  Link
+  Link,
+  AlertTriangle,
+  Store
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
@@ -65,6 +73,10 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const [showCsvImport, setShowCsvImport] = useState(false);
   const [showDisplayMode, setShowDisplayMode] = useState(false);
   const [showQuickAward, setShowQuickAward] = useState(false);
+  const [showIncidentReport, setShowIncidentReport] = useState(false);
+
+  // Incidents hook
+  const { getActiveIncidents } = useIncidents(activeClassroom?.id || null);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   
   const [newClassroomName, setNewClassroomName] = useState('');
@@ -381,6 +393,16 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                     <Mic className="w-4 h-4 mr-2" />
                     Quick Award
                   </Button>
+
+                  {/* Report Incident Button */}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowIncidentReport(true)}
+                    className="border-orange-500 text-orange-500 hover:bg-orange-500/10"
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Report Incident
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -520,118 +542,176 @@ Michael Brown`}
               </Dialog>
             </div>
 
-            {/* Student List */}
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-foreground flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Students ({students.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {students.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    <p>No students yet. Add your first student!</p>
-                  </div>
-                ) : (
-                  <ScrollArea className="h-[400px] pr-4">
-                    <div className="space-y-2">
-                      {filteredStudents.map(student => (
-                        <div
-                          key={student.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{student.avatar_emoji}</span>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-foreground">{student.name}</span>
-                                <Badge variant="outline" className="text-xs font-mono">
-                                  {student.student_number}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Star className="w-3 h-3 text-warning" />
-                                <span>{student.school_points} points</span>
-                                {student.linked_kid_id && (
-                                  <Badge variant="secondary" className="ml-2 text-xs">
-                                    ✓ Linked
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <StudentLinkCodeDisplay
-                              studentName={student.name}
-                              studentNumber={student.student_number}
-                              linkCode={(student as any).link_code || '------'}
-                              avatarEmoji={student.avatar_emoji}
-                              isLinked={!!student.linked_kid_id}
-                            />
-                            <Button
-                              size="sm"
-                              onClick={() => openAwardDialog(student.id)}
-                              className="bg-success/20 text-success hover:bg-success/30"
-                            >
-                              <Award className="w-4 h-4 mr-1" />
-                              Award
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeStudent(student.id)}
-                              className="text-destructive hover:bg-destructive/10"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
+            {/* Main Content Tabs */}
+            <Tabs defaultValue="students" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="students" className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  Students
+                </TabsTrigger>
+                <TabsTrigger value="incidents" className="flex items-center gap-1">
+                  <AlertTriangle className="w-4 h-4" />
+                  Incidents
+                </TabsTrigger>
+                <TabsTrigger value="store" className="flex items-center gap-1">
+                  <Store className="w-4 h-4" />
+                  Store
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  Activity
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Recent Points Log */}
-            {pointsLog.length > 0 && (
-              <Card className="bg-card border-border">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-foreground flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Recent Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[200px]">
-                    <div className="space-y-2">
-                      {pointsLog.slice(0, 10).map(log => {
-                        const student = students.find(s => s.id === log.student_id);
-                        return (
-                          <div key={log.id} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{student?.avatar_emoji}</span>
-                              <span className="text-foreground">{student?.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="bg-success/20 text-success">
-                                +{log.points}
-                              </Badge>
-                              <span className="text-muted-foreground text-xs max-w-[120px] truncate">
-                                {log.reason}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            )}
+              {/* Students Tab */}
+              <TabsContent value="students">
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Students ({students.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {students.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No students yet. Add your first student!</p>
+                      </div>
+                    ) : (
+                      <ScrollArea className="h-[400px] pr-4">
+                        <div className="space-y-2">
+                          {filteredStudents.map(student => {
+                            const studentIncidents = getActiveIncidents(student.id);
+                            
+                            return (
+                              <div
+                                key={student.id}
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{student.avatar_emoji}</span>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-foreground">{student.name}</span>
+                                      <Badge variant="outline" className="text-xs font-mono">
+                                        {student.student_number}
+                                      </Badge>
+                                      {/* Incident Badge */}
+                                      <StudentIncidentBadge incidents={studentIncidents} />
+                                    </div>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <Star className="w-3 h-3 text-warning" />
+                                      <span>{student.school_points} points</span>
+                                      {student.linked_kid_id && (
+                                        <Badge variant="secondary" className="ml-2 text-xs">
+                                          ✓ Linked
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                  <StudentLinkCodeDisplay
+                                    studentName={student.name}
+                                    studentNumber={student.student_number}
+                                    linkCode={(student as any).link_code || '------'}
+                                    avatarEmoji={student.avatar_emoji}
+                                    isLinked={!!student.linked_kid_id}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openAwardDialog(student.id)}
+                                    className="bg-success/20 text-success hover:bg-success/30"
+                                  >
+                                    <Award className="w-4 h-4 mr-1" />
+                                    Award
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => removeStudent(student.id)}
+                                    className="text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Incidents Tab */}
+              <TabsContent value="incidents">
+                <IncidentsList 
+                  classroomId={activeClassroom?.id || null} 
+                  students={students}
+                />
+              </TabsContent>
+
+              {/* Store Tab */}
+              <TabsContent value="store">
+                <SchoolStoreManager 
+                  classroomId={activeClassroom?.id || null}
+                  students={students.map(s => ({
+                    ...s,
+                    total_points: s.school_points
+                  }))}
+                />
+              </TabsContent>
+
+              {/* Activity Tab */}
+              <TabsContent value="activity">
+                {pointsLog.length > 0 ? (
+                  <Card className="bg-card border-border">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-foreground flex items-center gap-2">
+                        <Clock className="w-5 h-5" />
+                        Recent Activity
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-2">
+                          {pointsLog.slice(0, 50).map(log => {
+                            const student = students.find(s => s.id === log.student_id);
+                            return (
+                              <div key={log.id} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{student?.avatar_emoji}</span>
+                                  <span className="text-foreground">{student?.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="bg-success/20 text-success">
+                                    +{log.points}
+                                  </Badge>
+                                  <span className="text-muted-foreground text-xs max-w-[120px] truncate">
+                                    {log.reason}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="bg-card border-border">
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                      <p>No activity yet</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>
@@ -725,6 +805,14 @@ Michael Brown`}
 
       {/* Quick Award Dialog */}
       <QuickAwardDialog open={showQuickAward} onClose={() => setShowQuickAward(false)} />
+
+      {/* Incident Report Dialog */}
+      <IncidentReportDialog 
+        open={showIncidentReport}
+        onOpenChange={setShowIncidentReport}
+        students={students}
+        classroomId={activeClassroom?.id || null}
+      />
     </div>
   );
 };
