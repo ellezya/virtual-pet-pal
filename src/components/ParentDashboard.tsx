@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFamily } from '@/hooks/useFamily';
 import { useToast } from '@/hooks/use-toast';
 import LinkStudentDialog from '@/components/LinkStudentDialog';
+import SchoolReports from '@/components/SchoolReports';
 import { Check, X, Plus, Trash2, Clock, Award, School, Link } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -438,18 +439,20 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
 
           {/* School Tab */}
           <TabsContent value="school" className="space-y-4">
-            <div className="text-center py-4">
-              <School className="w-12 h-12 mx-auto text-primary mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Link to School</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Connect your child to their classroom. School points will automatically convert to Lola time!
-              </p>
-              <Button onClick={() => setShowLinkStudent(true)} className="gap-2">
-                <Link className="w-4 h-4" />
-                Link School Account
-              </Button>
-            </div>
+            {/* School Reports */}
+            <SchoolReports />
 
+            {/* Link Button */}
+            <Button 
+              onClick={() => setShowLinkStudent(true)} 
+              variant="outline"
+              className="w-full gap-2"
+            >
+              <Link className="w-4 h-4" />
+              Link Another Student
+            </Button>
+
+            {/* How it works */}
             <div className="p-4 bg-muted rounded-lg">
               <h4 className="font-medium mb-2">How it works:</h4>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
