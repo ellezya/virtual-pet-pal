@@ -43,7 +43,13 @@ interface LinkStudentRequest {
   kid_id: string;
 }
 
-type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest;
+interface BulkAddStudentsRequest {
+  action: 'bulk_add_students';
+  classroom_id: string;
+  students: Array<{ name: string; avatar_emoji?: string }>;
+}
+
+type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest | BulkAddStudentsRequest;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -382,6 +388,57 @@ Deno.serve(async (req) => {
         if (linkError) throw linkError;
 
         return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'bulk_add_students': {
+        // Verify teacher owns this classroom
+        const { data: classroom, error: classroomError } = await supabaseAdmin
+          .from('classrooms')
+          .select('id')
+          .eq('id', body.classroom_id)
+          .eq('teacher_id', user.id)
+          .single();
+
+        if (classroomError || !classroom) {
+          return new Response(JSON.stringify({ error: 'Classroom not found or unauthorized' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const avatars = ['🐲', '🦊', '🐺', '🦁', '🐯', '🐻', '🐼', '🐨', '🦄', '🦋', '🐢', '🦀', '🐬', '🦅', '🦉'];
+        const addedStudents = [];
+
+        for (const studentData of body.students) {
+          // Generate student number
+          const { data: studentNumber, error: numError } = await supabaseAdmin.rpc(
+            'generate_student_number',
+            { p_classroom_id: body.classroom_id }
+          );
+          if (numError) continue;
+
+          const avatar = studentData.avatar_emoji || avatars[Math.floor(Math.random() * avatars.length)];
+
+          const { data: student, error: studentError } = await supabaseAdmin
+            .from('students')
+            .insert({
+              classroom_id: body.classroom_id,
+              name: studentData.name.trim(),
+              avatar_emoji: avatar,
+              student_number: studentNumber,
+              school_points: 0,
+            })
+            .select()
+            .single();
+
+          if (!studentError && student) {
+            addedStudents.push(student);
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, added_count: addedStudents.length, students: addedStudents }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

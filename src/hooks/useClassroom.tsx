@@ -45,6 +45,7 @@ interface ClassroomContextType {
   
   // Student management
   addStudent: (name: string, avatarEmoji?: string) => Promise<Student | null>;
+  bulkAddStudents: (students: Array<{ name: string; avatar_emoji?: string }>) => Promise<number>;
   updateStudent: (studentId: string, name?: string, avatarEmoji?: string) => Promise<void>;
   removeStudent: (studentId: string) => Promise<void>;
   
@@ -300,6 +301,49 @@ export const ClassroomProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const bulkAddStudents = async (studentsList: Array<{ name: string; avatar_emoji?: string }>): Promise<number> => {
+    if (!activeClassroom) return 0;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manage-classroom`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'bulk_add_students',
+            classroom_id: activeClassroom.id,
+            students: studentsList,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+
+      toast({
+        title: 'Students Imported!',
+        description: `${result.added_count} students added successfully`,
+      });
+
+      await fetchStudents();
+      return result.added_count;
+    } catch (error) {
+      console.error('Error bulk adding students:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to import students',
+        variant: 'destructive',
+      });
+      return 0;
+    }
+  };
+
   const updateStudent = async (studentId: string, name?: string, avatarEmoji?: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -433,6 +477,7 @@ export const ClassroomProvider = ({ children }: { children: ReactNode }) => {
         selectClassroom,
         deleteClassroom,
         addStudent,
+        bulkAddStudents,
         updateStudent,
         removeStudent,
         awardPoints,
