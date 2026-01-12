@@ -1,11 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { useClassroom, PRESET_POINT_REASONS } from '@/hooks/useClassroom';
+import { useClassroomSession } from '@/hooks/useClassroomSession';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ClassroomDisplayMode from '@/components/ClassroomDisplayMode';
+import QuickAwardDialog from '@/components/QuickAwardDialog';
 import { 
   Plus, 
   Award, 
@@ -20,7 +23,13 @@ import {
   Clock,
   Upload,
   FileSpreadsheet,
-  AlertCircle
+  AlertCircle,
+  Monitor,
+  Play,
+  Pause,
+  SkipForward,
+  Moon,
+  Mic
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
@@ -38,10 +47,22 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
     awardPoints,
   } = useClassroom();
 
+  // Session management
+  const { 
+    session, 
+    formattedTime, 
+    currentStudent, 
+    togglePause, 
+    skipStudent, 
+    toggleSleep 
+  } = useClassroomSession();
+
   const [showNewClassroom, setShowNewClassroom] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAwardPoints, setShowAwardPoints] = useState(false);
   const [showCsvImport, setShowCsvImport] = useState(false);
+  const [showDisplayMode, setShowDisplayMode] = useState(false);
+  const [showQuickAward, setShowQuickAward] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   
   const [newClassroomName, setNewClassroomName] = useState('');
@@ -291,6 +312,74 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                     Share this code with parents to link their children
                   </p>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Quick Controls Bar - Mobile-First Teacher Controls */}
+            <Card className="bg-card border-border">
+              <CardContent className="py-3">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  {/* Display Mode Button */}
+                  <Button
+                    onClick={() => setShowDisplayMode(true)}
+                    className="bg-primary text-primary-foreground"
+                  >
+                    <Monitor className="w-4 h-4 mr-2" />
+                    {session ? 'View Display' : 'Start Display'}
+                  </Button>
+
+                  {/* Session Quick Actions (only show if session active) */}
+                  {session && (
+                    <div className="flex items-center gap-2">
+                      {/* Current student indicator */}
+                      {currentStudent && (
+                        <Badge variant="outline" className="flex items-center gap-2 py-1.5 px-3">
+                          <span className="text-lg">{currentStudent.avatar_emoji}</span>
+                          <span className="font-mono">{currentStudent.student_number}</span>
+                          <span className="text-primary font-bold">{formattedTime}</span>
+                        </Badge>
+                      )}
+
+                      {/* Quick action buttons */}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={togglePause}
+                        title={session.is_paused ? 'Resume' : 'Pause'}
+                      >
+                        {session.is_paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={skipStudent}
+                        title="Skip to next"
+                      >
+                        <SkipForward className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={toggleSleep}
+                        title={session.lola_sleeping ? 'Wake Lola' : 'Sleep Lola'}
+                      >
+                        <Moon className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Quick Award Button */}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowQuickAward(true)}
+                    className="border-success text-success hover:bg-success/10"
+                  >
+                    <Mic className="w-4 h-4 mr-2" />
+                    Quick Award
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -619,6 +708,14 @@ Michael Brown`}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Classroom Display Mode */}
+      {showDisplayMode && (
+        <ClassroomDisplayMode onClose={() => setShowDisplayMode(false)} />
+      )}
+
+      {/* Quick Award Dialog */}
+      <QuickAwardDialog open={showQuickAward} onClose={() => setShowQuickAward(false)} />
     </div>
   );
 };
