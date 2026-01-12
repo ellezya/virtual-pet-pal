@@ -19,8 +19,12 @@ import {
   Clock,
   Timer,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  EyeOff,
+  Eye
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 // Import bunny assets
 import bunnyHappy from '@/assets/bunny-happy.png';
@@ -53,6 +57,7 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [timePerStudent, setTimePerStudent] = useState(600); // 10 min default
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [anonymousMode, setAnonymousMode] = useState(false); // Privacy mode
 
   // Setup form
   const handleStartSession = async () => {
@@ -189,6 +194,24 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
                 Tip: Students will take turns in selection order
               </p>
             </div>
+
+            {/* Anonymous Mode Toggle */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <EyeOff className="w-4 h-4 text-muted-foreground" />
+                <Label htmlFor="anonymous-mode" className="text-sm font-medium cursor-pointer">
+                  Anonymous Mode
+                </Label>
+              </div>
+              <Switch
+                id="anonymous-mode"
+                checked={anonymousMode}
+                onCheckedChange={setAnonymousMode}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Shows only student numbers for privacy during presentations
+            </p>
           </div>
 
           <DialogFooter className="flex gap-2">
@@ -292,9 +315,15 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
             <CardContent className="pt-6 text-center">
               {currentStudent ? (
                 <>
-                  <div className="text-6xl mb-4">{currentStudent.avatar_emoji}</div>
+                  {/* Show emoji only if not in anonymous mode */}
+                  {!anonymousMode && (
+                    <div className="text-6xl mb-4">{currentStudent.avatar_emoji}</div>
+                  )}
+                  {anonymousMode && (
+                    <div className="text-6xl mb-4">🎓</div>
+                  )}
                   <div className="text-2xl font-mono font-bold text-foreground mb-2">
-                    {currentStudent.student_number}
+                    {anonymousMode ? `Student ${currentStudent.student_number}` : currentStudent.student_number}
                   </div>
                   <div className="text-sm text-muted-foreground mb-4">
                     Current Caretaker
@@ -334,7 +363,9 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
                       key={student.id}
                       className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1"
                     >
-                      <span className="text-lg">{student.avatar_emoji}</span>
+                      {!anonymousMode && (
+                        <span className="text-lg">{student.avatar_emoji}</span>
+                      )}
                       <span className="font-mono text-sm">{student.student_number}</span>
                     </div>
                   ))
@@ -379,6 +410,17 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
             title={session.lola_sleeping ? 'Wake Lola' : 'Sleep Lola'}
           >
             {session.lola_sleeping ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </Button>
+
+          {/* Anonymous Mode Toggle */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setAnonymousMode(!anonymousMode)}
+            className={`bg-background/90 backdrop-blur w-12 h-12 ${anonymousMode ? 'border-primary text-primary' : ''}`}
+            title={anonymousMode ? 'Show names' : 'Hide names (Anonymous)'}
+          >
+            {anonymousMode ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
           </Button>
 
           {isFullscreen && (
