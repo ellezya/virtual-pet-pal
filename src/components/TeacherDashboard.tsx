@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useClassroom, PRESET_POINT_REASONS } from '@/hooks/useClassroom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,11 @@ import {
   Trash2, 
   Search, 
   Star,
-  Mic,
   X,
-  ChevronDown,
-  Clock
+  Clock,
+  Upload,
+  FileSpreadsheet,
+  AlertCircle
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
@@ -32,6 +33,7 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
     createClassroom,
     selectClassroom,
     addStudent,
+    bulkAddStudents,
     removeStudent,
     awardPoints,
   } = useClassroom();
@@ -39,6 +41,7 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const [showNewClassroom, setShowNewClassroom] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAwardPoints, setShowAwardPoints] = useState(false);
+  const [showCsvImport, setShowCsvImport] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   
   const [newClassroomName, setNewClassroomName] = useState('');
@@ -47,6 +50,12 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const [pointsToAward, setPointsToAward] = useState(1);
   const [pointReason, setPointReason] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
+  
+  // CSV import state
+  const [csvPreview, setCsvPreview] = useState<Array<{ name: string }>>([]);
+  const [csvError, setCsvError] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,6 +95,87 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const openAwardDialog = (studentId: string) => {
     setSelectedStudent(studentId);
     setShowAwardPoints(true);
+  };
+
+  // CSV parsing
+  const parseCSV = (text: string): Array<{ name: string }> => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    const results: Array<{ name: string }> = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      // Skip header row if it looks like one
+      if (i === 0 && (line.toLowerCase().includes('name') || line.toLowerCase().includes('student'))) {
+        continue;
+      }
+      
+      // Handle both comma-separated and single-column
+      const parts = line.split(',').map(p => p.trim().replace(/^["']|["']$/g, ''));
+      const name = parts[0];
+      
+      if (name && name.length > 0 && name.length < 100) {
+        results.push({ name });
+      }
+    }
+    
+    return results;
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setCsvError('');
+    
+    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+      setCsvError('Please upload a CSV or TXT file');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const parsed = parseCSV(text);
+      
+      if (parsed.length === 0) {
+        setCsvError('No valid student names found in file');
+        return;
+      }
+      
+      if (parsed.length > 100) {
+        setCsvError('Maximum 100 students per import');
+        return;
+      }
+      
+      setCsvPreview(parsed);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCsvImport = async () => {
+    if (csvPreview.length === 0) return;
+    
+    setIsImporting(true);
+    const count = await bulkAddStudents(csvPreview);
+    setIsImporting(false);
+    
+    if (count > 0) {
+      setCsvPreview([]);
+      setShowCsvImport(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const resetCsvImport = () => {
+    setCsvPreview([]);
+    setCsvError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   if (loading) {
@@ -205,8 +295,8 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
             </Card>
 
             {/* Search & Add Student */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
+            <div className="flex gap-2 flex-wrap">
+              <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or #number..."
@@ -219,7 +309,7 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                 <DialogTrigger asChild>
                   <Button className="bg-primary text-primary-foreground">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Student
+                    Add
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-card border-border">
@@ -235,6 +325,104 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                   <DialogFooter>
                     <Button onClick={handleAddStudent} className="bg-primary text-primary-foreground">
                       Add Student
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              {/* CSV Import Button */}
+              <Dialog open={showCsvImport} onOpenChange={(open) => {
+                setShowCsvImport(open);
+                if (!open) resetCsvImport();
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="border-border">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import CSV
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-foreground flex items-center gap-2">
+                      <FileSpreadsheet className="w-5 h-5" />
+                      Import Students from CSV
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      Upload a CSV file with student names. Each name should be on its own row.
+                    </div>
+                    
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv,.txt"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="csv-upload"
+                      />
+                      <label 
+                        htmlFor="csv-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <span className="text-foreground font-medium">Click to upload CSV</span>
+                        <span className="text-xs text-muted-foreground">or drag and drop</span>
+                      </label>
+                    </div>
+                    
+                    {csvError && (
+                      <div className="flex items-center gap-2 text-destructive text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {csvError}
+                      </div>
+                    )}
+                    
+                    {csvPreview.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">
+                            Preview ({csvPreview.length} students)
+                          </span>
+                          <Button variant="ghost" size="sm" onClick={resetCsvImport}>
+                            Clear
+                          </Button>
+                        </div>
+                        <ScrollArea className="h-[150px] border border-border rounded-lg p-2">
+                          <div className="space-y-1">
+                            {csvPreview.map((student, i) => (
+                              <div key={i} className="text-sm text-foreground py-1 px-2 bg-muted/50 rounded">
+                                {student.name}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+                    
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                      <strong>Format example:</strong>
+                      <pre className="mt-1 font-mono">
+{`Name
+John Smith
+Emma Johnson
+Michael Brown`}
+                      </pre>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setShowCsvImport(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCsvImport}
+                      disabled={csvPreview.length === 0 || isImporting}
+                      className="bg-primary text-primary-foreground"
+                    >
+                      {isImporting ? 'Importing...' : `Import ${csvPreview.length} Students`}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
