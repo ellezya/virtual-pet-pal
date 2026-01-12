@@ -456,27 +456,71 @@ export type Database = {
           },
         ]
       }
+      school_points_log: {
+        Row: {
+          awarded_by: string
+          created_at: string | null
+          id: string
+          points: number
+          reason: string
+          student_id: string
+        }
+        Insert: {
+          awarded_by: string
+          created_at?: string | null
+          id?: string
+          points: number
+          reason: string
+          student_id: string
+        }
+        Update: {
+          awarded_by?: string
+          created_at?: string | null
+          id?: string
+          points?: number
+          reason?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_points_log_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           avatar_emoji: string | null
           classroom_id: string
           created_at: string | null
           id: string
+          linked_kid_id: string | null
           name: string
+          school_points: number | null
+          student_number: string | null
         }
         Insert: {
           avatar_emoji?: string | null
           classroom_id: string
           created_at?: string | null
           id?: string
+          linked_kid_id?: string | null
           name: string
+          school_points?: number | null
+          student_number?: string | null
         }
         Update: {
           avatar_emoji?: string | null
           classroom_id?: string
           created_at?: string | null
           id?: string
+          linked_kid_id?: string | null
           name?: string
+          school_points?: number | null
+          student_number?: string | null
         }
         Relationships: [
           {
@@ -484,6 +528,13 @@ export type Database = {
             columns: ["classroom_id"]
             isOneToOne: false
             referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_linked_kid_id_fkey"
+            columns: ["linked_kid_id"]
+            isOneToOne: false
+            referencedRelation: "kids"
             referencedColumns: ["id"]
           },
         ]
@@ -584,11 +635,19 @@ export type Database = {
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
+      generate_student_number: {
+        Args: { p_classroom_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_classroom_member: {
+        Args: { p_classroom_id: string }
         Returns: boolean
       }
       is_classroom_owner: { Args: { _classroom_id: string }; Returns: boolean }

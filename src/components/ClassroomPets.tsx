@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer, School } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
 import { useFamily } from '@/hooks/useFamily';
+import { useClassroom } from '@/hooks/useClassroom';
 import AccountPrompt from '@/components/AccountPrompt';
 import AccountPromptModal from '@/components/AccountPromptModal';
 import SyncIndicator from '@/components/SyncIndicator';
@@ -14,6 +15,7 @@ import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import ParentDashboard from '@/components/ParentDashboard';
+import TeacherDashboard from '@/components/TeacherDashboard';
 import KidPinLogin from '@/components/KidPinLogin';
 import KidChoresList from '@/components/KidChoresList';
 import MilestoneCelebration from '@/components/MilestoneCelebration';
@@ -51,10 +53,12 @@ const ClassroomPets = () => {
   const navigate = useNavigate();
   const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime, triggerAccountPrompt } = useProgress();
   const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
+  const { isTeacher } = useClassroom();
   
   // Family UI state
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [showTeacherDashboard, setShowTeacherDashboard] = useState(false);
   const [showKidLogin, setShowKidLogin] = useState(false);
   const [showKidChores, setShowKidChores] = useState(false);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
@@ -1736,6 +1740,16 @@ const ClassroomPets = () => {
                   </span>
                 )}
               </button>
+              {/* Teacher Dashboard Button */}
+              {user && (
+                <button
+                  onClick={() => setShowTeacherDashboard(true)}
+                  className="p-2 rounded-lg bg-secondary/20 text-secondary hover:bg-secondary/30 transition-colors"
+                  title="Teacher Dashboard"
+                >
+                  <School size={14} />
+                </button>
+              )}
             </>
           )}
           
@@ -1788,6 +1802,11 @@ const ClassroomPets = () => {
         open={showParentDashboard} 
         onClose={() => setShowParentDashboard(false)} 
       />
+      
+      {/* Teacher Dashboard */}
+      {showTeacherDashboard && (
+        <TeacherDashboard onClose={() => setShowTeacherDashboard(false)} />
+      )}
       
       {/* Kid PIN Login Modal */}
       <KidPinLogin 
