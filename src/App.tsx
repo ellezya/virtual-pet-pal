@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProgressProvider } from "@/hooks/useProgress";
 import { FamilyProvider } from "@/hooks/useFamily";
+import { ClassroomProvider } from "@/hooks/useClassroom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
@@ -21,14 +22,16 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <FamilyProvider>
-            <ProgressProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/stats" element={<Stats />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ProgressProvider>
+            <ClassroomProvider>
+              <ProgressProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/stats" element={<Stats />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ProgressProvider>
+            </ClassroomProvider>
           </FamilyProvider>
         </AuthProvider>
       </BrowserRouter>
