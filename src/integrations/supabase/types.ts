@@ -582,6 +582,7 @@ export type Database = {
           classroom_id: string
           created_at: string | null
           id: string
+          link_code: string | null
           linked_kid_id: string | null
           name: string
           school_points: number | null
@@ -592,6 +593,7 @@ export type Database = {
           classroom_id: string
           created_at?: string | null
           id?: string
+          link_code?: string | null
           linked_kid_id?: string | null
           name: string
           school_points?: number | null
@@ -602,6 +604,7 @@ export type Database = {
           classroom_id?: string
           created_at?: string | null
           id?: string
+          link_code?: string | null
           linked_kid_id?: string | null
           name?: string
           school_points?: number | null
@@ -720,6 +723,7 @@ export type Database = {
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
+      generate_student_link_code: { Args: never; Returns: string }
       generate_student_number: {
         Args: { p_classroom_id: string }
         Returns: string
