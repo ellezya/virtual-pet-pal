@@ -120,22 +120,22 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-2">
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             👨‍👩‍👧‍👦 {family?.name || 'Family Dashboard'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Manage kids, chores, and approve completed tasks
           </DialogDescription>
         </DialogHeader>
 
         {/* Show create family button if no family */}
         {!family ? (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
-            <h3 className="text-xl font-semibold mb-2">Welcome to Family Mode!</h3>
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center py-6 sm:py-8">
+            <div className="text-5xl sm:text-6xl mb-4">👨‍👩‍👧‍👦</div>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Welcome to Family Mode!</h3>
+            <p className="text-muted-foreground mb-4 text-sm sm:text-base">
               Create a family to add kids, assign chores, and track Lola time.
             </p>
             <Button onClick={handleCreateFamily} disabled={creatingFamily} size="lg">
@@ -144,20 +144,27 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           </div>
         ) : (
         <Tabs defaultValue="approvals" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="approvals" className="relative">
-              Approvals
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="approvals" className="relative text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Approvals</span>
+              <span className="xs:hidden">✓</span>
               {pendingCompletions.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center">
                   {pendingCompletions.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="kids">Kids</TabsTrigger>
-            <TabsTrigger value="chores">Chores</TabsTrigger>
-            <TabsTrigger value="school">
-              <School className="w-4 h-4 mr-1" />
-              School
+            <TabsTrigger value="kids" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Kids</span>
+              <span className="xs:hidden">👶</span>
+            </TabsTrigger>
+            <TabsTrigger value="chores" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Chores</span>
+              <span className="xs:hidden">📋</span>
+            </TabsTrigger>
+            <TabsTrigger value="school" className="text-xs sm:text-sm py-2">
+              <School className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+              <span className="hidden sm:inline">School</span>
             </TabsTrigger>
           </TabsList>
 
