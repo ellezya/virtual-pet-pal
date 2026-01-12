@@ -76,8 +76,22 @@ const ClassroomPets = () => {
   });
   const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>(() => {
     const savedPet = localStorage.getItem('selectedPet');
-    // Lola (bunny) defaults to room (couch space), Tula (fish) defaults to reef
-    return savedPet === 'fish' ? 'reef' : 'room';
+    const savedScene = localStorage.getItem('selectedScene');
+    
+    // If we have a valid saved scene for this pet, use it
+    if (savedPet === 'fish') {
+      // Fish scenes: reef, castle, shell
+      if (savedScene === 'reef' || savedScene === 'castle' || savedScene === 'shell') {
+        return savedScene;
+      }
+      return 'reef';
+    } else {
+      // Bunny scenes: habitat, room, park - default to 'room' for Lola
+      if (savedScene === 'habitat' || savedScene === 'room' || savedScene === 'park') {
+        return savedScene;
+      }
+      return 'room'; // Default to cozy room for Lola
+    }
   });
   // Fish scene type for cleaner logic
   type FishScene = 'reef' | 'castle' | 'shell';
@@ -1845,19 +1859,19 @@ const ClassroomPets = () => {
         {currentPet === 'bunny' && (
           <>
             <button 
-              onClick={() => setCurrentScene('habitat')} 
+              onClick={() => { setCurrentScene('habitat'); localStorage.setItem('selectedScene', 'habitat'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'habitat' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
             >
               🏠
             </button>
             <button 
-              onClick={() => setCurrentScene('room')} 
+              onClick={() => { setCurrentScene('room'); localStorage.setItem('selectedScene', 'room'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'room' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
             >
               🛋️
             </button>
             <button 
-              onClick={() => setCurrentScene('park')} 
+              onClick={() => { setCurrentScene('park'); localStorage.setItem('selectedScene', 'park'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'park' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
             >
               🌳
@@ -1868,21 +1882,21 @@ const ClassroomPets = () => {
         {currentPet === 'fish' && (
           <>
             <button 
-              onClick={() => setCurrentScene('reef')} 
+              onClick={() => { setCurrentScene('reef'); localStorage.setItem('selectedScene', 'reef'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'reef' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
               title="Coral Reef"
             >
               🪸
             </button>
             <button 
-              onClick={() => setCurrentScene('castle')} 
+              onClick={() => { setCurrentScene('castle'); localStorage.setItem('selectedScene', 'castle'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'castle' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
               title="Play Castle"
             >
               🏰
             </button>
             <button 
-              onClick={() => setCurrentScene('shell')} 
+              onClick={() => { setCurrentScene('shell'); localStorage.setItem('selectedScene', 'shell'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'shell' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
               title="Shell Cave (Rest)"
             >
