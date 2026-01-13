@@ -29,6 +29,9 @@ import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
 import fishPlaying from '@/assets/fish-playing.png';
 
+// Logo
+import lolaIcon from '@/assets/lola-icon.png';
+
 // Habitat images
 import habitatIndoor from '@/assets/habitat-indoor.png';
 import habitatIndoorCouch from '@/assets/habitat-indoor-couch.png';
@@ -1664,8 +1667,9 @@ const ClassroomPets = () => {
     <div className="w-full min-h-[100dvh] bg-background flex flex-col overflow-y-auto">
       {/* Header - Same size as toy menu */}
       <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
-        <div className="flex gap-1 items-center">
-          <h1 className="text-sm font-extrabold text-foreground">🐰 Lola</h1>
+        <div className="flex gap-1.5 items-center">
+          <img src={lolaIcon} alt="Lola" className="w-7 h-7 object-contain" />
+          <h1 className="text-sm font-extrabold text-foreground">Lola</h1>
           {isTeacher && (
             <button 
               onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
