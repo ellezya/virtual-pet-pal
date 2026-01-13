@@ -1,6 +1,6 @@
-const CACHE_NAME = 'lalalola-v3';
-const STATIC_CACHE = 'lalalola-static-v3';
-const DYNAMIC_CACHE = 'lalalola-dynamic-v3';
+const CACHE_NAME = 'lalalola-v4';
+const STATIC_CACHE = 'lalalola-static-v4';
+const DYNAMIC_CACHE = 'lalalola-dynamic-v4';
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
