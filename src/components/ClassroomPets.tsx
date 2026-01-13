@@ -1652,13 +1652,6 @@ const ClassroomPets = () => {
             {gameState.locked ? <Lock size={14} /> : <Unlock size={14} />}
           </button>
           <button 
-            onClick={resetPet} 
-            className="p-2 rounded-lg bg-secondary/20 text-secondary transition-colors hover:bg-secondary/30"
-            title="Reset pet"
-          >
-            <RotateCcw size={14} />
-          </button>
-          <button 
             onClick={toggleAmbient} 
             className={`p-2 rounded-lg transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
