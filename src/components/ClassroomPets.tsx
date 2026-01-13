@@ -510,7 +510,7 @@ const ClassroomPets = () => {
     { id: 'yarn', emoji: '🧶', component: null, name: 'Yarn', energyCost: 6, happinessBoost: 14, lowEnergy: true },
   ];
   
-  const [selectedToy, setSelectedToy] = useState(toys[0]);
+  const [selectedToy, setSelectedToy] = useState<typeof toys[0] | null>(null);
   const [yarnTanglePhase, setYarnTanglePhase] = useState<'none' | 'batting' | 'tangled' | 'free'>('none');
   const [lockedToyModal, setLockedToyModal] = useState<typeof toys[0] | null>(null);
 
@@ -556,7 +556,7 @@ const ClassroomPets = () => {
       window.removeEventListener('resize', measure);
       cancelAnimationFrame(raf);
     };
-  }, [currentScene, currentPet, bunnyState.action, bunnyState.isNapping, selectedToy.id, yarnTanglePhase, isTrampolineBouncing]);
+  }, [currentScene, currentPet, bunnyState.action, bunnyState.isNapping, selectedToy?.id, yarnTanglePhase, isTrampolineBouncing]);
 
   // Flying baby birds state (for hay pile nest)
   const [flyingBirds, setFlyingBirds] = useState<Array<{ id: number; startX: number; startY: number }>>([]);
@@ -2621,7 +2621,7 @@ const ClassroomPets = () => {
             </div>
             
             {/* Selected Toy Display - only visible on grass in park, with special handling for trampoline and balloon */}
-            {!isTrampolineBouncing && showToys && !(bunnyState.action === 'playing' && selectedToy.id === 'balloon') && (
+            {selectedToy && !isTrampolineBouncing && showToys && !(bunnyState.action === 'playing' && selectedToy.id === 'balloon') && (
                 <div 
                   ref={toyMeasureRef}
                   className={`absolute transition-transform duration-200 ${
@@ -2815,7 +2815,7 @@ const ClassroomPets = () => {
           }}
         >
           {/* Balloon with string above bunny when playing */}
-          {currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy.id === 'balloon' && (
+          {currentPet === 'bunny' && bunnyState.action === 'playing' && selectedToy?.id === 'balloon' && (
             <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 flex flex-col items-center animate-balloon-sway">
               {/* Balloon */}
               <div className="text-4xl sm:text-5xl md:text-6xl drop-shadow-lg">🎈</div>
@@ -2854,7 +2854,7 @@ const ClassroomPets = () => {
             } ${
               currentPet === 'bunny' && bunnyState.idleBehavior === 'looking' ? 'animate-look-around' : ''
             } ${
-              (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy.id !== 'balloon')
+              (currentPet === 'bunny' && bunnyState.action === 'playing' && !isTrampolineBouncing && selectedToy?.id !== 'balloon')
                 ? 'animate-wiggle' : ''
             }`}
             style={currentPet === 'fish' ? {
@@ -2906,7 +2906,7 @@ const ClassroomPets = () => {
                   } ${
                     bunnyState.isNapping
                       ? ''
-                      : bunnyState.action === 'playing' && selectedToy.id === 'balloon'
+                      : bunnyState.action === 'playing' && selectedToy?.id === 'balloon'
                         ? 'rotate(-5deg) translateY(-5%)'
                         : ''
                   }`,
@@ -3150,7 +3150,7 @@ const ClassroomPets = () => {
             <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
               {availableToys.map((toy) => {
                 const isUnlocked = unlockedToys.includes(toy.id);
-                const isSelected = selectedToy.id === toy.id;
+                const isSelected = selectedToy?.id === toy.id;
                 
                 return (
                   <button
