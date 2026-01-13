@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProgress } from '@/hooks/useProgress';
 import { useAuth } from '@/hooks/useAuth';
+import { useSelfCare } from '@/hooks/useSelfCare';
+import { SelfCareButton, MyCareTab, EncouragementFlag } from '@/components/selfcare';
 
 const Stats = () => {
   const navigate = useNavigate();
   const { progress, isGuest } = useProgress();
   const { user } = useAuth();
+  const { hasCareItems, showEncouragementFlag, dismissEncouragementFlag } = useSelfCare();
 
   const formatMinutes = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;
@@ -29,6 +32,9 @@ const Stats = () => {
   };
 
   const milestone = getMilestone(progress.currentStreak);
+  
+  // Check if all 6 toys are unlocked
+  const allToysUnlocked = progress.unlockedToys.length >= 6;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-4">
@@ -192,24 +198,13 @@ const Stats = () => {
           </CardContent>
         </Card>
 
-        {/* Lola Time */}
-        <Card className="border-2 border-secondary/30 bg-secondary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground flex items-center gap-2">
-                  🐰 Lola Time Available
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Earned from chores & school
-                </p>
-              </div>
-              <div className="text-2xl font-bold text-secondary">
-                {progress.lolaTimeRemaining}m
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Encouragement Flag - shows after all toys unlocked */}
+        {allToysUnlocked && showEncouragementFlag && (
+          <EncouragementFlag onDismiss={dismissEncouragementFlag} />
+        )}
+
+        {/* Self Care Button - replaces "Lola Time Available" */}
+        <SelfCareButton />
 
         {/* Guest notice */}
         {isGuest && (

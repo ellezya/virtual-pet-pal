@@ -1041,4 +1041,23 @@
   .animate-fall-blossom {
     animation: fall-blossom 18s linear infinite;
   }
+
+  /* Self-care gentle glow animation */
+  @keyframes gentleGlow {
+    0%, 100% { 
+      box-shadow: 0 0 10px hsl(330 70% 70% / 0.5);
+      border-color: hsl(330 70% 70% / 0.5);
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(330 70% 70% / 0.9);
+      border-color: hsl(330 70% 70% / 0.9);
+    }
+  }
+}
+
+/* Self-care reminder active state - outside @layer for global availability */
+.my-care-reminder-active {
+  animation: gentleGlow 2s ease-in-out infinite;
+  border: 2px solid hsl(330 70% 70%);
+  background: linear-gradient(135deg, hsl(35 40% 95%) 0%, hsl(330 50% 92%) 100%);
 }
