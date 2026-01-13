@@ -1217,9 +1217,13 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     console.log('[audio] startAmbientForPetAndScene called for', pet, 'in scene', scene);
 
     // Guard: don't double-start if core nodes are already running
-    const hasCoreNodes = !!ambientNodesRef.current.musicInterval || !!ambientNodesRef.current.breezeAudio;
+    // Check for actual playing audio, not just refs that might be stale
+    const hasMusicInterval = !!ambientNodesRef.current.musicInterval;
+    const hasBreezeAudio = ambientNodesRef.current.breezeAudio && !ambientNodesRef.current.breezeAudio.paused;
+    const hasBrookAudio = ambientNodesRef.current.brookAudio && !ambientNodesRef.current.brookAudio.paused;
+    const hasCoreNodes = hasMusicInterval || hasBreezeAudio || hasBrookAudio;
 
-    console.log('[audio] hasCoreNodes:', hasCoreNodes);
+    console.log('[audio] hasCoreNodes:', hasCoreNodes, { hasMusicInterval, hasBreezeAudio, hasBrookAudio });
 
     if (hasCoreNodes) return;
 

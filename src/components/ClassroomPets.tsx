@@ -1644,13 +1644,15 @@ const ClassroomPets = () => {
       <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1 items-center">
           <h1 className="text-sm font-extrabold text-foreground">🐰 Lola</h1>
-          <button 
-            onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
-            className={`p-2 rounded-lg transition-colors ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
-            title={gameState.locked ? 'Unlock controls' : 'Lock controls'}
-          >
-            {gameState.locked ? <Lock size={14} /> : <Unlock size={14} />}
-          </button>
+          {isTeacher && (
+            <button 
+              onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
+              className={`p-2 rounded-lg transition-colors ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
+              title={gameState.locked ? 'Unlock controls' : 'Lock controls'}
+            >
+              {gameState.locked ? <Lock size={14} /> : <Unlock size={14} />}
+            </button>
+          )}
           <button 
             onClick={toggleAmbient} 
             className={`p-2 rounded-lg transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
