@@ -3178,7 +3178,7 @@ const ClassroomPets = () => {
                         ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
                         : 'bg-muted/30 text-muted-foreground cursor-pointer'
                     } ${shouldPulse ? 'ring-2 ring-yellow-400/70 shadow-[0_0_10px_2px_rgba(250,204,21,0.4)]' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
-                    title={isUnlocked ? `${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})` : `${toy.name} (Locked)`}
+                    title={isUnlocked ? toy.name : `${toy.name} (Locked)`}
                   >
                     {toy.component ? (
                       <div className={`w-6 h-4 flex items-center justify-center ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>
