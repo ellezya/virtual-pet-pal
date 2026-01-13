@@ -50,7 +50,7 @@ const Stats = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">My Stats</h1>
+            <h1 className="text-2xl font-bold text-foreground">💗 My LaLaLola Care Journal</h1>
             <p className="text-sm text-muted-foreground">
               {isGuest ? 'Saved on this device' : `Synced to ${user?.email}`}
             </p>
