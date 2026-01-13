@@ -93,10 +93,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
   // Only handpan music enabled; all SFX disabled
   const allAudioDisabled = false;
 
-  const musicVolume = 0.12;
-  const sfxEnabled = true;
-  const sfxVolume = 0.8;
-  const ambientVolume = 0.35;
+  const musicVolume = 0.45;  // Increased from 0.12 for better balance on mobile
+  const sfxVolume = 0.5;     // Reduced from 0.8 for better balance
+  const ambientVolume = 0.45; // Increased from 0.35 for better balance on mobile
+  
+  // SFX should also respect the ambient toggle (so mute button mutes everything)
+  const sfxEnabled = isAmbientPlaying;
 
   // Global registry for WebAudio contexts
   const getGlobalAudioContextSet = () => {
