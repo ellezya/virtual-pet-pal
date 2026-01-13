@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer, School } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, Heart, Users, ClipboardList, Timer, School } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
@@ -1698,9 +1698,9 @@ const ClassroomPets = () => {
           <button 
             onClick={() => navigate('/stats')}
             className="p-2 rounded-lg bg-muted hover:bg-secondary/20 hover:text-secondary transition-colors"
-            title="My Stats"
+            title="My Care Journal"
           >
-            <BarChart3 size={14} />
+            <Heart size={14} />
           </button>
         </div>
       </header>
