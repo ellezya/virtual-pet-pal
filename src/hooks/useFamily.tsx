@@ -83,14 +83,8 @@ interface FamilyContextType {
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 
-// Simple hash function for PIN (in production, use bcrypt on server)
-const hashPin = async (pin: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pin + 'lola-salt-2024');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-};
+// PIN hashing is now done server-side using bcrypt via pgcrypto
+// The hash_kid_pin() database function handles secure hashing
 
 export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -347,7 +341,14 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
     if (!family) return null;
 
     try {
-      const pinHash = await hashPin(pin);
+      // Hash PIN server-side using bcrypt via pgcrypto for secure storage
+      const { data: pinHash, error: hashError } = await supabase
+        .rpc('hash_kid_pin', { p_pin: pin });
+      
+      if (hashError) {
+        console.error('Error hashing PIN:', hashError);
+        throw new Error('Failed to secure PIN');
+      }
       
       const { data, error } = await supabase
         .from('kids')
