@@ -172,12 +172,6 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
                   With my students (teacher)
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="kid" id="kid" />
-                <Label htmlFor="kid" className="font-normal cursor-pointer">
-                  I'm a student (kid)
-                </Label>
-              </div>
             </RadioGroup>
           </div>
           
