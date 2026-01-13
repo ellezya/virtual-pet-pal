@@ -3121,7 +3121,7 @@ const ClassroomPets = () => {
                 <span className="text-sm font-bold">
                   {currentPet === 'bunny' && bunnyState.action === 'eating' && '🥕 Nom nom!'}
                   {currentPet === 'bunny' && bunnyState.action === 'drinking' && '💧 Gulp gulp!'}
-                  {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy.emoji || '🎪'} Wheee!`}
+                  {currentPet === 'bunny' && bunnyState.action === 'playing' && `${selectedToy?.emoji || '🎪'} Wheee!`}
                   {currentPet === 'fish' && fishState.action === 'eating' && '😋 Yummy!'}
                   {currentPet === 'fish' && fishState.action === 'playing' && '💫 Splash!'}
                 </span>
@@ -3347,14 +3347,25 @@ const ClassroomPets = () => {
             </button>
           )}
           {currentPet === 'bunny' ? (
-            <button
-              onClick={() => playWithToy(selectedToy)}
-              disabled={gameState.locked || bunnyState.action !== 'idle'}
-              className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
-            >
-              <span className="text-2xl leading-none drop-shadow-md">{selectedToy.emoji || '🎪'}</span>
-              <span className="text-xs font-bold leading-none">Play</span>
-            </button>
+            selectedToy ? (
+              <button
+                onClick={() => playWithToy(selectedToy)}
+                disabled={gameState.locked || bunnyState.action !== 'idle'}
+                className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
+              >
+                <span className="text-2xl leading-none drop-shadow-md">{selectedToy.emoji || '🎪'}</span>
+                <span className="text-xs font-bold leading-none">Play</span>
+              </button>
+            ) : (
+              <button
+                disabled
+                className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg opacity-50"
+                title="Select a toy first"
+              >
+                <span className="text-2xl leading-none drop-shadow-md">🎪</span>
+                <span className="text-xs font-bold leading-none">Play</span>
+              </button>
+            )
           ) : (
             <button
               onClick={() => {
