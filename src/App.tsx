@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
 import NotFound from "./pages/NotFound";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
+import OfflineIndicator from "./components/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -24,12 +26,14 @@ const App = () => (
           <FamilyProvider>
             <ClassroomProvider>
               <ProgressProvider>
+                <OfflineIndicator />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/stats" element={<Stats />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <PWAInstallPrompt />
               </ProgressProvider>
             </ClassroomProvider>
           </FamilyProvider>

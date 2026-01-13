@@ -1,0 +1,24 @@
+{
+  "name": "LaLaLola - Virtual Pet",
+  "short_name": "LaLaLola",
+  "description": "Care for Lola the bunny - earn time through chores and school rewards",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F0",
+  "theme_color": "#C4A57B",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
