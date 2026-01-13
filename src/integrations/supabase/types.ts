@@ -555,6 +555,7 @@ export type Database = {
           name: string
           pet_state: Json | null
           pin_hash: string
+          pin_needs_reset: boolean | null
           play_sessions: number | null
           total_minutes: number | null
           total_sessions: number | null
@@ -581,6 +582,7 @@ export type Database = {
           name: string
           pet_state?: Json | null
           pin_hash: string
+          pin_needs_reset?: boolean | null
           play_sessions?: number | null
           total_minutes?: number | null
           total_sessions?: number | null
@@ -607,6 +609,7 @@ export type Database = {
           name?: string
           pet_state?: Json | null
           pin_hash?: string
+          pin_needs_reset?: boolean | null
           play_sessions?: number | null
           total_minutes?: number | null
           total_sessions?: number | null
@@ -1147,6 +1150,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_kid_pin: { Args: { p_pin: string }; Returns: string }
       is_classroom_member: {
         Args: { p_classroom_id: string }
         Returns: boolean
