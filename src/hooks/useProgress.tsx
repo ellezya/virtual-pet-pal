@@ -407,11 +407,6 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
             .from('user_progress')
             .insert({ user_id: user.id, ...mergedProgress });
         }
-
-        toast({
-          title: "Progress saved! 🎉",
-          description: "Lola will remember you on any device",
-        });
       }
     } catch (err) {
       console.error('Failed to migrate progress:', err);
