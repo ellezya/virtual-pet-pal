@@ -28,10 +28,6 @@ import fishHappy from '@/assets/fish-happy.png';
 import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
 import fishPlaying from '@/assets/fish-playing.png';
-
-// Logo
-import lolaIcon from '@/assets/lola-icon.png';
-
 // Habitat images
 import habitatIndoor from '@/assets/habitat-indoor.png';
 import habitatIndoorCouch from '@/assets/habitat-indoor-couch.png';
@@ -1669,9 +1665,9 @@ const ClassroomPets = () => {
       <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1.5 items-center">
           <img
-            src={lolaIcon}
-            alt="LaLaLola icon"
-            className="w-8 h-8 rounded-full object-contain bg-background/70 p-0.5 ring-1 ring-border -my-1"
+            src="/lalalola-logo.png?v=5"
+            alt="LaLaLola logo"
+            className="w-8 h-8 rounded-md object-contain bg-background/70 p-0.5 ring-1 ring-border -my-1"
           />
           <h1 className="text-sm font-extrabold text-foreground">Lola</h1>
           {isTeacher && (
