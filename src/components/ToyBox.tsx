@@ -31,7 +31,7 @@ const TOY_REQUIREMENTS: Record<string, ToyUnlockRequirement> = {
 
 interface ToyBoxProps {
   toys: Toy[];
-  selectedToy: Toy;
+  selectedToy: Toy | null;
   onSelectToy: (toy: Toy) => void;
   toyScale?: number;
 }
@@ -107,6 +107,9 @@ const ToyBox: React.FC<ToyBoxProps> = ({ toys, selectedToy, onSelectToy, toyScal
           const isUnlocked = unlockedToys.includes(toy.id);
           const isSelected = selectedToy.id === toy.id;
 
+          // Add pulsing glow to hay pile when no toy is selected
+          const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy;
+
           return (
             <button
               key={toy.id}
@@ -116,6 +119,7 @@ const ToyBox: React.FC<ToyBoxProps> = ({ toys, selectedToy, onSelectToy, toyScal
                 w-10 h-10 rounded-lg transition-all duration-200
                 ${isSelected && isUnlocked ? 'bg-primary/20 ring-2 ring-primary scale-110' : ''}
                 ${isUnlocked ? 'hover:bg-muted/60 cursor-pointer' : 'cursor-pointer opacity-50'}
+                ${shouldPulse ? 'animate-pulse ring-2 ring-yellow-400/80 shadow-[0_0_12px_4px_rgba(250,204,21,0.5)]' : ''}
               `}
               title={isUnlocked ? toy.name : `${toy.name} (Locked)`}
             >
