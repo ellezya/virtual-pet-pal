@@ -915,6 +915,7 @@ export type Database = {
           pet_state: Json | null
           play_sessions: number | null
           school_points: number | null
+          total_care_actions: number
           total_minutes: number
           total_sessions: number
           unlocked_toys: string[] | null
@@ -937,6 +938,7 @@ export type Database = {
           pet_state?: Json | null
           play_sessions?: number | null
           school_points?: number | null
+          total_care_actions?: number
           total_minutes?: number
           total_sessions?: number
           unlocked_toys?: string[] | null
@@ -959,6 +961,7 @@ export type Database = {
           pet_state?: Json | null
           play_sessions?: number | null
           school_points?: number | null
+          total_care_actions?: number
           total_minutes?: number
           total_sessions?: number
           unlocked_toys?: string[] | null
