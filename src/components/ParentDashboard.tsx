@@ -10,7 +10,9 @@ import { useFamily } from '@/hooks/useFamily';
 import { useToast } from '@/hooks/use-toast';
 import LinkStudentDialog from '@/components/LinkStudentDialog';
 import SchoolReports from '@/components/SchoolReports';
-import { Check, X, Plus, Trash2, Clock, Award, School, Link } from 'lucide-react';
+import FamilySettings from '@/components/FamilySettings';
+import InviteParentDialog from '@/components/InviteParentDialog';
+import { Check, X, Plus, Trash2, Clock, Award, School, Link, Settings, UserPlus } from 'lucide-react';
 
 interface ParentDashboardProps {
   open: boolean;
@@ -37,6 +39,8 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
   const { toast } = useToast();
   const [creatingFamily, setCreatingFamily] = useState(false);
   const [showLinkStudent, setShowLinkStudent] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showInviteParent, setShowInviteParent] = useState(false);
 
   // Auto-create family if user doesn't have one
   const handleCreateFamily = async () => {
@@ -122,9 +126,19 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            👨‍👩‍👧‍👦 {family?.name || 'Family Dashboard'}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
+              👨‍👩‍👧‍👦 {family?.name || 'Family Dashboard'}
+            </DialogTitle>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setShowInviteParent(true)}>
+                <UserPlus className="w-4 h-4" />
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowSettings(true)}>
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
           <DialogDescription className="text-sm">
             Manage kids, chores, and approve completed tasks
           </DialogDescription>
@@ -476,6 +490,18 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
         <LinkStudentDialog 
           open={showLinkStudent} 
           onClose={() => setShowLinkStudent(false)} 
+        />
+        
+        {/* Family Settings */}
+        <FamilySettings
+          open={showSettings}
+          onClose={() => setShowSettings(false)}
+        />
+        
+        {/* Invite Parent Dialog */}
+        <InviteParentDialog
+          open={showInviteParent}
+          onClose={() => setShowInviteParent(false)}
         />
       </DialogContent>
     </Dialog>
