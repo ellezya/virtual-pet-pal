@@ -51,7 +51,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const { recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime, triggerAccountPrompt } = useProgress();
+  const { progress, updateProgress, recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime, triggerAccountPrompt } = useProgress();
   const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
   const { isTeacher } = useClassroom();
   
@@ -3151,13 +3151,25 @@ const ClassroomPets = () => {
               {availableToys.map((toy) => {
                 const isUnlocked = unlockedToys.includes(toy.id);
                 const isSelected = selectedToy?.id === toy.id;
-                // Add pulsing glow to hay pile when no toy is selected
-                const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy;
+                // Only pulse hay pile on first ever toy selection (one-time in user's lifetime)
+                const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy && !progress.hasSelectedFirstToy;
+                
+                const handleToySelect = () => {
+                  if (isUnlocked) {
+                    setSelectedToy(toy);
+                    // Mark first toy selection permanently
+                    if (!progress.hasSelectedFirstToy) {
+                      updateProgress({ hasSelectedFirstToy: true });
+                    }
+                  } else {
+                    setLockedToyModal(toy);
+                  }
+                };
                 
                 return (
                   <button
                     key={toy.id}
-                    onClick={() => isUnlocked ? setSelectedToy(toy) : setLockedToyModal(toy)}
+                    onClick={handleToySelect}
                     disabled={gameState.locked || bunnyState.action !== 'idle'}
                     className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
                       isSelected && isUnlocked
@@ -3165,7 +3177,7 @@ const ClassroomPets = () => {
                         : isUnlocked
                         ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
                         : 'bg-muted/30 text-muted-foreground cursor-pointer'
-                    } ${shouldPulse ? 'animate-pulse ring-2 ring-yellow-400 shadow-[0_0_12px_4px_rgba(250,204,21,0.6)]' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
+                    } ${shouldPulse ? 'ring-2 ring-yellow-400/70 shadow-[0_0_10px_2px_rgba(250,204,21,0.4)]' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={isUnlocked ? `${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})` : `${toy.name} (Locked)`}
                   >
                     {toy.component ? (
