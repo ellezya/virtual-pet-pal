@@ -1,6 +1,6 @@
-const CACHE_NAME = 'lalalola-v4';
-const STATIC_CACHE = 'lalalola-static-v4';
-const DYNAMIC_CACHE = 'lalalola-dynamic-v4';
+const CACHE_NAME = 'lalalola-v5';
+const STATIC_CACHE = 'lalalola-static-v5';
+const DYNAMIC_CACHE = 'lalalola-dynamic-v5';
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
@@ -65,6 +65,24 @@ self.addEventListener('fetch', (event) => {
           // Return cached response if offline
           return caches.match(request);
         })
+    );
+    return;
+  }
+
+  // Network-first for brand assets to avoid stale cached logos
+  if (url.pathname === '/lalalola-logo.png') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
