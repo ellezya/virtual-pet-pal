@@ -60,6 +60,28 @@ const ClassroomPets = () => {
   const [showKidChores, setShowKidChores] = useState(false);
   const [showTimeUpModal, setShowTimeUpModal] = useState(false);
   
+  // Collapsible toy menu state
+  const [isToyMenuOpen, setIsToyMenuOpen] = useState(false);
+  const [hasNewToyUnlock, setHasNewToyUnlock] = useState(false);
+  
+  // Track pending unlock for glow effect
+  useEffect(() => {
+    if (pendingUnlock) {
+      setHasNewToyUnlock(true);
+      // Auto-open menu when new toy unlocks
+      setIsToyMenuOpen(true);
+    }
+  }, [pendingUnlock]);
+  
+  // Clear glow when menu is opened
+  useEffect(() => {
+    if (isToyMenuOpen && hasNewToyUnlock) {
+      // Small delay so user sees the glow before it clears
+      const timer = setTimeout(() => setHasNewToyUnlock(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isToyMenuOpen, hasNewToyUnlock]);
+  
   // Show time's up modal when time runs out
   useEffect(() => {
     if (isTimeUp && activeKid) {
@@ -3016,88 +3038,140 @@ const ClassroomPets = () => {
           </div>
         </div>
 
-        {/* Toy Selection Menu - Right Side with ToyBox */}
+        {/* Toy Selection Menu - Right Side with ToyBox - Collapsible */}
         {currentPet === 'bunny' && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-primary/30 max-h-[60vh]">
-            <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
-            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
-              {availableToys.map((toy) => {
-                const isUnlocked = unlockedToys.includes(toy.id);
-                const isSelected = selectedToy?.id === toy.id;
-                // Only pulse hay pile on first ever toy selection (one-time in user's lifetime)
-                const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy && !progress.hasSelectedFirstToy;
-                
-                const handleToySelect = () => {
-                  if (isUnlocked) {
-                    setSelectedToy(toy);
-                    // Mark first toy selection permanently
-                    if (!progress.hasSelectedFirstToy) {
-                      updateProgress({ hasSelectedFirstToy: true });
-                    }
-                  } else {
-                    setLockedToyModal(toy);
-                  }
-                };
-                
-                return (
-                  <button
-                    key={toy.id}
-                    onClick={handleToySelect}
-                    disabled={gameState.locked || bunnyState.action !== 'idle'}
-                    className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
-                      isSelected && isUnlocked
-                        ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
-                        : isUnlocked
-                        ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
-                        : 'bg-muted/30 text-muted-foreground cursor-pointer'
-                    } ${shouldPulse ? 'ring-2 ring-yellow-400/70 shadow-[0_0_10px_2px_rgba(250,204,21,0.4)]' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
-                    title={isUnlocked ? toy.name : `${toy.name} (Locked)`}
-                  >
-                    {toy.component ? (
-                      <div className={`w-6 h-4 flex items-center justify-center ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>
-                        <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
-                          <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        </svg>
-                      </div>
-                    ) : (
-                      <span className={`text-xl ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>{toy.emoji}</span>
-                    )}
-                    <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
-                    {isUnlocked ? (
-                      <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
-                    ) : (
-                      <Lock className="w-3 h-3 text-muted-foreground mt-0.5" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-30 flex items-center">
+            {/* Collapsed Tab */}
+            {!isToyMenuOpen && (
+              <button
+                onClick={() => setIsToyMenuOpen(true)}
+                className={`flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-l-xl py-3 px-2 shadow-strong border-2 border-r-0 border-primary/30 transition-all duration-300 ${
+                  hasNewToyUnlock 
+                    ? 'animate-pulse ring-2 ring-yellow-400/70 shadow-[0_0_12px_4px_rgba(250,204,21,0.5)]' 
+                    : ''
+                }`}
+              >
+                <span className="text-lg">🧸</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase [writing-mode:vertical-lr] rotate-180">Toys</span>
+              </button>
+            )}
+            
+            {/* Expanded Menu */}
+            {isToyMenuOpen && (
+              <div className="flex flex-col bg-card/90 backdrop-blur-sm rounded-l-xl p-2 shadow-strong border-2 border-r-0 border-primary/30 max-h-[60vh] mr-0 transition-all duration-300">
+                <button 
+                  onClick={() => setIsToyMenuOpen(false)}
+                  className="text-xs font-bold text-center text-muted-foreground uppercase mb-1 hover:text-foreground transition-colors cursor-pointer"
+                >
+                  Toys ✕
+                </button>
+                <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
+                  {availableToys.map((toy) => {
+                    const isUnlocked = unlockedToys.includes(toy.id);
+                    const isSelected = selectedToy?.id === toy.id;
+                    // Only pulse hay pile on first ever toy selection (one-time in user's lifetime)
+                    const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy && !progress.hasSelectedFirstToy;
+                    // Also pulse newly unlocked toy
+                    const isNewlyUnlocked = pendingUnlock === toy.id;
+                    
+                    const handleToySelect = () => {
+                      if (isUnlocked) {
+                        setSelectedToy(toy);
+                        // Mark first toy selection permanently
+                        if (!progress.hasSelectedFirstToy) {
+                          updateProgress({ hasSelectedFirstToy: true });
+                        }
+                      } else {
+                        setLockedToyModal(toy);
+                      }
+                    };
+                    
+                    return (
+                      <button
+                        key={toy.id}
+                        onClick={handleToySelect}
+                        disabled={gameState.locked || bunnyState.action !== 'idle'}
+                        className={`relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                          isSelected && isUnlocked
+                            ? 'bg-primary text-primary-foreground scale-110 shadow-md' 
+                            : isUnlocked
+                            ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                            : 'bg-muted/30 text-muted-foreground cursor-pointer'
+                        } ${shouldPulse || isNewlyUnlocked ? 'ring-2 ring-yellow-400/70 shadow-[0_0_10px_2px_rgba(250,204,21,0.4)] animate-pulse' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={isUnlocked ? toy.name : `${toy.name} (Locked)`}
+                      >
+                        {toy.component ? (
+                          <div className={`w-6 h-4 flex items-center justify-center ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>
+                            <svg width="24" height="12" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <ellipse cx="24" cy="12" rx="20" ry="4" stroke="currentColor" strokeWidth="3"/>
+                              <path d="M6 24L10 12M42 24L38 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                          </div>
+                        ) : (
+                          <span className={`text-xl ${!isUnlocked ? 'grayscale opacity-50' : ''}`}>{toy.emoji}</span>
+                        )}
+                        <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
+                        {isUnlocked ? (
+                          <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                        ) : (
+                          <Lock className="w-3 h-3 text-muted-foreground mt-0.5" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Fish Toy Selection Menu - Right Side */}
+        {/* Fish Toy Selection Menu - Right Side - Collapsible */}
         {currentPet === 'fish' && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex flex-col bg-card/90 backdrop-blur-sm rounded-xl p-2 shadow-strong border-2 border-secondary/30 max-h-[60vh]">
-            <div className="text-xs font-bold text-center text-muted-foreground uppercase mb-1">Toys</div>
-            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-secondary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
-              {fishToys.map((toy) => (
-                <button
-                  key={toy.id}
-                  onClick={() => setSelectedFishToy(toy)}
-                  disabled={gameState.locked || fishState.action !== 'idle'}
-                  className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
-                    selectedFishToy.id === toy.id 
-                      ? 'bg-secondary text-secondary-foreground scale-110 shadow-md' 
-                      : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-30 flex items-center">
+            {/* Collapsed Tab */}
+            {!isToyMenuOpen && (
+              <button
+                onClick={() => setIsToyMenuOpen(true)}
+                className={`flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-l-xl py-3 px-2 shadow-strong border-2 border-r-0 border-secondary/30 transition-all duration-300 ${
+                  hasNewToyUnlock 
+                    ? 'animate-pulse ring-2 ring-yellow-400/70 shadow-[0_0_12px_4px_rgba(250,204,21,0.5)]' 
+                    : ''
+                }`}
+              >
+                <span className="text-lg">🧸</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase [writing-mode:vertical-lr] rotate-180">Toys</span>
+              </button>
+            )}
+            
+            {/* Expanded Menu */}
+            {isToyMenuOpen && (
+              <div className="flex flex-col bg-card/90 backdrop-blur-sm rounded-l-xl p-2 shadow-strong border-2 border-r-0 border-secondary/30 max-h-[60vh] transition-all duration-300">
+                <button 
+                  onClick={() => setIsToyMenuOpen(false)}
+                  className="text-xs font-bold text-center text-muted-foreground uppercase mb-1 hover:text-foreground transition-colors cursor-pointer"
                 >
-                  <span className="text-xl">{toy.emoji}</span>
-                  <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
-                  <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                  Toys ✕
                 </button>
-              ))}
-            </div>
+                <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-secondary/50 scrollbar-track-transparent flex flex-col gap-2 pr-1" style={{ maxHeight: 'calc(60vh - 40px)' }}>
+                  {fishToys.map((toy) => (
+                    <button
+                      key={toy.id}
+                      onClick={() => setSelectedFishToy(toy)}
+                      disabled={gameState.locked || fishState.action !== 'idle'}
+                      className={`flex flex-col items-center p-2 rounded-lg transition-all duration-200 min-w-[50px] ${
+                        selectedFishToy.id === toy.id 
+                          ? 'bg-secondary text-secondary-foreground scale-110 shadow-md' 
+                          : 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <span className="text-xl">{toy.emoji}</span>
+                      <span className="text-[10px] font-medium leading-tight">{toy.name}</span>
+                      <span className="text-[9px] text-muted-foreground">⚡{toy.energyCost}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
