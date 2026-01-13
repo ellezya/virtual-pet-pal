@@ -30,6 +30,8 @@ interface Progress {
   playSessions: number;
   choresCompleted: number;
   schoolPoints: number;
+  // First toy selection tracking
+  hasSelectedFirstToy: boolean;
 }
 
 interface Milestone {
@@ -84,6 +86,7 @@ const defaultProgress: Progress = {
   playSessions: 0,
   choresCompleted: 0,
   schoolPoints: 0,
+  hasSelectedFirstToy: false,
 };
 
 // Toy unlock requirements
@@ -173,6 +176,8 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
               playSessions: data.play_sessions || 0,
               choresCompleted: data.chores_completed || 0,
               schoolPoints: data.school_points || 0,
+              // If they've ever played, they've selected a toy
+              hasSelectedFirstToy: (data.play_sessions || 0) > 0,
             });
           } else {
             // Create new progress record for this user
