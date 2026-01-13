@@ -113,10 +113,10 @@ const LinkStudentDialog = ({ open, onClose }: LinkStudentDialogProps) => {
 
     setLoading(true);
     
-    // Find the student by link code
+    // Find the student by link code (read-only lookup)
     const { data: student, error: findError } = await supabase
       .from('students')
-      .select('id, linked_kid_id')
+      .select('id, linked_kid_id, classrooms!inner(classroom_code)')
       .eq('link_code', linkCode.toUpperCase())
       .maybeSingle();
 
@@ -140,18 +140,33 @@ const LinkStudentDialog = ({ open, onClose }: LinkStudentDialogProps) => {
       return;
     }
 
-    // Link the student to the kid
-    const { error: updateError } = await supabase
-      .from('students')
-      .update({ linked_kid_id: selectedKid })
-      .eq('id', student.id);
+    // Use Edge Function for secure linking (validates classroom code, family membership, etc.)
+    const classroomCode = (student.classrooms as any)?.classroom_code;
+    if (!classroomCode) {
+      setLoading(false);
+      toast({
+        title: 'Error',
+        description: 'Could not verify classroom',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const { data: linkResult, error: linkError } = await supabase.functions.invoke('manage-classroom', {
+      body: {
+        action: 'link_student',
+        student_id: student.id,
+        classroom_code: classroomCode,
+        kid_id: selectedKid
+      }
+    });
 
     setLoading(false);
 
-    if (updateError) {
+    if (linkError || !linkResult?.success) {
       toast({
         title: 'Error linking',
-        description: updateError.message,
+        description: linkResult?.error || linkError?.message || 'Failed to link student',
         variant: 'destructive'
       });
       return;
@@ -172,15 +187,18 @@ const LinkStudentDialog = ({ open, onClose }: LinkStudentDialogProps) => {
   };
 
   const handleUnlink = async (studentId: string) => {
-    const { error } = await supabase
-      .from('students')
-      .update({ linked_kid_id: null })
-      .eq('id', studentId);
+    // Use Edge Function for secure unlinking
+    const { data: result, error } = await supabase.functions.invoke('manage-classroom', {
+      body: {
+        action: 'unlink_student',
+        student_id: studentId
+      }
+    });
 
-    if (error) {
+    if (error || !result?.success) {
       toast({
         title: 'Error unlinking',
-        description: error.message,
+        description: result?.error || error?.message || 'Failed to unlink student',
         variant: 'destructive'
       });
       return;
