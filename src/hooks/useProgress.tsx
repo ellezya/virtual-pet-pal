@@ -467,7 +467,7 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     
     const newUnlocked = [...progress.unlockedToys, toyId];
     updateProgress({ unlockedToys: newUnlocked });
-    setPendingUnlock(toyId);
+    // Silently unlock - no popup
   }, [progress.unlockedToys, updateProgress]);
 
   // Check if any toy should be unlocked based on current progress
