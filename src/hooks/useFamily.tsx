@@ -412,28 +412,38 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
 
   const loginKid = async (kidId: string, pin: string): Promise<boolean> => {
     try {
-      const pinHash = await hashPin(pin);
-      
-      const { data } = await supabase
-        .from('kids')
-        .select('*')
-        .eq('id', kidId)
-        .single();
+      // Use server-side PIN verification for better security
+      const { data: isValid, error: verifyError } = await supabase
+        .rpc('verify_kid_pin', { p_kid_id: kidId, p_pin: pin });
 
-      if (data && data.pin_hash === pinHash) {
-        setActiveKid({
-          id: data.id,
-          name: data.name,
-          age: data.age,
-          avatar_emoji: data.avatar_emoji,
-          lola_time_from_chores: data.lola_time_from_chores,
-          lola_time_from_school: data.lola_time_from_school,
-          current_streak: data.current_streak,
-          total_sessions: data.total_sessions,
-          chores_completed: data.chores_completed,
-          unlocked_toys: data.unlocked_toys || ['hayPile']
-        });
-        return true;
+      if (verifyError) {
+        console.error('PIN verification error:', verifyError);
+        return false;
+      }
+
+      if (isValid) {
+        // PIN is valid, fetch kid data
+        const { data } = await supabase
+          .from('kids')
+          .select('*')
+          .eq('id', kidId)
+          .single();
+
+        if (data) {
+          setActiveKid({
+            id: data.id,
+            name: data.name,
+            age: data.age,
+            avatar_emoji: data.avatar_emoji,
+            lola_time_from_chores: data.lola_time_from_chores,
+            lola_time_from_school: data.lola_time_from_school,
+            current_streak: data.current_streak,
+            total_sessions: data.total_sessions,
+            chores_completed: data.chores_completed,
+            unlocked_toys: data.unlocked_toys || ['hayPile']
+          });
+          return true;
+        }
       }
       return false;
     } catch (error) {
