@@ -3307,7 +3307,7 @@ const ClassroomPets = () => {
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')}
             className="pet-button-feed w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
           >
-            <span className="text-2xl leading-none drop-shadow-md">🥕</span>
+            <span className="text-2xl leading-none" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px rgba(255,255,255,0.8))' }}>🥕</span>
             <span className="text-xs font-bold leading-none">Feed</span>
           </button>
           {currentPet === 'bunny' ? (
