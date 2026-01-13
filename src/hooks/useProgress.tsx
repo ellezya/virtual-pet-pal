@@ -484,8 +484,14 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     return null;
-    return null;
-  }, [progress, unlockToy]);
+  }, [progress.unlockedToys, progress.totalCareActions, unlockToy]);
+
+  // Automatically check for toy unlocks when care actions change
+  useEffect(() => {
+    if (progress.totalCareActions > 0) {
+      checkToyUnlock();
+    }
+  }, [progress.totalCareActions, checkToyUnlock]);
 
   // Record a play session
   const recordPlaySession = useCallback(() => {
