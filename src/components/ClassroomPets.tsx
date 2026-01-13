@@ -3365,7 +3365,11 @@ const ClassroomPets = () => {
               <button
                 onClick={() => playWithToy(selectedToy)}
                 disabled={gameState.locked || bunnyState.action !== 'idle'}
-                className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
+                className={`pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg ${
+                  progress.hasSelectedFirstToy && progress.playSessions === 0 
+                    ? 'ring-2 ring-yellow-400/70 shadow-[0_0_10px_2px_rgba(250,204,21,0.4)]' 
+                    : ''
+                }`}
               >
                 <span className="text-2xl leading-none drop-shadow-md">{selectedToy.emoji || '🎪'}</span>
                 <span className="text-xs font-bold leading-none">Play</span>
