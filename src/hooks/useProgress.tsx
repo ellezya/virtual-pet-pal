@@ -181,8 +181,8 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
               schoolPoints: data.school_points || 0,
               // If they've ever played, they've selected a toy
               hasSelectedFirstToy: (data.play_sessions || 0) > 0,
-              // Calculate total care actions from play sessions (approximation for existing users)
-              totalCareActions: (data.play_sessions || 0) + (data.total_sessions || 0),
+              // Load total care actions from database
+              totalCareActions: data.total_care_actions || 0,
             });
           } else {
             // Create new progress record for this user
@@ -237,6 +237,7 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
             play_sessions: newProgress.playSessions,
             chores_completed: newProgress.choresCompleted,
             school_points: newProgress.schoolPoints,
+            total_care_actions: newProgress.totalCareActions,
           })
           .eq('user_id', user.id);
 
