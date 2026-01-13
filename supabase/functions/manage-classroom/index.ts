@@ -5,6 +5,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation helpers
+const validateString = (value: unknown, fieldName: string, minLen = 1, maxLen = 255): string | null => {
+  if (typeof value !== 'string') return `${fieldName} must be a string`;
+  const trimmed = value.trim();
+  if (trimmed.length < minLen) return `${fieldName} must be at least ${minLen} character(s)`;
+  if (trimmed.length > maxLen) return `${fieldName} must be less than ${maxLen} characters`;
+  return null;
+};
+
+const validatePoints = (value: unknown): string | null => {
+  if (typeof value !== 'number') return 'Points must be a number';
+  if (!Number.isInteger(value)) return 'Points must be a whole number';
+  if (value < 1) return 'Points must be at least 1';
+  if (value > 100) return 'Points cannot exceed 100';
+  return null;
+};
+
+const validateUUID = (value: unknown, fieldName: string): string | null => {
+  if (typeof value !== 'string') return `${fieldName} must be a string`;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(value)) return `${fieldName} must be a valid UUID`;
+  return null;
+};
+
 interface CreateClassroomRequest {
   action: 'create_classroom';
   name: string;
@@ -43,13 +67,25 @@ interface LinkStudentRequest {
   kid_id: string;
 }
 
+interface UnlinkStudentRequest {
+  action: 'unlink_student';
+  student_id: string;
+}
+
 interface BulkAddStudentsRequest {
   action: 'bulk_add_students';
   classroom_id: string;
   students: Array<{ name: string; avatar_emoji?: string }>;
 }
 
-type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest | BulkAddStudentsRequest;
+type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest | UnlinkStudentRequest | BulkAddStudentsRequest;
+
+const errorResponse = (message: string, status: number) => {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -62,10 +98,7 @@ Deno.serve(async (req) => {
     
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return errorResponse('No authorization header', 401);
     }
 
     // Create client with user's token for auth
@@ -79,10 +112,7 @@ Deno.serve(async (req) => {
     );
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return errorResponse('Invalid token', 401);
     }
 
     const body: RequestBody = await req.json();
@@ -92,6 +122,10 @@ Deno.serve(async (req) => {
 
     switch (body.action) {
       case 'create_classroom': {
+        // Validate input
+        const nameError = validateString(body.name, 'Classroom name', 1, 100);
+        if (nameError) return errorResponse(nameError, 400);
+
         // Generate a unique classroom code
         const { data: codeData, error: codeError } = await supabaseAdmin.rpc('generate_classroom_code');
         if (codeError) throw codeError;
@@ -100,7 +134,7 @@ Deno.serve(async (req) => {
         const { data: classroom, error: classroomError } = await supabaseAdmin
           .from('classrooms')
           .insert({
-            name: body.name,
+            name: body.name.trim(),
             teacher_id: user.id,
             classroom_code: codeData,
           })
@@ -125,6 +159,18 @@ Deno.serve(async (req) => {
       }
 
       case 'add_student': {
+        // Validate inputs
+        const classroomIdError = validateUUID(body.classroom_id, 'Classroom ID');
+        if (classroomIdError) return errorResponse(classroomIdError, 400);
+
+        const nameError = validateString(body.name, 'Student name', 1, 100);
+        if (nameError) return errorResponse(nameError, 400);
+
+        if (body.avatar_emoji) {
+          const emojiError = validateString(body.avatar_emoji, 'Avatar emoji', 1, 10);
+          if (emojiError) return errorResponse(emojiError, 400);
+        }
+
         // Verify teacher owns this classroom
         const { data: classroom, error: classroomError } = await supabaseAdmin
           .from('classrooms')
@@ -134,10 +180,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (classroomError || !classroom) {
-          return new Response(JSON.stringify({ error: 'Classroom not found or unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Classroom not found or unauthorized', 403);
         }
 
         // Generate student number
@@ -156,7 +199,7 @@ Deno.serve(async (req) => {
           .from('students')
           .insert({
             classroom_id: body.classroom_id,
-            name: body.name,
+            name: body.name.trim(),
             avatar_emoji: avatar,
             student_number: studentNumber,
             school_points: 0,
@@ -172,6 +215,16 @@ Deno.serve(async (req) => {
       }
 
       case 'award_points': {
+        // Validate inputs
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
+        const pointsError = validatePoints(body.points);
+        if (pointsError) return errorResponse(pointsError, 400);
+
+        const reasonError = validateString(body.reason, 'Reason', 1, 500);
+        if (reasonError) return errorResponse(reasonError, 400);
+
         // Verify teacher owns the student's classroom
         const { data: student, error: studentError } = await supabaseAdmin
           .from('students')
@@ -180,18 +233,12 @@ Deno.serve(async (req) => {
           .single();
 
         if (studentError || !student) {
-          return new Response(JSON.stringify({ error: 'Student not found' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Student not found', 404);
         }
 
         const classroomData = student.classrooms as unknown as { teacher_id: string };
         if (classroomData.teacher_id !== user.id) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Unauthorized', 403);
         }
 
         // Update student points
@@ -209,7 +256,7 @@ Deno.serve(async (req) => {
           .insert({
             student_id: body.student_id,
             points: body.points,
-            reason: body.reason,
+            reason: body.reason.trim(),
             awarded_by: user.id,
           });
 
@@ -246,6 +293,10 @@ Deno.serve(async (req) => {
       }
 
       case 'remove_student': {
+        // Validate input
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
         // Verify teacher owns the student's classroom
         const { data: student, error: studentError } = await supabaseAdmin
           .from('students')
@@ -254,18 +305,12 @@ Deno.serve(async (req) => {
           .single();
 
         if (studentError || !student) {
-          return new Response(JSON.stringify({ error: 'Student not found' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Student not found', 404);
         }
 
         const classroomData = student.classrooms as unknown as { teacher_id: string };
         if (classroomData.teacher_id !== user.id) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Unauthorized', 403);
         }
 
         const { error: deleteError } = await supabaseAdmin
@@ -281,6 +326,20 @@ Deno.serve(async (req) => {
       }
 
       case 'update_student': {
+        // Validate input
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
+        if (body.name) {
+          const nameError = validateString(body.name, 'Student name', 1, 100);
+          if (nameError) return errorResponse(nameError, 400);
+        }
+
+        if (body.avatar_emoji) {
+          const emojiError = validateString(body.avatar_emoji, 'Avatar emoji', 1, 10);
+          if (emojiError) return errorResponse(emojiError, 400);
+        }
+
         // Verify teacher owns the student's classroom
         const { data: student, error: studentError } = await supabaseAdmin
           .from('students')
@@ -289,22 +348,16 @@ Deno.serve(async (req) => {
           .single();
 
         if (studentError || !student) {
-          return new Response(JSON.stringify({ error: 'Student not found' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Student not found', 404);
         }
 
         const classroomData = student.classrooms as unknown as { teacher_id: string };
         if (classroomData.teacher_id !== user.id) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Unauthorized', 403);
         }
 
         const updates: Record<string, string> = {};
-        if (body.name) updates.name = body.name;
+        if (body.name) updates.name = body.name.trim();
         if (body.avatar_emoji) updates.avatar_emoji = body.avatar_emoji;
 
         const { error: updateError } = await supabaseAdmin
@@ -320,6 +373,16 @@ Deno.serve(async (req) => {
       }
 
       case 'link_student': {
+        // Validate inputs
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
+        const kidIdError = validateUUID(body.kid_id, 'Kid ID');
+        if (kidIdError) return errorResponse(kidIdError, 400);
+
+        const codeError = validateString(body.classroom_code, 'Classroom code', 4, 20);
+        if (codeError) return errorResponse(codeError, 400);
+
         // Parent linking their kid to a classroom student
         // First verify the classroom code is valid
         const { data: classroom, error: classroomError } = await supabaseAdmin
@@ -329,25 +392,24 @@ Deno.serve(async (req) => {
           .single();
 
         if (classroomError || !classroom) {
-          return new Response(JSON.stringify({ error: 'Invalid classroom code' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Invalid classroom code', 404);
         }
 
         // Verify the student exists and belongs to this classroom
         const { data: student, error: studentError } = await supabaseAdmin
           .from('students')
-          .select('id, classroom_id')
+          .select('id, classroom_id, linked_kid_id')
           .eq('id', body.student_id)
           .eq('classroom_id', classroom.id)
           .single();
 
         if (studentError || !student) {
-          return new Response(JSON.stringify({ error: 'Student not found in this classroom' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Student not found in this classroom', 404);
+        }
+
+        // Check if student is already linked
+        if (student.linked_kid_id) {
+          return errorResponse('Student is already linked to a family account', 400);
         }
 
         // Verify the user owns this kid
@@ -358,10 +420,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (kidError || !kid) {
-          return new Response(JSON.stringify({ error: 'Kid not found' }), {
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Kid not found', 404);
         }
 
         // Verify user is a family member
@@ -373,10 +432,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (memberError || !membership) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Unauthorized', 403);
         }
 
         // Link the student to the kid
@@ -392,7 +448,90 @@ Deno.serve(async (req) => {
         });
       }
 
+      case 'unlink_student': {
+        // Validate input
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
+        // Get the student and check if it's linked
+        const { data: student, error: studentError } = await supabaseAdmin
+          .from('students')
+          .select('id, linked_kid_id')
+          .eq('id', body.student_id)
+          .single();
+
+        if (studentError || !student) {
+          return errorResponse('Student not found', 404);
+        }
+
+        if (!student.linked_kid_id) {
+          return errorResponse('Student is not linked to any family', 400);
+        }
+
+        // Verify the user is a family member of the linked kid
+        const { data: kid, error: kidError } = await supabaseAdmin
+          .from('kids')
+          .select('id, family_id')
+          .eq('id', student.linked_kid_id)
+          .single();
+
+        if (kidError || !kid) {
+          return errorResponse('Linked kid not found', 404);
+        }
+
+        const { data: membership, error: memberError } = await supabaseAdmin
+          .from('family_members')
+          .select('id')
+          .eq('family_id', kid.family_id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (memberError || !membership) {
+          return errorResponse('Unauthorized', 403);
+        }
+
+        // Unlink the student
+        const { error: unlinkError } = await supabaseAdmin
+          .from('students')
+          .update({ linked_kid_id: null })
+          .eq('id', body.student_id);
+
+        if (unlinkError) throw unlinkError;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       case 'bulk_add_students': {
+        // Validate inputs
+        const classroomIdError = validateUUID(body.classroom_id, 'Classroom ID');
+        if (classroomIdError) return errorResponse(classroomIdError, 400);
+
+        if (!Array.isArray(body.students)) {
+          return errorResponse('Students must be an array', 400);
+        }
+
+        if (body.students.length === 0) {
+          return errorResponse('At least one student is required', 400);
+        }
+
+        if (body.students.length > 50) {
+          return errorResponse('Cannot add more than 50 students at once', 400);
+        }
+
+        // Validate each student entry
+        for (let i = 0; i < body.students.length; i++) {
+          const studentData = body.students[i];
+          const nameError = validateString(studentData.name, `Student ${i + 1} name`, 1, 100);
+          if (nameError) return errorResponse(nameError, 400);
+
+          if (studentData.avatar_emoji) {
+            const emojiError = validateString(studentData.avatar_emoji, `Student ${i + 1} avatar`, 1, 10);
+            if (emojiError) return errorResponse(emojiError, 400);
+          }
+        }
+
         // Verify teacher owns this classroom
         const { data: classroom, error: classroomError } = await supabaseAdmin
           .from('classrooms')
@@ -402,10 +541,7 @@ Deno.serve(async (req) => {
           .single();
 
         if (classroomError || !classroom) {
-          return new Response(JSON.stringify({ error: 'Classroom not found or unauthorized' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return errorResponse('Classroom not found or unauthorized', 403);
         }
 
         const avatars = ['🐲', '🦊', '🐺', '🦁', '🐯', '🐻', '🐼', '🐨', '🦄', '🦋', '🐢', '🦀', '🐬', '🦅', '🦉'];
@@ -444,10 +580,7 @@ Deno.serve(async (req) => {
       }
 
       default:
-        return new Response(JSON.stringify({ error: 'Invalid action' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return errorResponse('Invalid action', 400);
     }
   } catch (error) {
     console.error('Error:', error);
