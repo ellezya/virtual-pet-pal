@@ -3228,71 +3228,71 @@ const ClassroomPets = () => {
       </main>
 
       {/* Controls Panel - Same size as toy menu */}
-      <footer className="shrink-0 bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 px-2 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-strong rounded-xl">
+      <footer className="shrink-0 bg-card/90 backdrop-blur-sm border-2 border-primary/30 mx-1 px-1.5 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-strong rounded-lg">
         {/* Status Bars - 2 rows of 3 on mobile */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pb-0.5">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 pb-0">
           {currentPet === 'bunny' ? (
             <>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">🥕</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">🥕</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.hunger)}`} style={{ width: `${bunnyState.hunger}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">💧</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">💧</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.hydration)}`} style={{ width: `${bunnyState.hydration}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">❤️</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">❤️</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.happiness)}`} style={{ width: `${bunnyState.happiness}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">⚡</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">⚡</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.energy)}`} style={{ width: `${bunnyState.energy}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">😴</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">😴</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.rest)}`} style={{ width: `${bunnyState.rest}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">✨</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">✨</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(bunnyState.cleanliness)}`} style={{ width: `${bunnyState.cleanliness}%` }} />
                 </div>
               </div>
             </>
           ) : (
             <>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">🍽️</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">🍽️</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.hunger)}`} style={{ width: `${fishState.hunger}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">❤️</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">❤️</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.happiness)}`} style={{ width: `${fishState.happiness}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">⚡</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">⚡</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.energy)}`} style={{ width: `${fishState.energy}%` }} />
                 </div>
               </div>
-              <div className="flex flex-col items-center bg-muted/30 rounded-lg p-1">
-                <span className="text-sm leading-none">🧽</span>
-                <div className="status-bar w-full h-2 mt-1">
+              <div className="flex flex-col items-center bg-muted/30 rounded-md p-0.5">
+                <span className="text-base leading-none drop-shadow-sm">🧽</span>
+                <div className="status-bar w-full h-1.5 mt-0.5">
                   <div className={`status-bar-fill ${getStatusColor(fishState.tankCleanliness)}`} style={{ width: `${fishState.tankCleanliness}%` }} />
                 </div>
               </div>
@@ -3300,33 +3300,33 @@ const ClassroomPets = () => {
           )}
         </div>
 
-        {/* Action Buttons - Same size as toy menu */}
-        <div className="mt-3 flex flex-nowrap gap-6 sm:gap-8 overflow-x-auto pb-2 justify-center px-3">
+        {/* Action Buttons - Compact with bold text */}
+        <div className="mt-1.5 flex flex-nowrap gap-3 sm:gap-4 overflow-x-auto pb-1 justify-center px-2">
           <button
             onClick={feedPet}
             disabled={gameState.locked || (currentPet === 'bunny' ? bunnyState.action !== 'idle' : fishState.action !== 'idle')}
-            className="pet-button-feed w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+            className="pet-button-feed w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
           >
-            <span className="leading-none">🥕</span>
-            <span className="text-[9px] font-medium leading-none">Feed</span>
+            <span className="text-2xl leading-none drop-shadow-md">🥕</span>
+            <span className="text-xs font-bold leading-none">Feed</span>
           </button>
           {currentPet === 'bunny' ? (
             <button
               onClick={waterBunny}
               disabled={gameState.locked || bunnyState.action !== 'idle'}
-              className="pet-button-water w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+              className="pet-button-water w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
             >
-              <span className="leading-none">💧</span>
-              <span className="text-[9px] font-medium leading-none">Water</span>
+              <span className="text-2xl leading-none drop-shadow-md">💧</span>
+              <span className="text-xs font-bold leading-none">Water</span>
             </button>
           ) : (
             <button
               onClick={cleanHabitat}
               disabled={gameState.locked}
-              className="pet-button-clean w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+              className="pet-button-clean w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
             >
               {/* Fish net icon for tank cleaning */}
-              <svg viewBox="0 0 24 24" width="24" height="24" className="drop-shadow-sm">
+              <svg viewBox="0 0 24 24" width="22" height="22" className="drop-shadow-md">
                 {/* Handle */}
                 <line x1="4" y1="4" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 {/* Net frame - square with rounded corners */}
@@ -3343,17 +3343,17 @@ const ClassroomPets = () => {
                 <line x1="10" y1="14" x2="22" y2="14" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
                 <line x1="10" y1="18" x2="22" y2="18" stroke="currentColor" strokeWidth="0.5" opacity="0.6" />
               </svg>
-              <span className="text-[9px] font-medium leading-none">Net</span>
+              <span className="text-xs font-bold leading-none">Net</span>
             </button>
           )}
           {currentPet === 'bunny' ? (
             <button
               onClick={() => playWithToy(selectedToy)}
               disabled={gameState.locked || bunnyState.action !== 'idle'}
-              className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+              className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
             >
-              <span className="leading-none">{selectedToy.emoji || '🎪'}</span>
-              <span className="text-[9px] font-medium leading-none">Play</span>
+              <span className="text-2xl leading-none drop-shadow-md">{selectedToy.emoji || '🎪'}</span>
+              <span className="text-xs font-bold leading-none">Play</span>
             </button>
           ) : (
             <button
@@ -3382,55 +3382,55 @@ const ClassroomPets = () => {
                 }, 4000);
               }}
               disabled={gameState.locked || fishState.action !== 'idle'}
-              className="pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+              className="pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
             >
-              <span className="leading-none">🎾</span>
-              <span className="text-[9px] font-medium leading-none">Play</span>
+              <span className="text-2xl leading-none drop-shadow-md">🎾</span>
+              <span className="text-xs font-bold leading-none">Play</span>
             </button>
           )}
           {currentPet === 'fish' && (
             <button
               onClick={runWaterFilter}
               disabled={gameState.locked || fishState.tankCleanliness >= 95}
-              className={`pet-button-water w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl ${fishState.tankCleanliness >= 95 ? 'opacity-50' : ''}`}
+              className={`pet-button-water w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg ${fishState.tankCleanliness >= 95 ? 'opacity-50' : ''}`}
               title="Filter cleans algae buildup"
             >
-              <span className="leading-none">💨</span>
-              <span className="text-[9px] font-medium leading-none">Filter</span>
+              <span className="text-2xl leading-none drop-shadow-md">💨</span>
+              <span className="text-xs font-bold leading-none">Filter</span>
             </button>
           )}
           {currentPet === 'bunny' && (
             <button
               onClick={takeNap}
               disabled={gameState.locked || bunnyState.action !== 'idle' || currentScene !== 'room' || bunnyState.isNapping}
-              className={`pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl ${currentScene !== 'room' ? 'opacity-50' : ''}`}
+              className={`pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg ${currentScene !== 'room' ? 'opacity-50' : ''}`}
               title={currentScene !== 'room' ? 'Nap only available in Room' : 'Take a nap'}
             >
-              <span className="leading-none">😴</span>
-              <span className="text-[9px] font-medium leading-none">Nap</span>
+              <span className="text-2xl leading-none drop-shadow-md">😴</span>
+              <span className="text-xs font-bold leading-none">Nap</span>
             </button>
           )}
           {currentPet === 'fish' && (
             <button
               onClick={takeFishRest}
               disabled={gameState.locked || fishState.action !== 'idle' || currentScene !== 'shell' || fishState.isResting}
-              className={`pet-button-play w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl ${currentScene !== 'shell' ? 'opacity-50' : ''}`}
+              className={`pet-button-play w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg ${currentScene !== 'shell' ? 'opacity-50' : ''}`}
               title={currentScene !== 'shell' ? 'Rest only in Shell Cave' : 'Rest in shell'}
             >
-              <span className="leading-none">💤</span>
-              <span className="text-[9px] font-medium leading-none">Rest</span>
+              <span className="text-2xl leading-none drop-shadow-md">💤</span>
+              <span className="text-xs font-bold leading-none">Rest</span>
             </button>
           )}
           {currentPet === 'bunny' && (
             <button
               onClick={cleanHabitat}
               disabled={gameState.locked || (poops.length === 0 && bunnyState.cleanliness >= 40)}
-              className="pet-button-clean w-16 h-16 p-0 shrink-0 flex flex-col items-center justify-center gap-1 rounded-xl text-xl"
+              className="pet-button-clean w-14 h-14 p-0 shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-lg"
             >
-              <span className="flex items-center gap-0.5 leading-none">
-                🧹{poops.length > 0 && <span className="text-xs">{poops.length}</span>}
+              <span className="flex items-center gap-0.5 text-2xl leading-none drop-shadow-md">
+                🧹{poops.length > 0 && <span className="text-sm font-bold">{poops.length}</span>}
               </span>
-              <span className="text-[9px] font-medium leading-none">Clean</span>
+              <span className="text-xs font-bold leading-none">Clean</span>
             </button>
           )}
         </div>
