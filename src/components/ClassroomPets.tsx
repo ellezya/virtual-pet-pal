@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, Heart, Users, ClipboardList, Timer, School } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BookHeart, Users, ClipboardList, Timer, School } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
@@ -1697,10 +1697,11 @@ const ClassroomPets = () => {
           <SyncIndicator />
           <button 
             onClick={() => navigate('/stats')}
-            className="p-2 rounded-lg bg-muted hover:bg-secondary/20 hover:text-secondary transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-pink-100/80 hover:bg-pink-200/90 text-pink-600 hover:text-pink-700 transition-colors shadow-sm"
             title="My Care Journal"
           >
-            <Heart size={14} />
+            <BookHeart size={14} />
+            <span className="text-xs font-medium">Care</span>
           </button>
         </div>
       </header>
