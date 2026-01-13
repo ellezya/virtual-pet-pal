@@ -83,6 +83,48 @@ export type Database = {
           },
         ]
       }
+      care_journal: {
+        Row: {
+          care_item: string
+          completed_at: string
+          created_at: string
+          date: string
+          difficulty_text: string | null
+          id: string
+          journal_entry: string | null
+          lola_feed_count: number | null
+          lola_play_count: number | null
+          lola_water_count: number | null
+          user_id: string
+        }
+        Insert: {
+          care_item: string
+          completed_at: string
+          created_at?: string
+          date: string
+          difficulty_text?: string | null
+          id?: string
+          journal_entry?: string | null
+          lola_feed_count?: number | null
+          lola_play_count?: number | null
+          lola_water_count?: number | null
+          user_id: string
+        }
+        Update: {
+          care_item?: string
+          completed_at?: string
+          created_at?: string
+          date?: string
+          difficulty_text?: string | null
+          id?: string
+          journal_entry?: string | null
+          lola_feed_count?: number | null
+          lola_play_count?: number | null
+          lola_water_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       care_logs: {
         Row: {
           action: string
@@ -388,6 +430,57 @@ export type Database = {
           },
         ]
       }
+      daily_care_items: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          date: string
+          difficulty_text: string | null
+          id: string
+          item_order: number
+          item_text: string
+          journal_entry: string | null
+          last_reminded_at: string | null
+          peptalk_count: number
+          remind_later_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          date?: string
+          difficulty_text?: string | null
+          id?: string
+          item_order: number
+          item_text: string
+          journal_entry?: string | null
+          last_reminded_at?: string | null
+          peptalk_count?: number
+          remind_later_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          date?: string
+          difficulty_text?: string | null
+          id?: string
+          item_order?: number
+          item_text?: string
+          journal_entry?: string | null
+          last_reminded_at?: string | null
+          peptalk_count?: number
+          remind_later_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       families: {
         Row: {
           created_at: string | null
@@ -569,36 +662,81 @@ export type Database = {
       profiles: {
         Row: {
           account_prompt_dismissed_at: string | null
+          account_type_set_at: string | null
+          also_parent: boolean | null
+          also_teacher: boolean | null
+          care_items_enabled: boolean | null
           created_at: string | null
           display_name: string | null
           email: string | null
+          encouragement_flag_dismissed: boolean | null
           family_id: string | null
+          first_name: string | null
           first_play_at: string | null
           id: string
           is_premium: boolean | null
+          last_end_of_day_shown: string | null
+          last_name: string | null
+          last_reminder_sent_at: string | null
+          next_reminder_at: string | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          reminder_frequency: string | null
           updated_at: string | null
+          user_type: string | null
         }
         Insert: {
           account_prompt_dismissed_at?: string | null
+          account_type_set_at?: string | null
+          also_parent?: boolean | null
+          also_teacher?: boolean | null
+          care_items_enabled?: boolean | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          encouragement_flag_dismissed?: boolean | null
           family_id?: string | null
+          first_name?: string | null
           first_play_at?: string | null
           id: string
           is_premium?: boolean | null
+          last_end_of_day_shown?: string | null
+          last_name?: string | null
+          last_reminder_sent_at?: string | null
+          next_reminder_at?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_frequency?: string | null
           updated_at?: string | null
+          user_type?: string | null
         }
         Update: {
           account_prompt_dismissed_at?: string | null
+          account_type_set_at?: string | null
+          also_parent?: boolean | null
+          also_teacher?: boolean | null
+          care_items_enabled?: boolean | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
+          encouragement_flag_dismissed?: boolean | null
           family_id?: string | null
+          first_name?: string | null
           first_play_at?: string | null
           id?: string
           is_premium?: boolean | null
+          last_end_of_day_shown?: string | null
+          last_name?: string | null
+          last_reminder_sent_at?: string | null
+          next_reminder_at?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_frequency?: string | null
           updated_at?: string | null
+          user_type?: string | null
         }
         Relationships: [
           {
