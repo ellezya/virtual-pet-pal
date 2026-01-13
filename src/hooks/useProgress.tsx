@@ -504,11 +504,7 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
   // Add bonus time to lola time remaining
   const addBonusTime = useCallback((minutes: number) => {
     updateProgress({ lolaTimeRemaining: progress.lolaTimeRemaining + minutes });
-    toast({
-      title: `+${minutes} bonus minutes! ⏰`,
-      description: "Added to your Lola time!",
-    });
-  }, [progress.lolaTimeRemaining, updateProgress, toast]);
+  }, [progress.lolaTimeRemaining, updateProgress]);
 
   // Trigger account prompt manually (for testing)
   const triggerAccountPrompt = useCallback(() => {
