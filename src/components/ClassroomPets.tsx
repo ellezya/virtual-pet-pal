@@ -3484,13 +3484,10 @@ const ClassroomPets = () => {
               {lockedToyModal && TOY_REQUIREMENTS[lockedToyModal.id] && (
                 <>
                   <p className="font-medium">
-                    Requirement: {TOY_REQUIREMENTS[lockedToyModal.id].type === 'streak' 
-                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value}-day care streak`
-                      : TOY_REQUIREMENTS[lockedToyModal.id].type === 'sessions'
-                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value} play sessions`
-                      : TOY_REQUIREMENTS[lockedToyModal.id].type === 'chores'
-                      ? `${TOY_REQUIREMENTS[lockedToyModal.id].value} chores completed`
-                      : `${TOY_REQUIREMENTS[lockedToyModal.id].value} school points`}
+                    Requirement: {TOY_REQUIREMENTS[lockedToyModal.id].value} care actions
+                  </p>
+                  <p className="text-muted-foreground">
+                    Your progress: {progress.totalCareActions || 0} care actions
                   </p>
                 </>
               )}

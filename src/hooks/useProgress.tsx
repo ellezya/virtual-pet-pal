@@ -32,6 +32,8 @@ interface Progress {
   schoolPoints: number;
   // First toy selection tracking
   hasSelectedFirstToy: boolean;
+  // Total care actions (feed/water/play/nap/clean)
+  totalCareActions: number;
 }
 
 interface Milestone {
@@ -87,16 +89,17 @@ const defaultProgress: Progress = {
   choresCompleted: 0,
   schoolPoints: 0,
   hasSelectedFirstToy: false,
+  totalCareActions: 0,
 };
 
-// Toy unlock requirements
-const TOY_REQUIREMENTS: Record<string, { type: 'streak' | 'sessions' | 'chores' | 'school'; value: number }> = {
-  hayPile: { type: 'streak', value: 0 }, // starter toy
-  balloon: { type: 'streak', value: 3 },
-  yarn: { type: 'streak', value: 7 },
-  cardboard: { type: 'sessions', value: 20 },
-  tunnel: { type: 'chores', value: 10 },
-  trampoline: { type: 'school', value: 50 },
+// Toy unlock requirements - based on care actions (feed/water/play/nap/clean)
+const TOY_REQUIREMENTS: Record<string, { type: 'careActions'; value: number }> = {
+  hayPile: { type: 'careActions', value: 0 }, // starter toy
+  balloon: { type: 'careActions', value: 10 },
+  cardboard: { type: 'careActions', value: 25 },
+  yarn: { type: 'careActions', value: 50 },
+  trampoline: { type: 'careActions', value: 100 },
+  tunnel: { type: 'careActions', value: 200 },
 };
 
 // Milestone definitions for celebrations
@@ -178,6 +181,8 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
               schoolPoints: data.school_points || 0,
               // If they've ever played, they've selected a toy
               hasSelectedFirstToy: (data.play_sessions || 0) > 0,
+              // Calculate total care actions from play sessions (approximation for existing users)
+              totalCareActions: (data.play_sessions || 0) + (data.total_sessions || 0),
             });
           } else {
             // Create new progress record for this user
@@ -260,15 +265,22 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [saveProgress]);
 
-  // Record care action
+  // Record care action (feed/water/play/nap/clean)
   const recordCareAction = useCallback((action: 'fed' | 'watered' | 'played' | 'slept') => {
     const now = new Date().toISOString();
     const actionKey = `last${action.charAt(0).toUpperCase() + action.slice(1)}` as keyof Progress;
     
-    updateProgress({
-      [actionKey]: now,
-    } as Partial<Progress>);
-  }, [updateProgress]);
+    // Increment total care actions for toy unlocks
+    setProgress(prev => {
+      const newProgress = {
+        ...prev,
+        [actionKey]: now,
+        totalCareActions: (prev.totalCareActions || 0) + 1,
+      };
+      saveProgress(newProgress);
+      return newProgress;
+    });
+  }, [saveProgress]);
 
   // Save pet state
   const savePetState = useCallback((state: Record<string, any>) => {
@@ -462,27 +474,15 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
     for (const [toyId, req] of Object.entries(TOY_REQUIREMENTS)) {
       if (progress.unlockedToys.includes(toyId)) continue;
       
-      let current = 0;
-      switch (req.type) {
-        case 'streak':
-          current = progress.currentStreak;
-          break;
-        case 'sessions':
-          current = progress.playSessions;
-          break;
-        case 'chores':
-          current = progress.choresCompleted;
-          break;
-        case 'school':
-          current = progress.schoolPoints;
-          break;
-      }
+      // All toys now unlock based on care actions
+      const current = progress.totalCareActions;
       
       if (current >= req.value) {
         unlockToy(toyId);
         return toyId;
       }
     }
+    return null;
     return null;
   }, [progress, unlockToy]);
 

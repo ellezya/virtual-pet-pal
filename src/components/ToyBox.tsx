@@ -15,18 +15,18 @@ interface Toy {
 }
 
 interface ToyUnlockRequirement {
-  type: 'streak' | 'sessions' | 'chores' | 'school';
+  type: 'careActions';
   value: number;
   label: string;
 }
 
 const TOY_REQUIREMENTS: Record<string, ToyUnlockRequirement> = {
-  hayPile: { type: 'streak', value: 0, label: 'Always unlocked' }, // starter toy
-  balloon: { type: 'streak', value: 3, label: '3-day care streak' },
-  yarn: { type: 'streak', value: 7, label: '7-day care streak' },
-  cardboard: { type: 'sessions', value: 20, label: '20 play sessions' },
-  tunnel: { type: 'chores', value: 10, label: '10 chores completed' },
-  trampoline: { type: 'school', value: 50, label: '50 school points' },
+  hayPile: { type: 'careActions', value: 0, label: 'Always unlocked' }, // starter toy
+  balloon: { type: 'careActions', value: 10, label: '10 care actions' },
+  cardboard: { type: 'careActions', value: 25, label: '25 care actions' },
+  yarn: { type: 'careActions', value: 50, label: '50 care actions' },
+  trampoline: { type: 'careActions', value: 100, label: '100 care actions' },
+  tunnel: { type: 'careActions', value: 200, label: '200 care actions' },
 };
 
 interface ToyBoxProps {
@@ -44,21 +44,8 @@ const ToyBox: React.FC<ToyBoxProps> = ({ toys, selectedToy, onSelectToy, toyScal
     const req = TOY_REQUIREMENTS[toy.id];
     if (!req) return { current: 0, required: 0, remaining: 0 };
 
-    let current = 0;
-    switch (req.type) {
-      case 'streak':
-        current = progress.currentStreak;
-        break;
-      case 'sessions':
-        current = progress.playSessions || 0;
-        break;
-      case 'chores':
-        current = progress.choresCompleted || 0;
-        break;
-      case 'school':
-        current = progress.schoolPoints || 0;
-        break;
-    }
+    // All toys now use care actions
+    const current = progress.totalCareActions || 0;
 
     return {
       current,
@@ -79,20 +66,10 @@ const ToyBox: React.FC<ToyBoxProps> = ({ toys, selectedToy, onSelectToy, toyScal
     const req = TOY_REQUIREMENTS[toy.id];
     if (!req) return '';
 
-    const { current, required, remaining } = getProgress(toy);
+    const { current, remaining } = getProgress(toy);
     
-    switch (req.type) {
-      case 'streak':
-        return `Your progress: ${current} day${current !== 1 ? 's' : ''} (${remaining} more to go!)`;
-      case 'sessions':
-        return `Your progress: ${current} session${current !== 1 ? 's' : ''} (${remaining} more to go!)`;
-      case 'chores':
-        return `Your progress: ${current} chore${current !== 1 ? 's' : ''} (${remaining} more to go!)`;
-      case 'school':
-        return `Your progress: ${current} point${current !== 1 ? 's' : ''} (${remaining} more to go!)`;
-      default:
-        return '';
-    }
+    // All toys use care actions now
+    return `Your progress: ${current} care action${current !== 1 ? 's' : ''} (${remaining} more to go!)`;
   };
 
   const getRequirementText = (toy: Toy): string => {
