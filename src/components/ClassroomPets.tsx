@@ -29,8 +29,8 @@ import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
 import fishPlaying from '@/assets/fish-playing.png';
 
-// Logo
-import lolaIcon from '@/assets/lola-icon.png';
+// Logo - using the existing bunny-happy asset which has proper transparency
+import lolaIcon from '@/assets/bunny-happy.png';
 
 // Habitat images
 import habitatIndoor from '@/assets/habitat-indoor.png';
