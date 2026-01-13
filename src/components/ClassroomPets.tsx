@@ -3038,9 +3038,9 @@ const ClassroomPets = () => {
           </div>
         </div>
 
-        {/* Toy Selection Menu - Right Side with ToyBox - Collapsible */}
+        {/* Toy Selection Menu - Top Right with ToyBox - Collapsible */}
         {currentPet === 'bunny' && (
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-30 flex items-center">
+          <div className="absolute right-0 top-4 z-30 flex items-center">
             {/* Collapsed Tab */}
             {!isToyMenuOpen && (
               <button
@@ -3125,9 +3125,9 @@ const ClassroomPets = () => {
           </div>
         )}
 
-        {/* Fish Toy Selection Menu - Right Side - Collapsible */}
+        {/* Fish Toy Selection Menu - Top Right - Collapsible */}
         {currentPet === 'fish' && (
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 z-30 flex items-center">
+          <div className="absolute right-0 top-4 z-30 flex items-center">
             {/* Collapsed Tab */}
             {!isToyMenuOpen && (
               <button
