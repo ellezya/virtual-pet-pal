@@ -42,6 +42,8 @@ interface SelfCareContextType {
     completed: number;
     total: number;
   };
+  hasCareItems: boolean;
+  showEncouragementFlag: boolean;
   
   // Actions
   saveCareItems: (items: { text: string; difficulty: string }[]) => Promise<boolean>;
@@ -501,6 +503,9 @@ export const SelfCareProvider = ({ children }: { children: ReactNode }) => {
     return careSettings.last_end_of_day_shown !== today;
   };
 
+  const hasCareItems = careItems.length > 0;
+  const showEncouragementFlag = careSettings ? !careSettings.encouragement_flag_dismissed && !hasCareItems : false;
+
   return (
     <SelfCareContext.Provider
       value={{
@@ -510,6 +515,8 @@ export const SelfCareProvider = ({ children }: { children: ReactNode }) => {
         isReminderActive,
         currentReminderItem,
         todayStats,
+        hasCareItems,
+        showEncouragementFlag,
         saveCareItems,
         markItemComplete,
         remindMeLater,

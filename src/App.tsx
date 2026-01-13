@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProgressProvider } from "@/hooks/useProgress";
 import { FamilyProvider } from "@/hooks/useFamily";
 import { ClassroomProvider } from "@/hooks/useClassroom";
+import { SelfCareProvider } from "@/hooks/useSelfCare";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
@@ -26,14 +27,16 @@ const App = () => (
           <FamilyProvider>
             <ClassroomProvider>
               <ProgressProvider>
-                <OfflineIndicator />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/stats" element={<Stats />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <PWAInstallPrompt />
+                <SelfCareProvider>
+                  <OfflineIndicator />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/stats" element={<Stats />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <PWAInstallPrompt />
+                </SelfCareProvider>
               </ProgressProvider>
             </ClassroomProvider>
           </FamilyProvider>
