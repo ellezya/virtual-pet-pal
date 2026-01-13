@@ -226,10 +226,10 @@ const ClassroomPets = () => {
   
   // Bed Y calibration (persisted to localStorage)
   const [roomBedY, setRoomBedY] = useState<{ seat: number; back: number }>(() => {
-    if (typeof window === 'undefined') return { seat: 71, back: 61 };
+    if (typeof window === 'undefined') return { seat: 65, back: 58 };
     try {
       const raw = window.localStorage.getItem('roomBedY');
-      if (!raw) return { seat: 71, back: 61 };
+      if (!raw) return { seat: 65, back: 58 };
       const parsed = JSON.parse(raw);
       const seat = Number(parsed?.seat);
       const back = Number(parsed?.back);
