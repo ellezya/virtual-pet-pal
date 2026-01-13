@@ -1668,7 +1668,7 @@ const ClassroomPets = () => {
       {/* Header - Same size as toy menu */}
       <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1.5 items-center">
-          <img src={lolaIcon} alt="Lola" className="w-7 h-7 object-contain" />
+          <img src={lolaIcon} alt="Lola" className="w-8 h-8 object-cover rounded-full -my-1" />
           <h1 className="text-sm font-extrabold text-foreground">Lola</h1>
           {isTeacher && (
             <button 
