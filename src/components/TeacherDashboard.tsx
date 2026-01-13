@@ -93,8 +93,8 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.student_number.toLowerCase().includes(searchQuery.toLowerCase())
+    s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.student_number?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreateClassroom = async () => {
