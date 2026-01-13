@@ -1013,6 +1013,10 @@ export type Database = {
       is_classroom_owner: { Args: { _classroom_id: string }; Returns: boolean }
       is_family_member: { Args: { _family_id: string }; Returns: boolean }
       is_pet_owner: { Args: { _pet_id: string }; Returns: boolean }
+      verify_kid_pin: {
+        Args: { p_kid_id: string; p_pin: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
