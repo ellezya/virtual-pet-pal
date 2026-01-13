@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { RotateCcw, Lock, Unlock, LogOut, LogIn, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer, School } from 'lucide-react';
+import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BarChart3, Users, ClipboardList, Timer, School } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
 import { useFamily } from '@/hooks/useFamily';
 import { useClassroom } from '@/hooks/useClassroom';
-import AccountPrompt from '@/components/AccountPrompt';
-import AccountPromptModal from '@/components/AccountPromptModal';
 import SyncIndicator from '@/components/SyncIndicator';
 import { ToyBox, TOY_REQUIREMENTS } from '@/components/ToyBox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -49,14 +47,13 @@ import lofiCastleBg from '@/assets/lofi-castle.mp4';
 import lofiShellBg from '@/assets/lofi-shell.mp4';
 
 const ClassroomPets = () => {
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { progress, updateProgress, recordCareAction, showAccountPrompt, dismissAccountPrompt, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime, triggerAccountPrompt } = useProgress();
+  const { progress, updateProgress, recordCareAction, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime } = useProgress();
   const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
   const { isTeacher } = useClassroom();
   
   // Family UI state
-  const [showAccountModal, setShowAccountModal] = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [showTeacherDashboard, setShowTeacherDashboard] = useState(false);
   const [showKidLogin, setShowKidLogin] = useState(false);
@@ -97,18 +94,6 @@ const ClassroomPets = () => {
   type FishScene = 'reef' | 'castle' | 'shell';
   const [showBoundsDebug, setShowBoundsDebug] = useState(false);
   
-  // Trigger account modal after 5 minutes of play (only if not logged in or no family)
-  useEffect(() => {
-    if (user && family) return; // Already set up
-    
-    const timer = setTimeout(() => {
-      if (!user || !family) {
-        setShowAccountModal(true);
-      }
-    }, 5 * 60 * 1000); // 5 minutes
-    
-    return () => clearTimeout(timer);
-  }, [user, family]);
 
   const sceneRef = useRef<HTMLElement | null>(null);
   const bunnyImgRef = useRef<HTMLImageElement | null>(null);
@@ -1775,23 +1760,6 @@ const ClassroomPets = () => {
             </div>
           )}
           <SyncIndicator />
-          {user ? (
-            <button 
-              onClick={signOut}
-              className="p-2 rounded-lg bg-muted hover:bg-destructive/20 hover:text-destructive transition-colors"
-              title="Sign out"
-            >
-              <LogOut size={14} />
-            </button>
-          ) : (
-            <button 
-              onClick={() => navigate('/auth')}
-              className="p-2 rounded-lg bg-muted hover:bg-primary/20 hover:text-primary transition-colors"
-              title="Sign in (for cloud sync)"
-            >
-              <LogIn size={14} />
-            </button>
-          )}
           <button 
             onClick={() => navigate('/stats')}
             className="p-2 rounded-lg bg-muted hover:bg-secondary/20 hover:text-secondary transition-colors"
@@ -1802,14 +1770,6 @@ const ClassroomPets = () => {
         </div>
       </header>
 
-      {/* Account Prompt Modal */}
-      {showAccountPrompt && <AccountPrompt onDismiss={dismissAccountPrompt} />}
-      
-      {/* Family Account Modal - triggered after 5 min of play */}
-      <AccountPromptModal 
-        open={showAccountModal} 
-        onClose={() => setShowAccountModal(false)} 
-      />
       
       {/* Parent Dashboard Modal */}
       <ParentDashboard 
