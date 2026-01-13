@@ -1667,14 +1667,6 @@ const ClassroomPets = () => {
             {isAmbientPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
 
-          <button
-            onClick={() => setShowBoundsDebug((v) => !v)}
-            className={`p-2 rounded-lg transition-colors ${showBoundsDebug ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
-            title={showBoundsDebug ? 'Hide bounds debug (Shift+D)' : 'Show bounds debug (Shift+D)'}
-            type="button"
-          >
-            <Bug size={14} />
-          </button>
         </div>
 
         <div className="flex items-center gap-1">
