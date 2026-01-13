@@ -29,8 +29,8 @@ import fishSad from '@/assets/fish-sad.png';
 import fishEating from '@/assets/fish-eating.png';
 import fishPlaying from '@/assets/fish-playing.png';
 
-// Logo - using the existing bunny-happy asset which has proper transparency
-import lolaIcon from '@/assets/bunny-happy.png';
+// Logo
+import lolaIcon from '@/assets/lola-icon.png';
 
 // Habitat images
 import habitatIndoor from '@/assets/habitat-indoor.png';
@@ -1668,7 +1668,11 @@ const ClassroomPets = () => {
       {/* Header - Same size as toy menu */}
       <header className="shrink-0 bg-card/90 backdrop-blur-sm shadow-strong px-2 py-2 flex justify-between items-center z-10 border-b-2 border-primary/30 rounded-b-xl mx-1">
         <div className="flex gap-1.5 items-center">
-          <img src={lolaIcon} alt="Lola" className="w-8 h-8 object-cover rounded-full -my-1" />
+          <img
+            src={lolaIcon}
+            alt="LaLaLola icon"
+            className="w-8 h-8 rounded-full object-contain bg-background/70 p-0.5 ring-1 ring-border -my-1"
+          />
           <h1 className="text-sm font-extrabold text-foreground">Lola</h1>
           {isTeacher && (
             <button 
