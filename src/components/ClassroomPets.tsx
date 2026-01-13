@@ -3151,6 +3151,8 @@ const ClassroomPets = () => {
               {availableToys.map((toy) => {
                 const isUnlocked = unlockedToys.includes(toy.id);
                 const isSelected = selectedToy?.id === toy.id;
+                // Add pulsing glow to hay pile when no toy is selected
+                const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy;
                 
                 return (
                   <button
@@ -3163,7 +3165,7 @@ const ClassroomPets = () => {
                         : isUnlocked
                         ? 'bg-muted/50 hover:bg-muted text-foreground hover:scale-105'
                         : 'bg-muted/30 text-muted-foreground cursor-pointer'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    } ${shouldPulse ? 'animate-pulse ring-2 ring-yellow-400 shadow-[0_0_12px_4px_rgba(250,204,21,0.6)]' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={isUnlocked ? `${toy.name} (⚡-${toy.energyCost} 😊+${toy.happinessBoost})` : `${toy.name} (Locked)`}
                   >
                     {toy.component ? (
