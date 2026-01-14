@@ -422,6 +422,7 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          school_id: string | null
           teacher_id: string
           updated_at: string | null
         }
@@ -430,6 +431,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name: string
+          school_id?: string | null
           teacher_id: string
           updated_at?: string | null
         }
@@ -438,10 +440,18 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+          school_id?: string | null
           teacher_id?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "classrooms_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "classrooms_teacher_id_fkey"
             columns: ["teacher_id"]
@@ -827,6 +837,71 @@ export type Database = {
           },
         ]
       }
+      school_staff: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          role: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          role: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          role?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_staff_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          created_at: string
+          domain: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_items: {
         Row: {
           classroom_id: string
@@ -1004,6 +1079,8 @@ export type Database = {
           id: string
           is_store_open: boolean
           order_cutoff_time: string
+          store_enabled_at: string | null
+          store_enabled_by: string | null
           updated_at: string
         }
         Insert: {
@@ -1014,6 +1091,8 @@ export type Database = {
           id?: string
           is_store_open?: boolean
           order_cutoff_time?: string
+          store_enabled_at?: string | null
+          store_enabled_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -1024,6 +1103,8 @@ export type Database = {
           id?: string
           is_store_open?: boolean
           order_cutoff_time?: string
+          store_enabled_at?: string | null
+          store_enabled_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1289,13 +1370,22 @@ export type Database = {
       has_teacher_beta_access: { Args: { p_user_id: string }; Returns: boolean }
       hash_kid_pin: { Args: { p_pin: string }; Returns: string }
       is_approved_teacher_school: { Args: { school: string }; Returns: boolean }
+      is_classroom_admin: { Args: { p_classroom_id: string }; Returns: boolean }
       is_classroom_member: {
         Args: { p_classroom_id: string }
         Returns: boolean
       }
       is_classroom_owner: { Args: { _classroom_id: string }; Returns: boolean }
+      is_classroom_principal: {
+        Args: { p_classroom_id: string }
+        Returns: boolean
+      }
       is_family_member: { Args: { _family_id: string }; Returns: boolean }
       is_pet_owner: { Args: { _pet_id: string }; Returns: boolean }
+      is_school_staff: {
+        Args: { p_role?: string; p_school_id: string }
+        Returns: boolean
+      }
       verify_kid_pin: {
         Args: { p_kid_id: string; p_pin: string }
         Returns: boolean
@@ -1310,6 +1400,7 @@ export type Database = {
         | "teacher"
         | "school_admin"
         | "staff"
+        | "principal"
       pet_type: "bunny" | "fish" | "hamster" | "turtle" | "bird"
     }
     CompositeTypes: {
@@ -1446,6 +1537,7 @@ export const Constants = {
         "teacher",
         "school_admin",
         "staff",
+        "principal",
       ],
       pet_type: ["bunny", "fish", "hamster", "turtle", "bird"],
     },
