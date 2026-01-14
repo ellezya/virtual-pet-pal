@@ -81,6 +81,13 @@ export type Database = {
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "behavior_incidents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       care_journal: {
@@ -160,6 +167,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -384,6 +398,13 @@ export type Database = {
             columns: ["current_student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classroom_sessions_current_student_id_fkey"
+            columns: ["current_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
             referencedColumns: ["id"]
           },
           {
@@ -660,6 +681,13 @@ export type Database = {
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pet_helpers_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -782,6 +810,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_points_log_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -943,6 +978,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_orders_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1146,7 +1188,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      students_safe: {
+        Row: {
+          avatar_emoji: string | null
+          classroom_id: string | null
+          created_at: string | null
+          id: string | null
+          joined_at: string | null
+          name: string | null
+          school_points: number | null
+          status: string | null
+          student_number: string | null
+        }
+        Insert: {
+          avatar_emoji?: string | null
+          classroom_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          joined_at?: string | null
+          name?: string | null
+          school_points?: number | null
+          status?: string | null
+          student_number?: string | null
+        }
+        Update: {
+          avatar_emoji?: string | null
+          classroom_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          joined_at?: string | null
+          name?: string | null
+          school_points?: number | null
+          status?: string | null
+          student_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
