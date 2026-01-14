@@ -714,6 +714,8 @@ export type Database = {
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           reminder_frequency: string | null
+          school_name: string | null
+          teacher_beta_approved: boolean | null
           updated_at: string | null
           user_type: string | null
         }
@@ -740,6 +742,8 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           reminder_frequency?: string | null
+          school_name?: string | null
+          teacher_beta_approved?: boolean | null
           updated_at?: string | null
           user_type?: string | null
         }
@@ -766,6 +770,8 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           reminder_frequency?: string | null
+          school_name?: string | null
+          teacher_beta_approved?: boolean | null
           updated_at?: string | null
           user_type?: string | null
         }
@@ -1093,6 +1099,39 @@ export type Database = {
           },
         ]
       }
+      teacher_waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          notified_at: string | null
+          school_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          notified_at?: string | null
+          school_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          notified_at?: string | null
+          school_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           chores_completed: number | null
@@ -1247,7 +1286,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_teacher_beta_access: { Args: { p_user_id: string }; Returns: boolean }
       hash_kid_pin: { Args: { p_pin: string }; Returns: string }
+      is_approved_teacher_school: { Args: { school: string }; Returns: boolean }
       is_classroom_member: {
         Args: { p_classroom_id: string }
         Returns: boolean

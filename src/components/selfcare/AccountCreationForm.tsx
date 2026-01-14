@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart, Loader2, School } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,15 @@ interface AccountCreationFormProps {
   onCancel?: () => void;
 }
 
+// Approved school patterns for immediate beta access
+const APPROVED_SCHOOL_PATTERNS = ['twin cities academy'];
+
+const isApprovedSchool = (schoolName: string): boolean => {
+  if (!schoolName) return false;
+  const normalized = schoolName.toLowerCase().trim();
+  return APPROVED_SCHOOL_PATTERNS.some(pattern => normalized.includes(pattern));
+};
+
 export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationFormProps) => {
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -26,6 +35,7 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
     userType: '' as 'individual' | 'parent' | 'teacher' | 'kid' | '',
     alsoTeacher: false,
     alsoParent: false,
+    schoolName: '',
   });
 
   const handleGoogleSignIn = async () => {
@@ -53,6 +63,12 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
       return;
     }
 
+    // Require school name for teachers
+    if ((formData.userType === 'teacher' || formData.alsoTeacher) && !formData.schoolName.trim()) {
+      toast.error('Please enter your school name');
+      return;
+    }
+
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
@@ -66,9 +82,21 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
       
       if (error) throw error;
       
-      // After signup, we need to wait for the user to be created
-      // The profile update will happen after email confirmation
-      toast.success('Account created! Please check your email to confirm.');
+      // Check if school qualifies for beta access
+      const hasBetaAccess = isApprovedSchool(formData.schoolName);
+      
+      if (formData.userType === 'teacher' || formData.alsoTeacher) {
+        if (hasBetaAccess) {
+          toast.success('Welcome to the beta! You have full teacher access.');
+        } else if (formData.schoolName.trim()) {
+          toast.success("Account created! You're on the teacher waitlist - we'll notify you when features launch.");
+        } else {
+          toast.success('Account created! Please check your email to confirm.');
+        }
+      } else {
+        toast.success('Account created! Please check your email to confirm.');
+      }
+      
       onSuccess();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
@@ -80,6 +108,7 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
 
   const showAlsoTeacher = formData.userType === 'parent';
   const showAlsoParent = formData.userType === 'teacher';
+  const showSchoolField = formData.userType === 'teacher' || formData.alsoTeacher;
 
   return (
     <Card className="border-2 border-green-300/30 bg-gradient-to-br from-background to-green-950/10">
@@ -151,6 +180,7 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
                 userType: value as typeof formData.userType,
                 alsoTeacher: false,
                 alsoParent: false,
+                schoolName: value === 'teacher' ? formData.schoolName : '',
               })}
               className="space-y-2"
             >
@@ -180,7 +210,11 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
               <Checkbox
                 id="alsoTeacher"
                 checked={formData.alsoTeacher}
-                onCheckedChange={(checked) => setFormData({ ...formData, alsoTeacher: !!checked })}
+                onCheckedChange={(checked) => setFormData({ 
+                  ...formData, 
+                  alsoTeacher: !!checked,
+                  schoolName: checked ? formData.schoolName : '',
+                })}
               />
               <Label htmlFor="alsoTeacher" className="font-normal text-sm cursor-pointer">
                 I'm also a teacher
@@ -198,6 +232,25 @@ export const AccountCreationForm = ({ onSuccess, onCancel }: AccountCreationForm
               <Label htmlFor="alsoParent" className="font-normal text-sm cursor-pointer">
                 I'm also a parent
               </Label>
+            </div>
+          )}
+          
+          {showSchoolField && (
+            <div className="space-y-2 pl-6 border-l-2 border-primary/20">
+              <Label htmlFor="schoolName" className="flex items-center gap-2">
+                <School className="w-4 h-4" />
+                School Name *
+              </Label>
+              <Input
+                id="schoolName"
+                value={formData.schoolName}
+                onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                placeholder="e.g., Twin Cities Academy"
+                className="bg-background/50"
+              />
+              <p className="text-xs text-muted-foreground">
+                Teachers from partner schools get immediate beta access. Others will be added to our waitlist.
+              </p>
             </div>
           )}
           
