@@ -203,6 +203,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
   const swimAudioRef = useRef<HTMLAudioElement | null>(null);
   
   const playSwim = useCallback(() => {
+    if (!sfxEnabled) return;
+
     // Create a short sample from the brook audio for swim effect
     try {
       // Stop any currently playing swim sound
@@ -245,7 +247,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     } catch {
       // Fallback to silent if audio fails
     }
-  }, []);
+  }, [sfxEnabled]);
 
   // Crunchy eating sound
   const playEat = useCallback(() => {
