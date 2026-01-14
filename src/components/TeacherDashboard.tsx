@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useClassroom, PRESET_POINT_REASONS } from '@/hooks/useClassroom';
 import { useClassroomSession } from '@/hooks/useClassroomSession';
 import { useIncidents } from '@/hooks/useIncidents';
+import { useTeacherBeta } from '@/hooks/useTeacherBeta';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -17,6 +18,7 @@ import IncidentsList from '@/components/IncidentsList';
 import StudentIncidentBadge from '@/components/StudentIncidentBadge';
 import SchoolStoreManager from '@/components/SchoolStoreManager';
 import ClassroomJoinCodeCard from '@/components/ClassroomJoinCodeCard';
+import TeacherBetaWaitlist from '@/components/TeacherBetaWaitlist';
 import { 
   Plus, 
   Award, 
@@ -44,6 +46,9 @@ import {
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
+  // Check beta access first
+  const { hasBetaAccess, loading: betaLoading, checkBetaStatus } = useTeacherBeta();
+
   const {
     classrooms,
     activeClassroom,
@@ -67,6 +72,28 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
     skipStudent, 
     toggleSleep 
   } = useClassroomSession();
+
+  // If no beta access, show waitlist
+  if (!betaLoading && !hasBetaAccess) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background overflow-hidden flex flex-col">
+        <header className="mobile-header flex items-center justify-between p-3 sm:p-4 bg-card">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <School className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">Teacher Dashboard</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="touch-target-sm">
+            <X className="w-5 h-5" />
+          </Button>
+        </header>
+        <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
+          <div className="max-w-md w-full">
+            <TeacherBetaWaitlist onAccessGranted={checkBetaStatus} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [showNewClassroom, setShowNewClassroom] = useState(false);
   const [showAddStudent, setShowAddStudent] = useState(false);
