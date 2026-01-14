@@ -16,6 +16,7 @@ import IncidentReportDialog from '@/components/IncidentReportDialog';
 import IncidentsList from '@/components/IncidentsList';
 import StudentIncidentBadge from '@/components/StudentIncidentBadge';
 import SchoolStoreManager from '@/components/SchoolStoreManager';
+import ClassroomJoinCodeCard from '@/components/ClassroomJoinCodeCard';
 import { 
   Plus, 
   Award, 
@@ -308,26 +309,18 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  
-                  {activeClassroom && (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-sm font-mono border-primary text-primary">
-                        {activeClassroom.classroom_code}
-                      </Badge>
-                      <Button variant="ghost" size="icon" onClick={copyClassroomCode}>
-                        {copiedCode ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  )}
                 </div>
-                
-                {activeClassroom && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Share this code with parents to link their children
-                  </p>
-                )}
               </CardContent>
             </Card>
+
+            {/* Student Join Code Card - Prominent display for classroom code */}
+            {activeClassroom && (
+              <ClassroomJoinCodeCard
+                classroomCode={activeClassroom.classroom_code}
+                classroomName={activeClassroom.name}
+                studentCount={students.length}
+              />
+            )}
 
             {/* Quick Controls Bar - Mobile-First Teacher Controls */}
             <Card className="bg-card border-border">

@@ -993,34 +993,46 @@ export type Database = {
           avatar_emoji: string | null
           classroom_id: string
           created_at: string | null
+          email: string | null
           id: string
+          joined_at: string | null
           link_code: string | null
           linked_kid_id: string | null
           name: string
           school_points: number | null
+          status: string | null
           student_number: string | null
+          user_id: string | null
         }
         Insert: {
           avatar_emoji?: string | null
           classroom_id: string
           created_at?: string | null
+          email?: string | null
           id?: string
+          joined_at?: string | null
           link_code?: string | null
           linked_kid_id?: string | null
           name: string
           school_points?: number | null
+          status?: string | null
           student_number?: string | null
+          user_id?: string | null
         }
         Update: {
           avatar_emoji?: string | null
           classroom_id?: string
           created_at?: string | null
+          email?: string | null
           id?: string
+          joined_at?: string | null
           link_code?: string | null
           linked_kid_id?: string | null
           name?: string
           school_points?: number | null
+          status?: string | null
           student_number?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
