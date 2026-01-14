@@ -3,6 +3,7 @@ import { useClassroom, PRESET_POINT_REASONS } from '@/hooks/useClassroom';
 import { useClassroomSession } from '@/hooks/useClassroomSession';
 import { useIncidents } from '@/hooks/useIncidents';
 import { useTeacherBeta } from '@/hooks/useTeacherBeta';
+import { useSchoolManagement } from '@/hooks/useSchoolManagement';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -19,6 +20,9 @@ import StudentIncidentBadge from '@/components/StudentIncidentBadge';
 import SchoolStoreManager from '@/components/SchoolStoreManager';
 import ClassroomJoinCodeCard from '@/components/ClassroomJoinCodeCard';
 import TeacherBetaWaitlist from '@/components/TeacherBetaWaitlist';
+import InvitePrincipalDialog from '@/components/InvitePrincipalDialog';
+import LinkToSchoolDialog from '@/components/LinkToSchoolDialog';
+import PrincipalDashboard from '@/components/PrincipalDashboard';
 import { 
   Plus, 
   Award, 
@@ -42,7 +46,9 @@ import {
   Mic,
   Link,
   AlertTriangle,
-  Store
+  Store,
+  Building2,
+  Settings
 } from 'lucide-react';
 
 const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
@@ -102,6 +108,10 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
   const [showDisplayMode, setShowDisplayMode] = useState(false);
   const [showQuickAward, setShowQuickAward] = useState(false);
   const [showIncidentReport, setShowIncidentReport] = useState(false);
+  const [showPrincipalDashboard, setShowPrincipalDashboard] = useState(false);
+
+  // School management hook
+  const { myRole, pendingInvites } = useSchoolManagement();
 
   // Incidents hook
   const { getActiveIncidents } = useIncidents(activeClassroom?.id || null);
@@ -256,6 +266,24 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
         <div className="flex items-center gap-2 sm:gap-3">
           <School className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           <h1 className="text-lg sm:text-xl font-bold text-foreground truncate">Teacher Dashboard</h1>
+          {(myRole === 'principal' || myRole === 'school_admin' || pendingInvites.length > 0) && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowPrincipalDashboard(true)}
+              className="ml-2 gap-1"
+            >
+              <Building2 className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {myRole === 'principal' ? 'Principal' : myRole === 'school_admin' ? 'Admin' : 'Invites'}
+              </span>
+              {pendingInvites.length > 0 && (
+                <Badge variant="destructive" className="ml-1 px-1.5 py-0.5 text-xs">
+                  {pendingInvites.length}
+                </Badge>
+              )}
+            </Button>
+          )}
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="touch-target-sm">
           <X className="w-5 h-5" />
@@ -575,7 +603,7 @@ Michael Brown`}
 
             {/* Main Content Tabs */}
             <Tabs defaultValue="students" className="space-y-3 sm:space-y-4">
-              <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsList className="grid w-full grid-cols-5 h-auto">
                 <TabsTrigger value="students" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
                   <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden xs:inline">Students</span>
@@ -591,6 +619,10 @@ Michael Brown`}
                 <TabsTrigger value="activity" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden xs:inline">Activity</span>
+                </TabsTrigger>
+                <TabsTrigger value="school" className="flex items-center gap-1 text-xs sm:text-sm py-2 sm:py-2.5">
+                  <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline">School</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -742,6 +774,54 @@ Michael Brown`}
                   </Card>
                 )}
               </TabsContent>
+
+              {/* School Tab */}
+              <TabsContent value="school">
+                <Card className="bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                      <Building2 className="w-5 h-5" />
+                      School Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground">
+                      Connect your classroom to a school to enable principal oversight and admin-managed school stores.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      {/* Invite Principal / Create School */}
+                      <div className="p-4 rounded-lg bg-muted">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Add Principal
+                        </h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Create a new school and invite a principal to oversee your classrooms.
+                        </p>
+                        <InvitePrincipalDialog />
+                      </div>
+
+                      {/* Link Classroom to School */}
+                      {activeClassroom && (
+                        <div className="p-4 rounded-lg bg-muted">
+                          <h4 className="font-medium mb-2 flex items-center gap-2">
+                            <Link className="w-4 h-4" />
+                            Link to Existing School
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Link this classroom to an existing school for principal/admin access.
+                          </p>
+                          <LinkToSchoolDialog 
+                            classroomId={activeClassroom.id}
+                            classroomName={activeClassroom.name}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </>
         )}
@@ -844,6 +924,11 @@ Michael Brown`}
         students={students}
         classroomId={activeClassroom?.id || null}
       />
+
+      {/* Principal/Admin Dashboard */}
+      {showPrincipalDashboard && (
+        <PrincipalDashboard onClose={() => setShowPrincipalDashboard(false)} />
+      )}
     </div>
   );
 };
