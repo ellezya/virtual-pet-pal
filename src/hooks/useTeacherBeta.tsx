@@ -9,15 +9,12 @@ interface TeacherBetaStatus {
   loading: boolean;
 }
 
-// Approved school patterns for beta access
-const APPROVED_SCHOOL_PATTERNS = [
-  'twin cities academy',
-];
+// Approved email domain for beta access
+const APPROVED_EMAIL_DOMAIN = '@twincitiesacademy.org';
 
-const isApprovedSchool = (schoolName: string | null): boolean => {
-  if (!schoolName) return false;
-  const normalized = schoolName.toLowerCase().trim();
-  return APPROVED_SCHOOL_PATTERNS.some(pattern => normalized.includes(pattern));
+const isApprovedTeacherEmail = (email: string | null): boolean => {
+  if (!email) return false;
+  return email.toLowerCase().trim().endsWith(APPROVED_EMAIL_DOMAIN);
 };
 
 export const useTeacherBeta = () => {
@@ -41,10 +38,10 @@ export const useTeacherBeta = () => {
     }
 
     try {
-      // Check profile for school name and beta approval
+      // Check profile for email and beta approval
       const { data: profile } = await supabase
         .from('profiles')
-        .select('school_name, teacher_beta_approved, user_type, also_teacher')
+        .select('school_name, teacher_beta_approved, user_type, also_teacher, email')
         .eq('id', user.id)
         .single();
 
@@ -57,9 +54,10 @@ export const useTeacherBeta = () => {
 
       const isTeacher = profile?.user_type === 'teacher' || profile?.also_teacher === true;
       const schoolName = profile?.school_name || null;
+      const userEmail = profile?.email || user.email || null;
       const hasBetaAccess = isTeacher && (
         profile?.teacher_beta_approved === true || 
-        isApprovedSchool(schoolName)
+        isApprovedTeacherEmail(userEmail)
       );
 
       setStatus({
@@ -123,12 +121,6 @@ export const useTeacherBeta = () => {
           });
       }
 
-      // Check if this school qualifies for immediate access
-      if (isApprovedSchool(schoolName)) {
-        setStatus(prev => ({ ...prev, hasBetaAccess: true, schoolName }));
-        return { success: true };
-      }
-
       setStatus(prev => ({ ...prev, isOnWaitlist: true, schoolName }));
       return { success: true };
     } catch (error) {
@@ -145,16 +137,13 @@ export const useTeacherBeta = () => {
         .from('profiles')
         .update({ school_name: schoolName })
         .eq('id', user.id);
-
-      const hasBetaAccess = isApprovedSchool(schoolName);
       
       setStatus(prev => ({ 
         ...prev, 
-        schoolName, 
-        hasBetaAccess: prev.hasBetaAccess || hasBetaAccess 
+        schoolName
       }));
 
-      return { success: true, hasBetaAccess };
+      return { success: true, hasBetaAccess: status.hasBetaAccess };
     } catch (error) {
       console.error('Error updating school name:', error);
       return { success: false, hasBetaAccess: false };
@@ -166,6 +155,6 @@ export const useTeacherBeta = () => {
     joinWaitlist,
     updateSchoolName,
     checkBetaStatus,
-    isApprovedSchool,
+    isApprovedTeacherEmail,
   };
 };
