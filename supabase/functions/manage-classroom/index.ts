@@ -78,7 +78,18 @@ interface BulkAddStudentsRequest {
   students: Array<{ name: string; avatar_emoji?: string }>;
 }
 
-type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest | UnlinkStudentRequest | BulkAddStudentsRequest;
+interface StudentJoinRequest {
+  action: 'student_join';
+  classroom_code: string;
+}
+
+interface UpdateStudentStatusRequest {
+  action: 'update_student_status';
+  student_id: string;
+  status: 'active' | 'removed';
+}
+
+type RequestBody = CreateClassroomRequest | AddStudentRequest | AwardPointsRequest | RemoveStudentRequest | UpdateStudentRequest | LinkStudentRequest | UnlinkStudentRequest | BulkAddStudentsRequest | StudentJoinRequest | UpdateStudentStatusRequest;
 
 const errorResponse = (message: string, status: number) => {
   return new Response(JSON.stringify({ error: message }), {
@@ -575,6 +586,131 @@ Deno.serve(async (req) => {
         }
 
         return new Response(JSON.stringify({ success: true, added_count: addedStudents.length, students: addedStudents }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'student_join': {
+        // Student self-registration to a classroom
+        const codeError = validateString(body.classroom_code, 'Classroom code', 4, 10);
+        if (codeError) return errorResponse(codeError, 400);
+
+        // Find the classroom
+        const { data: classroom, error: classroomError } = await supabaseAdmin
+          .from('classrooms')
+          .select('id, name')
+          .eq('classroom_code', body.classroom_code.toUpperCase())
+          .maybeSingle();
+
+        if (classroomError || !classroom) {
+          return errorResponse('Classroom not found', 404);
+        }
+
+        // Check if student already joined this classroom
+        const { data: existingStudent } = await supabaseAdmin
+          .from('students')
+          .select('id, status')
+          .eq('classroom_id', classroom.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingStudent) {
+          if (existingStudent.status === 'removed') {
+            return errorResponse('You were removed from this classroom. Contact your teacher.', 403);
+          }
+          return errorResponse('You already joined this classroom', 400);
+        }
+
+        // Get user info for the student name
+        const displayName = user.user_metadata?.full_name || 
+                           user.user_metadata?.name || 
+                           user.email?.split('@')[0] || 
+                           'Student';
+
+        // Generate student number
+        const { data: studentNumber, error: numError } = await supabaseAdmin.rpc(
+          'generate_student_number',
+          { p_classroom_id: classroom.id }
+        );
+        if (numError) throw numError;
+
+        // Random avatar
+        const avatars = ['🐲', '🦊', '🐺', '🦁', '🐯', '🐻', '🐼', '🐨', '🦄', '🦋', '🐢', '🦀', '🐬', '🦅', '🦉'];
+        const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+
+        // Create the student record
+        const { data: student, error: studentError } = await supabaseAdmin
+          .from('students')
+          .insert({
+            classroom_id: classroom.id,
+            name: displayName,
+            avatar_emoji: avatar,
+            student_number: studentNumber,
+            school_points: 0,
+            user_id: user.id,
+            email: user.email,
+            status: 'active',
+            joined_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (studentError) throw studentError;
+
+        // Add child role if not exists
+        const { error: roleError } = await supabaseAdmin
+          .from('user_roles')
+          .upsert({
+            user_id: user.id,
+            role: 'child',
+          }, { onConflict: 'user_id,role' });
+
+        if (roleError && !roleError.message.includes('duplicate')) {
+          console.error('Role error:', roleError);
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          student,
+          classroom: { id: classroom.id, name: classroom.name }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'update_student_status': {
+        // Teacher updating student status (verify/remove)
+        const studentIdError = validateUUID(body.student_id, 'Student ID');
+        if (studentIdError) return errorResponse(studentIdError, 400);
+
+        if (!['active', 'removed'].includes(body.status)) {
+          return errorResponse('Status must be "active" or "removed"', 400);
+        }
+
+        // Verify teacher owns the student's classroom
+        const { data: student, error: studentError } = await supabaseAdmin
+          .from('students')
+          .select('id, classrooms!inner(teacher_id)')
+          .eq('id', body.student_id)
+          .single();
+
+        if (studentError || !student) {
+          return errorResponse('Student not found', 404);
+        }
+
+        const classroomData = student.classrooms as unknown as { teacher_id: string };
+        if (classroomData.teacher_id !== user.id) {
+          return errorResponse('Unauthorized', 403);
+        }
+
+        const { error: updateError } = await supabaseAdmin
+          .from('students')
+          .update({ status: body.status })
+          .eq('id', body.student_id);
+
+        if (updateError) throw updateError;
+
+        return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
