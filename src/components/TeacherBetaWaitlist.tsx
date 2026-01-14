@@ -12,7 +12,7 @@ interface TeacherBetaWaitlistProps {
 }
 
 export const TeacherBetaWaitlist = ({ onAccessGranted }: TeacherBetaWaitlistProps) => {
-  const { isOnWaitlist, schoolName, joinWaitlist, isApprovedSchool } = useTeacherBeta();
+  const { isOnWaitlist, schoolName, joinWaitlist, hasBetaAccess } = useTeacherBeta();
   const [school, setSchool] = useState(schoolName || '');
   const [loading, setLoading] = useState(false);
 
@@ -29,18 +29,13 @@ export const TeacherBetaWaitlist = ({ onAccessGranted }: TeacherBetaWaitlistProp
     setLoading(false);
 
     if (result.success) {
-      if (isApprovedSchool(school.trim())) {
-        toast.success('Welcome to the beta! You have full access.');
-        onAccessGranted?.();
-      } else {
-        toast.success("You're on the waitlist! We'll notify you when teacher features launch.");
-      }
+      toast.success("You're on the waitlist! We'll notify you when teacher features launch.");
     } else {
       toast.error(result.error || 'Failed to join waitlist');
     }
   };
 
-  if (isOnWaitlist && !isApprovedSchool(schoolName || '')) {
+  if (isOnWaitlist) {
     return (
       <Card className="border-2 border-amber-300/30 bg-gradient-to-br from-amber-950/20 to-background">
         <CardHeader className="text-center pb-4">

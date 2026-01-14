@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
 import JoinClassroom from "./pages/JoinClassroom";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import OfflineIndicator from "./components/OfflineIndicator";
@@ -35,6 +36,7 @@ const App = () => (
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/stats" element={<Stats />} />
                     <Route path="/join" element={<JoinClassroom />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <PWAInstallPrompt />
