@@ -1714,7 +1714,7 @@ const ClassroomPets = () => {
           <h1 className="text-sm font-extrabold text-foreground">LaLaLola</h1>
           <button 
             onClick={toggleAmbient} 
-            className={`p-2 rounded-lg transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            className={`p-2 rounded-full transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
             type="button"
           >
