@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getShareOrigin } from '@/lib/publicOrigin';
 import { Copy, Share2, MessageCircle, Mail, Check } from 'lucide-react';
 
 interface ResendInviteDialogProps {
@@ -15,9 +16,9 @@ const ResendInviteDialog = ({ open, onClose, kidName, familyId }: ResendInviteDi
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   
-  const appUrl = window.location.origin;
+  const appUrl = getShareOrigin();
   const joinUrl = familyId ? `${appUrl}?family=${familyId}` : appUrl;
-  
+
   const inviteMessage = `🐰 ${kidName}, you can play with Lola!
 
 Visit: ${joinUrl}

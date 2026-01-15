@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getShareOrigin } from '@/lib/publicOrigin';
 import { Copy, Share2, MessageCircle, Mail, Check } from 'lucide-react';
 
 interface KidInviteShareProps {
@@ -16,10 +17,10 @@ const KidInviteShare = ({ open, onClose, kidName, pin, familyId }: KidInviteShar
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   
-  // Use the origin for sharing, with optional family code
-  const appUrl = window.location.origin;
+  // Use a short, share-friendly origin (published domain when running in preview)
+  const appUrl = getShareOrigin();
   const joinUrl = familyId ? `${appUrl}?family=${familyId}` : appUrl;
-  
+
   const inviteMessage = `🐰 ${kidName}, you're invited to play with Lola!
 
 Visit: ${joinUrl}
