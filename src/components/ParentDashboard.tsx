@@ -13,6 +13,7 @@ import SchoolReports from '@/components/SchoolReports';
 import FamilySettings from '@/components/FamilySettings';
 import InviteParentDialog from '@/components/InviteParentDialog';
 import KidInviteShare from '@/components/KidInviteShare';
+import ResendInviteDialog from '@/components/ResendInviteDialog';
 import { Check, X, Plus, Trash2, Clock, Award, School, Link, Settings, UserPlus, Share2 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -43,6 +44,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showInviteParent, setShowInviteParent] = useState(false);
   const [kidToShare, setKidToShare] = useState<{ name: string; pin: string } | null>(null);
+  const [kidToResend, setKidToResend] = useState<{ id: string; name: string } | null>(null);
 
   // Auto-create family if user doesn't have one
   const handleCreateFamily = async () => {
@@ -247,8 +249,8 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
                           {kid.age && <p className="text-sm text-muted-foreground">Age {kid.age}</p>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
+                      <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="text-right hidden sm:block">
                           <div className="flex items-center gap-1 text-sm">
                             <Clock className="w-4 h-4" />
                             {kid.lola_time_from_chores + kid.lola_time_from_school} min
@@ -258,6 +260,13 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
                             {kid.chores_completed} chores
                           </div>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setKidToResend(kid)}
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
@@ -513,13 +522,23 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           onClose={() => setShowInviteParent(false)}
         />
         
-        {/* Kid Invite Share Dialog */}
+        {/* Kid Invite Share Dialog - for new kids with PIN */}
         {kidToShare && (
           <KidInviteShare
             open={!!kidToShare}
             onClose={() => setKidToShare(null)}
             kidName={kidToShare.name}
             pin={kidToShare.pin}
+            familyId={family?.id}
+          />
+        )}
+        
+        {/* Resend Invite Dialog - for existing kids (no PIN shown) */}
+        {kidToResend && (
+          <ResendInviteDialog
+            open={!!kidToResend}
+            onClose={() => setKidToResend(null)}
+            kidName={kidToResend.name}
             familyId={family?.id}
           />
         )}
