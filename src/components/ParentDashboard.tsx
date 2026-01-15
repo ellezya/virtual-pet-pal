@@ -12,7 +12,8 @@ import LinkStudentDialog from '@/components/LinkStudentDialog';
 import SchoolReports from '@/components/SchoolReports';
 import FamilySettings from '@/components/FamilySettings';
 import InviteParentDialog from '@/components/InviteParentDialog';
-import { Check, X, Plus, Trash2, Clock, Award, School, Link, Settings, UserPlus } from 'lucide-react';
+import KidInviteShare from '@/components/KidInviteShare';
+import { Check, X, Plus, Trash2, Clock, Award, School, Link, Settings, UserPlus, Share2 } from 'lucide-react';
 
 interface ParentDashboardProps {
   open: boolean;
@@ -41,6 +42,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
   const [showLinkStudent, setShowLinkStudent] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showInviteParent, setShowInviteParent] = useState(false);
+  const [kidToShare, setKidToShare] = useState<{ name: string; pin: string } | null>(null);
 
   // Auto-create family if user doesn't have one
   const handleCreateFamily = async () => {
@@ -72,12 +74,19 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
       return;
     }
 
-    await addKid(newKidName, newKidPin, newKidAge ? parseInt(newKidAge) : undefined, newKidAvatar);
+    const savedName = newKidName;
+    const savedPin = newKidPin;
+    
+    await addKid(savedName, savedPin, newKidAge ? parseInt(newKidAge) : undefined, newKidAvatar);
     setShowAddKid(false);
     resetKidForm();
+    
+    // Show the share invite dialog
+    setKidToShare({ name: savedName, pin: savedPin });
+    
     toast({
       title: '✓ Child added!',
-      description: `${newKidName}'s PIN is ${newKidPin}`
+      description: 'Share the invite so they can log in'
     });
   };
 
@@ -503,6 +512,17 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           open={showInviteParent}
           onClose={() => setShowInviteParent(false)}
         />
+        
+        {/* Kid Invite Share Dialog */}
+        {kidToShare && (
+          <KidInviteShare
+            open={!!kidToShare}
+            onClose={() => setKidToShare(null)}
+            kidName={kidToShare.name}
+            pin={kidToShare.pin}
+            familyId={family?.id}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -1739,6 +1739,18 @@ const ClassroomPets = () => {
           )}
           <SyncIndicator />
           
+          {/* Kid Login button for guests - always show for unauthenticated users */}
+          {!user && (
+            <button 
+              onClick={() => setShowKidLogin(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-100/80 hover:bg-green-200/90 text-green-600 hover:text-green-700 transition-colors shadow-sm"
+              title="Log in with your PIN"
+            >
+              <Lock size={14} />
+              <span className="text-xs font-medium">I have a PIN</span>
+            </button>
+          )}
+          
           {/* Role-based dashboard buttons for authenticated users */}
           {user && isParent && (
             <button 

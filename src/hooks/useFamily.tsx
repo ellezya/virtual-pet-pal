@@ -97,6 +97,7 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isParent, setIsParent] = useState(false);
   const [activeKid, setActiveKid] = useState<Kid | null>(null);
+  const [guestFamilyId, setGuestFamilyId] = useState<string | null>(null);
   
   // Time tracking state
   const [timeRemaining, setTimeRemaining] = useState(0); // in seconds
@@ -211,9 +212,40 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const refreshFamily = useCallback(async () => {
+    // Check for guest family ID from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyParam = urlParams.get('family');
+    
     if (!user) {
-      setFamily(null);
-      setKids([]);
+      // Guest mode - try to load family from URL param
+      if (familyParam) {
+        setGuestFamilyId(familyParam);
+        try {
+          // Load family data for guest (limited - just enough for kid login)
+          const { data: familyData } = await supabase
+            .from('families')
+            .select('id, name')
+            .eq('id', familyParam)
+            .single();
+          
+          if (familyData) {
+            setFamily(familyData);
+            
+            // Load kids (limited fields for guest view)
+            const { data: kidsData } = await supabase
+              .from('kids')
+              .select('id, name, age, avatar_emoji, lola_time_from_chores, lola_time_from_school, current_streak, total_sessions, chores_completed, unlocked_toys')
+              .eq('family_id', familyData.id);
+            
+            setKids(kidsData || []);
+          }
+        } catch (error) {
+          console.error('Error loading guest family:', error);
+        }
+      } else {
+        setFamily(null);
+        setKids([]);
+      }
       setChores([]);
       setPendingCompletions([]);
       setLoading(false);
