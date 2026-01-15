@@ -18,7 +18,9 @@ const ResendInviteDialog = ({ open, onClose, kidName, familyId }: ResendInviteDi
   const [copiedLink, setCopiedLink] = useState(false);
 
   const appUrl = getShareOrigin();
-  const joinUrl = familyId ? `${appUrl}?family=${familyId}` : appUrl;
+  const joinUrl = familyId ? `${appUrl}/?family=${familyId}` : appUrl;
+  
+  console.log('[ResendInviteDialog] appUrl:', appUrl, 'familyId:', familyId, 'joinUrl:', joinUrl);
 
   const inviteMessage = `🐰 ${kidName}, you can play with Lola!
 
