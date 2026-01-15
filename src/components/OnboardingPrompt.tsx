@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,16 +17,24 @@ const OnboardingPrompt = ({ onOpenParentDashboard, onOpenTeacherDashboard }: Onb
   const { user } = useAuth();
   const { family, isParent, kids, loading: familyLoading } = useFamily();
   const { classrooms, isTeacher, loading: classroomLoading } = useClassroom();
-  
+
   const [showPrompt, setShowPrompt] = useState(false);
   const [showParentOnboarding, setShowParentOnboarding] = useState(false);
   const [promptType, setPromptType] = useState<'setup-family' | 'setup-classroom' | 'choose-role' | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
+  // Prevent async race conditions from showing stale onboarding prompts.
+  const onboardingCheckRun = useRef(0);
+
   useEffect(() => {
+    const runId = ++onboardingCheckRun.current;
+    const isStale = () => onboardingCheckRun.current !== runId;
+
     if (!user || familyLoading || classroomLoading || dismissed) {
       setShowPrompt(false);
-      return;
+      return () => {
+        onboardingCheckRun.current++;
+      };
     }
 
     // Check if user needs onboarding
@@ -37,24 +45,28 @@ const OnboardingPrompt = ({ onOpenParentDashboard, onOpenTeacherDashboard }: Onb
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id);
-        
-        const hasParentRole = roles?.some(r => r.role === 'parent');
-        const hasTeacherRole = roles?.some(r => r.role === 'teacher');
-        
+
+        if (isStale()) return;
+
+        const hasParentRole = roles?.some((r) => r.role === 'parent');
+        const hasTeacherRole = roles?.some((r) => r.role === 'teacher');
+
         // Parent without family/kids setup
         if (hasParentRole && (!family || kids.length === 0)) {
+          if (isStale()) return;
           setPromptType('setup-family');
           setShowPrompt(true);
           return;
         }
-        
+
         // Teacher without classroom
         if (hasTeacherRole && classrooms.length === 0) {
+          if (isStale()) return;
           setPromptType('setup-classroom');
           setShowPrompt(true);
           return;
         }
-        
+
         // No specific roles set, but is authenticated - prompt to choose
         if (!hasParentRole && !hasTeacherRole && !roles?.length) {
           // Check if this is a new-ish user (created in last 5 minutes)
@@ -63,26 +75,34 @@ const OnboardingPrompt = ({ onOpenParentDashboard, onOpenTeacherDashboard }: Onb
             .select('created_at')
             .eq('id', user.id)
             .single();
-          
+
+          if (isStale()) return;
+
           if (profile) {
             const createdAt = new Date(profile.created_at);
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-            
+
             if (createdAt > fiveMinutesAgo) {
+              if (isStale()) return;
               setPromptType('choose-role');
               setShowPrompt(true);
               return;
             }
           }
         }
-        
+
+        if (isStale()) return;
         setShowPrompt(false);
       } catch (error) {
         console.error('Error checking onboarding needs:', error);
       }
     };
 
-    checkOnboardingNeeds();
+    void checkOnboardingNeeds();
+
+    return () => {
+      onboardingCheckRun.current++;
+    };
   }, [user, family, kids, classrooms, familyLoading, classroomLoading, dismissed, isParent, isTeacher]);
 
   const handleDismiss = () => {
