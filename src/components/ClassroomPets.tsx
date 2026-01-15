@@ -1763,7 +1763,7 @@ const ClassroomPets = () => {
               title="Family Dashboard"
             >
               <Users size={14} />
-              <span className="text-xs font-medium">Family</span>
+              <span className="text-sm font-medium">Family</span>
             </button>
           )}
           
@@ -1774,7 +1774,7 @@ const ClassroomPets = () => {
               title="Teacher Dashboard"
             >
               <School size={14} />
-              <span className="text-xs font-medium">Class</span>
+              <span className="text-sm font-medium">Class</span>
             </button>
           )}
           
@@ -1784,7 +1784,7 @@ const ClassroomPets = () => {
             title="My Care Journal"
           >
             <BookHeart size={18} className="text-rose-500" />
-            <span className="text-xs font-bold">Care Notes</span>
+            <span className="text-sm font-bold">Care Notes</span>
           </button>
         </div>
       </header>
