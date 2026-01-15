@@ -20,7 +20,9 @@ const KidInviteShare = ({ open, onClose, kidName, pin, familyId }: KidInviteShar
 
   // Use a short, share-friendly origin (published domain when running in preview)
   const appUrl = getShareOrigin();
-  const joinUrl = familyId ? `${appUrl}?family=${familyId}` : appUrl;
+  const joinUrl = familyId ? `${appUrl}/?family=${familyId}` : appUrl;
+  
+  console.log('[KidInviteShare] appUrl:', appUrl, 'familyId:', familyId, 'joinUrl:', joinUrl);
 
   const inviteMessage = `🐰 ${kidName}, you're invited to play with Lola!
 
