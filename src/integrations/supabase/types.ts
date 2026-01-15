@@ -515,18 +515,21 @@ export type Database = {
       families: {
         Row: {
           created_at: string | null
+          family_code: string
           id: string
           name: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          family_code: string
           id?: string
           name?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          family_code?: string
           id?: string
           name?: string
           updated_at?: string | null
@@ -1355,6 +1358,7 @@ export type Database = {
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
+      generate_family_code: { Args: never; Returns: string }
       generate_student_link_code: { Args: never; Returns: string }
       generate_student_number: {
         Args: { p_classroom_id: string }
