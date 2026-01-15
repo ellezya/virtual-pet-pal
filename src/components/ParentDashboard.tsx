@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import FamilySettings from '@/components/FamilySettings';
 import InviteParentDialog from '@/components/InviteParentDialog';
 import KidInviteShare from '@/components/KidInviteShare';
 import ResendInviteDialog from '@/components/ResendInviteDialog';
+import FamilyCodeCard from '@/components/FamilyCodeCard';
 import { Check, X, Plus, Trash2, Clock, Award, School, Link, Settings, UserPlus, Share2 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -29,7 +30,6 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
     kids, 
     chores, 
     pendingCompletions,
-    loading,
     createFamily,
     addKid,
     addChore,
@@ -237,6 +237,11 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
 
           {/* Kids Tab */}
           <TabsContent value="kids" className="space-y-4">
+            {/* Family Join Code - Kids use this to join */}
+            {family?.family_code && (
+              <FamilyCodeCard familyCode={family.family_code} familyName={family.name} />
+            )}
+
             <div className="grid gap-4">
               {kids.map((kid) => {
                 // Get chores assigned to this kid specifically OR to all kids (kid_id is null)
@@ -551,7 +556,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
             onClose={() => setKidToShare(null)}
             kidName={kidToShare.name}
             pin={kidToShare.pin}
-            familyId={family?.id}
+            familyCode={family?.family_code}
           />
         )}
         
@@ -561,7 +566,7 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
             open={!!kidToResend}
             onClose={() => setKidToResend(null)}
             kidName={kidToResend.name}
-            familyId={family?.id}
+            familyCode={family?.family_code}
           />
         )}
       </DialogContent>

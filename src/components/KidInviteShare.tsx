@@ -2,135 +2,80 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getShareOrigin } from '@/lib/publicOrigin';
-import { Copy, Share2, MessageCircle, Mail, Check } from 'lucide-react';
+import { Copy, Check, KeyRound } from 'lucide-react';
 
 interface KidInviteShareProps {
   open: boolean;
   onClose: () => void;
   kidName: string;
   pin: string;
-  familyId?: string;
+  familyCode?: string;
 }
 
-const KidInviteShare = ({ open, onClose, kidName, pin, familyId }: KidInviteShareProps) => {
+const KidInviteShare = ({ open, onClose, kidName, pin, familyCode }: KidInviteShareProps) => {
   const { toast } = useToast();
-  const [copiedMessage, setCopiedMessage] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedPin, setCopiedPin] = useState(false);
 
-  // Use a short, share-friendly origin (published domain when running in preview)
-  const appUrl = getShareOrigin();
-  const joinUrl = familyId ? `${appUrl}/?family=${familyId}` : appUrl;
-  
-  console.log('[KidInviteShare] appUrl:', appUrl, 'familyId:', familyId, 'joinUrl:', joinUrl);
-
-  const inviteMessage = `🐰 ${kidName}, you're invited to play with Lola!
-
-Visit: ${joinUrl}
-
-Tap "I have a PIN" and enter your secret code:
-📱 PIN: ${pin}
-
-Have fun! 🎉`;
-
-  const handleCopyLink = async () => {
+  const handleCopyPin = async () => {
     try {
-      await navigator.clipboard.writeText(joinUrl);
-      setCopiedLink(true);
+      await navigator.clipboard.writeText(pin);
+      setCopiedPin(true);
       toast({
-        title: '✓ Link copied!',
-        description: 'Paste it in a text or email',
+        title: '✓ PIN copied!',
+        description: `Share this PIN with ${kidName}`,
       });
-      setTimeout(() => setCopiedLink(false), 2000);
+      setTimeout(() => setCopiedPin(false), 2000);
     } catch {
       toast({
         title: 'Copy failed',
-        description: 'Please select and copy the link manually',
+        description: 'Please remember the PIN shown',
         variant: 'destructive',
       });
     }
-  };
-
-  const handleCopyMessage = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteMessage);
-      setCopiedMessage(true);
-      toast({
-        title: '✓ Copied!',
-        description: 'Ready to paste in a text or email',
-      });
-      setTimeout(() => setCopiedMessage(false), 2000);
-    } catch {
-      toast({
-        title: 'Copy failed',
-        description: 'Please select and copy the message manually',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${kidName}'s Lola Invitation`,
-          text: inviteMessage,
-          url: joinUrl,
-        });
-      } catch (err) {
-        // User cancelled or share failed
-        if ((err as Error).name !== 'AbortError') {
-          handleCopyMessage(); // Fallback to copy
-        }
-      }
-    } else {
-      handleCopyMessage(); // Fallback for browsers without Web Share API
-    }
-  };
-
-  const handleTextMessage = () => {
-    const smsUrl = `sms:?body=${encodeURIComponent(inviteMessage)}`;
-    window.open(smsUrl, '_blank');
-  };
-
-  const handleEmail = () => {
-    const subject = encodeURIComponent(`${kidName}'s Lola Invitation`);
-    const body = encodeURIComponent(inviteMessage);
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm">
         <DialogHeader className="text-center">
-          <div className="text-5xl mb-2">📱</div>
-          <DialogTitle className="text-xl">Share with {kidName}</DialogTitle>
+          <div className="text-5xl mb-2">🎉</div>
+          <DialogTitle className="text-xl">{kidName} is ready!</DialogTitle>
           <DialogDescription>
-            Copy the link (or send the full message with the PIN)
+            Share these details with {kidName}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Invite link</p>
-            <div className="flex items-center gap-2 rounded-lg border bg-background p-3">
-              <a
-                href={joinUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 text-sm font-mono break-all underline underline-offset-4 text-primary"
-              >
-                {joinUrl}
-              </a>
+          {/* Family Code */}
+          {familyCode && (
+            <div className="bg-primary/10 border-2 border-primary/30 rounded-lg p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Family Code
+              </p>
+              <span className="text-2xl font-mono font-bold tracking-widest text-primary">
+                {familyCode}
+              </span>
+            </div>
+          )}
+
+          {/* PIN */}
+          <div className="bg-muted border-2 border-dashed border-primary/30 rounded-lg p-4 text-center">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+              {kidName}'s Secret PIN
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <KeyRound className="w-5 h-5 text-primary" />
+              <span className="text-3xl font-mono font-bold tracking-[0.3em]">
+                {pin}
+              </span>
               <Button
-                type="button"
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                onClick={handleCopyLink}
-                aria-label="Copy invite link"
+                onClick={handleCopyPin}
+                className="h-8 w-8"
               >
-                {copiedLink ? (
-                  <Check className="w-4 h-4" />
+                {copiedPin ? (
+                  <Check className="w-4 h-4 text-success" />
                 ) : (
                   <Copy className="w-4 h-4" />
                 )}
@@ -138,44 +83,15 @@ Have fun! 🎉`;
             </div>
           </div>
 
-          {/* Preview of the message */}
-          <div className="bg-muted rounded-lg p-4 text-sm whitespace-pre-line font-mono border-2 border-dashed border-primary/30">
-            {inviteMessage}
-          </div>
-
-          {/* Action buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Web Share API (mobile-friendly) */}
-            {'share' in navigator && (
-              <Button onClick={handleShare} className="col-span-2 py-6 text-lg gap-2">
-                <Share2 className="w-5 h-5" />
-                Share
-              </Button>
-            )}
-
-            <Button onClick={handleCopyMessage} variant="outline" className="py-5 gap-2">
-              {copiedMessage ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-              {copiedMessage ? 'Copied!' : 'Copy Message'}
-            </Button>
-
-            <Button onClick={handleTextMessage} variant="outline" className="py-5 gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Text
-            </Button>
-
-            <Button onClick={handleEmail} variant="outline" className="col-span-2 py-4 gap-2">
-              <Mail className="w-4 h-4" />
-              Send Email
-            </Button>
+          {/* Instructions */}
+          <div className="text-sm text-muted-foreground text-center space-y-1">
+            <p>📱 Go to <strong>/join-family</strong></p>
+            <p>🔑 Enter family code: <strong>{familyCode}</strong></p>
+            <p>🔐 Then enter PIN: <strong>{pin}</strong></p>
           </div>
 
           <Button 
             onClick={onClose} 
-            variant="ghost" 
             className="w-full"
           >
             Done
