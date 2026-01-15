@@ -1714,16 +1714,16 @@ const ClassroomPets = () => {
           <h1 className="text-sm font-extrabold text-foreground">LaLaLola</h1>
           <button 
             onClick={toggleAmbient} 
-            className={`p-2 rounded-full transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
+            className={`p-2 rounded-full transition-colors flex items-center justify-center ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={isAmbientPlaying ? 'Mute sounds' : 'Play ambient sounds'}
             type="button"
           >
-            {isAmbientPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            {isAmbientPlaying ? <Volume2 size={21} /> : <VolumeX size={21} />}
           </button>
 
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2.5">
           {gameState.notifications.length > 0 && (
             <div className="flex gap-1">
               {gameState.notifications.slice(0, 2).map((notif, i) => (
