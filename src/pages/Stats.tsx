@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ArrowLeft, Calendar, Clock, Flame, Heart, Gamepad2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProgress } from '@/hooks/useProgress';
 import { useAuth } from '@/hooks/useAuth';
 import { useSelfCare } from '@/hooks/useSelfCare';
+import { useSound } from '@/contexts/SoundContext';
 import { SelfCareButton, MyCareTab, EncouragementFlag } from '@/components/selfcare';
 
 const Stats = () => {
@@ -12,6 +14,15 @@ const Stats = () => {
   const { progress, isGuest } = useProgress();
   const { user } = useAuth();
   const { hasCareItems, showEncouragementFlag, dismissEncouragementFlag } = useSelfCare();
+  const { setSfxMuted } = useSound();
+  
+  // Mute SFX when on Stats page (keep music playing)
+  useEffect(() => {
+    setSfxMuted(true);
+    return () => {
+      setSfxMuted(false);
+    };
+  }, [setSfxMuted]);
 
   const formatMinutes = (minutes: number) => {
     if (minutes < 60) return `${minutes} min`;

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { removeSolidBackgroundToDataUrl } from '@/lib/removeSolidBackground';
 import BowlStation from '@/components/BowlStation';
-import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useSound } from '@/contexts/SoundContext';
 import ParentDashboard from '@/components/ParentDashboard';
 import TeacherDashboard from '@/components/TeacherDashboard';
 import KidPinLogin from '@/components/KidPinLogin';
@@ -223,7 +223,7 @@ const ClassroomPets = () => {
   }, []);
 
 
-  // Sound effects
+  // Sound effects from context
   const {
     playHop,
     playSwim,
@@ -237,15 +237,25 @@ const ClassroomPets = () => {
     toggleAmbient,
     isAmbientPlaying,
     windIntensity,
-  } = useSoundEffects(currentPet, currentScene);
+    setCurrentPet: setSoundPet,
+    setCurrentScene: setSoundScene,
+  } = useSound();
   const prevHoppingRef = useRef(false);
+
+  // Sync local pet/scene state with sound context
+  useEffect(() => {
+    setSoundPet(currentPet);
+  }, [currentPet, setSoundPet]);
+  
+  useEffect(() => {
+    setSoundScene(currentScene);
+  }, [currentScene, setSoundScene]);
 
   // Hanging plants were previously driven by wind audio; wind ambience is disabled now.
   // Keep a gentle baseline sway so the scene still feels alive.
   const plantStrength = Math.min(1, 0.12 + windIntensity * 1.0);
   const plantSwayDeg = 2 + plantStrength * 6; // degrees
   const plantDuration = 5.5 - plantStrength * 2.0; // seconds
-
 
   // Couch zones for the habitat scene (couch on right side of screen)
   // Tight bounds to prevent Lola from "stepping off" the couch in this cropped video.
@@ -1834,18 +1844,21 @@ const ClassroomPets = () => {
             <button 
               onClick={() => { setCurrentScene('habitat'); localStorage.setItem('selectedScene', 'habitat'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'habitat' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
-            >
-              🏠
-            </button>
-            <button 
-              onClick={() => { setCurrentScene('room'); localStorage.setItem('selectedScene', 'room'); }} 
-              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'room' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Sofa"
             >
               🛋️
             </button>
             <button 
+              onClick={() => { setCurrentScene('room'); localStorage.setItem('selectedScene', 'room'); }} 
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'room' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Bedroom"
+            >
+              🛏️
+            </button>
+            <button 
               onClick={() => { setCurrentScene('park'); localStorage.setItem('selectedScene', 'park'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'park' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              title="Park"
             >
               🌳
             </button>

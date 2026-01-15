@@ -8,6 +8,7 @@ import { ProgressProvider } from "@/hooks/useProgress";
 import { FamilyProvider } from "@/hooks/useFamily";
 import { ClassroomProvider } from "@/hooks/useClassroom";
 import { SelfCareProvider } from "@/hooks/useSelfCare";
+import { SoundProvider } from "@/contexts/SoundContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Stats from "./pages/Stats";
@@ -31,17 +32,19 @@ const App = () => (
             <ClassroomProvider>
               <ProgressProvider>
                 <SelfCareProvider>
-                  <OfflineIndicator />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/stats" element={<Stats />} />
-                    <Route path="/join" element={<JoinClassroom />} />
-                    <Route path="/join-family" element={<JoinFamily />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <PWAInstallPrompt />
+                  <SoundProvider>
+                    <OfflineIndicator />
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/stats" element={<Stats />} />
+                      <Route path="/join" element={<JoinClassroom />} />
+                      <Route path="/join-family" element={<JoinFamily />} />
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <PWAInstallPrompt />
+                  </SoundProvider>
                 </SelfCareProvider>
               </ProgressProvider>
             </ClassroomProvider>

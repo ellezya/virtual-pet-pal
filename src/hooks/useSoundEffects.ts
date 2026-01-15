@@ -18,6 +18,9 @@ interface SoundEffectsReturn {
   isAmbientPlaying: boolean;
   /** 0..1 wind loudness estimate for UI effects (curtains, particles, etc.) */
   windIntensity: number;
+  /** Mute sound effects only (keep music playing) */
+  setSfxMuted: (muted: boolean) => void;
+  sfxMuted: boolean;
 }
 
 type PetType = 'bunny' | 'fish';
@@ -93,12 +96,15 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
   // Only handpan music enabled; all SFX disabled
   const allAudioDisabled = false;
 
+  // State for muting SFX independently of music
+  const [sfxMuted, setSfxMuted] = useState(false);
+
   const musicVolume = 0.45;  // Increased from 0.12 for better balance on mobile
   const sfxVolume = 0.5;     // Reduced from 0.8 for better balance
   const ambientVolume = 0.45; // Increased from 0.35 for better balance on mobile
   
-  // SFX should also respect the ambient toggle (so mute button mutes everything)
-  const sfxEnabled = isAmbientPlaying;
+  // SFX should also respect the ambient toggle (so mute button mutes everything) and sfxMuted state
+  const sfxEnabled = isAmbientPlaying && !sfxMuted;
 
   // Global registry for WebAudio contexts
   const getGlobalAudioContextSet = () => {
@@ -1201,15 +1207,12 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
 
   }, []);
 
-  // Safety: ambience is Tula-only.
-  // 1) On mount (incl. hot reload), hard-stop anything that might still be ringing.
+  // Safety: Only run initialization once on mount
+  // Remove aggressive cleanup that would reset audio on hot reloads
+  const hasInitializedRef = useRef(false);
   useEffect(() => {
-    stopAmbient();
-
-    // Hard-stop any stale WebAudio from previous hot reloads/iterations so no "ghost" audio remains.
-    closeAllAudioContexts();
-    audioContextRef.current = null;
-
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1251,9 +1254,34 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     startAmbientForPetAndScene(currentPetRef.current, currentSceneRef.current);
   }, [startAmbientForPetAndScene]);
 
-  // 2) Restart ambient when pet or scene changes
+  // Track previous pet/scene to avoid unnecessary restarts
+  const prevPetForSceneRef = useRef<PetType>(currentPet);
+  const prevSceneForMusicRef = useRef<SceneType>(currentScene);
+
+  // 2) Handle ambient when pet or scene changes
+  // For bunny scenes (habitat/room/park), don't restart music - keep it playing continuously
   useEffect(() => {
-    // Stop current ambient first, then restart with the new pet/scene's music
+    const prevPet = prevPetForSceneRef.current;
+    const prevScene = prevSceneForMusicRef.current;
+    
+    // Update refs for next comparison
+    prevPetForSceneRef.current = currentPet;
+    prevSceneForMusicRef.current = currentScene;
+    
+    // Define bunny scenes that share the same lo-fi music
+    const bunnyLofiScenes: SceneType[] = ['habitat', 'park'];
+    const isBunnyLofiScene = (scene: SceneType) => bunnyLofiScenes.includes(scene);
+    
+    // If staying within bunny lo-fi scenes (habitat/park), don't restart music
+    if (currentPet === 'bunny' && prevPet === 'bunny') {
+      if (isBunnyLofiScene(currentScene) && isBunnyLofiScene(prevScene)) {
+        // Same music type, don't restart - music continues uninterrupted
+        console.log('[audio] Scene change within lofi scenes, keeping music playing');
+        return;
+      }
+    }
+    
+    // For other changes (pet change, or scene type change), restart ambient
     stopAmbient();
     
     // Small delay to ensure clean transition
@@ -1355,42 +1383,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     shouldStartAmbientRef.current = isAmbientPlaying;
   }, [isAmbientPlaying]);
 
-  // Track previous pet to detect changes (skip initial mount)
-  const prevPetRef = useRef<PetType | null>(null);
-
-  // Restart/stop ambient when pet changes.
-  // Requirement: ambience is for Tula only (steel pans + water). Lola has no ambience.
-  useEffect(() => {
-    // Skip on initial mount
-    if (prevPetRef.current === null) {
-      prevPetRef.current = currentPet;
-      currentPetRef.current = currentPet;
-      return;
-    }
-
-    if (prevPetRef.current === currentPet) return;
-    prevPetRef.current = currentPet;
-    currentPetRef.current = currentPet;
-
-    // ALWAYS stop when switching pets (even if the UI toggle says "off").
-    // This prevents any older/untracked ambience from bleeding into Tula.
-    stopAmbientRef.current();
-
-    // Only restart if:
-    // - user wants ambient on
-    // - audio has been unlocked by a gesture
-    // - Tula is selected
-    if (!isAmbientPlaying) return;
-    if (!hasUnlockedRef.current) return;
-    if (currentPet !== 'fish') return;
-
-    const timer = setTimeout(() => {
-      currentPetRef.current = currentPet;
-      startAmbientRef.current();
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [currentPet, isAmbientPlaying]);
+  // Note: Pet changes are now handled by the scene change effect above
 
   // If ambient is enabled and audio is unlocked, ensure it stays running.
   // Some browsers will silently suspend WebAudio; we "heal" by resuming + rebuilding nodes when needed.
@@ -1440,25 +1433,9 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     return () => window.clearInterval(watchdog);
   }, [isAmbientPlaying]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (ambientNodesRef.current.musicInterval) {
-        clearInterval(ambientNodesRef.current.musicInterval);
-      }
-      if (ambientNodesRef.current.secondaryMusicInterval) {
-        clearInterval(ambientNodesRef.current.secondaryMusicInterval);
-      }
-      if (ambientNodesRef.current.musicGain) {
-        try {
-          ambientNodesRef.current.musicGain.disconnect();
-        } catch {}
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
-    };
-  }, []);
+  // Note: We intentionally do NOT cleanup on unmount anymore
+  // The SoundProvider is at App level and never unmounts
+  // This keeps music playing across page navigations
 
   return {
     playHop,
@@ -1473,6 +1450,8 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     toggleAmbient,
     isAmbientPlaying,
     windIntensity,
+    setSfxMuted,
+    sfxMuted,
   };
 
 };
