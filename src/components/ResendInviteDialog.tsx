@@ -14,8 +14,9 @@ interface ResendInviteDialogProps {
 
 const ResendInviteDialog = ({ open, onClose, kidName, familyId }: ResendInviteDialogProps) => {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-  
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const appUrl = getShareOrigin();
   const joinUrl = familyId ? `${appUrl}?family=${familyId}` : appUrl;
 
@@ -28,20 +29,38 @@ Tap "I have a PIN" and enter your secret code.
 
 Have fun! 🎉`;
 
-  const handleCopy = async () => {
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopiedLink(true);
+      toast({
+        title: '✓ Link copied!',
+        description: 'Paste it in a text or email',
+      });
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch {
+      toast({
+        title: 'Copy failed',
+        description: 'Please select and copy the link manually',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCopyMessage = async () => {
     try {
       await navigator.clipboard.writeText(inviteMessage);
-      setCopied(true);
+      setCopiedMessage(true);
       toast({
         title: '✓ Copied!',
-        description: 'Ready to paste in a text or email'
+        description: 'Ready to paste in a text or email',
       });
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopiedMessage(false), 2000);
     } catch {
       toast({
         title: 'Copy failed',
         description: 'Please select and copy the message manually',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -52,14 +71,15 @@ Have fun! 🎉`;
         await navigator.share({
           title: `${kidName}'s Lola Invitation`,
           text: inviteMessage,
+          url: joinUrl,
         });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          handleCopy();
+          handleCopyMessage();
         }
       }
     } else {
-      handleCopy();
+      handleCopyMessage();
     }
   };
 
@@ -80,50 +100,64 @@ Have fun! 🎉`;
         <DialogHeader className="text-center">
           <div className="text-5xl mb-2">📱</div>
           <DialogTitle className="text-xl">Send Invite to {kidName}</DialogTitle>
-          <DialogDescription>
-            Share this link so they can log in with their PIN
-          </DialogDescription>
+          <DialogDescription>Copy the link or send the full message</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Invite link</p>
+            <div className="flex items-center gap-2 rounded-lg border bg-background p-3">
+              <a
+                href={joinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 text-sm font-mono break-all underline underline-offset-4 text-primary"
+              >
+                {joinUrl}
+              </a>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleCopyLink}
+                aria-label="Copy invite link"
+              >
+                {copiedLink ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
           <div className="bg-muted rounded-lg p-4 text-sm whitespace-pre-line font-mono border-2 border-dashed border-primary/30">
             {inviteMessage}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             {'share' in navigator && (
-              <Button 
-                onClick={handleShare} 
-                className="col-span-2 py-6 text-lg gap-2"
-              >
+              <Button onClick={handleShare} className="col-span-2 py-6 text-lg gap-2">
                 <Share2 className="w-5 h-5" />
                 Share
               </Button>
             )}
 
-            <Button 
-              onClick={handleCopy} 
-              variant="outline" 
-              className="py-5 gap-2"
-            >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied!' : 'Copy'}
+            <Button onClick={handleCopyMessage} variant="outline" className="py-5 gap-2">
+              {copiedMessage ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+              {copiedMessage ? 'Copied!' : 'Copy Message'}
             </Button>
 
-            <Button 
-              onClick={handleTextMessage} 
-              variant="outline" 
-              className="py-5 gap-2"
-            >
+            <Button onClick={handleTextMessage} variant="outline" className="py-5 gap-2">
               <MessageCircle className="w-4 h-4" />
               Text
             </Button>
 
-            <Button 
-              onClick={handleEmail} 
-              variant="outline" 
-              className="col-span-2 py-4 gap-2"
-            >
+            <Button onClick={handleEmail} variant="outline" className="col-span-2 py-4 gap-2">
               <Mail className="w-4 h-4" />
               Send Email
             </Button>
