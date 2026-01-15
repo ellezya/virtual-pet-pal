@@ -1768,11 +1768,11 @@ const ClassroomPets = () => {
           
           <button 
             onClick={() => navigate('/stats')}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-pink-100/80 hover:bg-pink-200/90 text-pink-600 hover:text-pink-700 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100/80 hover:bg-amber-200/90 text-amber-600 hover:text-amber-700 transition-colors shadow-sm"
             title="My Care Journal"
           >
             <BookHeart size={14} />
-            <span className="text-xs font-medium">Care</span>
+            <span className="text-xs font-medium">Care Notes</span>
           </button>
         </div>
       </header>
