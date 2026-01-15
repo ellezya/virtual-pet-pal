@@ -737,13 +737,14 @@ const ClassroomPets = () => {
   }, []);
 
   // Bunny decay and scene-based effects
+  // Happiness drops faster when not actively playing - encourages interaction
   useEffect(() => {
     if (currentPet !== 'bunny') return;
     const interval = setInterval(() => {
       setBunnyState(prev => {
-        // Base decay rates
+        // Base decay rates - happiness decays faster when not playing
         let energyChange = -0.2;
-        let happinessChange = -0.3;
+        let happinessChange = prev.action === 'playing' ? 0 : -0.6; // Faster decay when not playing
         let restChange = -0.15;
         
         // Scene-based effects
@@ -751,16 +752,20 @@ const ClassroomPets = () => {
           // Room restores energy and rest
           energyChange = 0.5;
           restChange = 0.3;
+          // Happiness still decays in room if not playing, just slightly slower
+          if (prev.action !== 'playing') happinessChange = -0.4;
         } else if (currentScene === 'park') {
-          // Park drains energy faster but boosts happiness
+          // Park drains energy faster but being there is fun
           energyChange = -0.5;
-          happinessChange = 0.2;
+          // Park slows happiness decay but still needs play
+          happinessChange = prev.action === 'playing' ? 0.5 : -0.3;
         }
         
         // Napping boosts rest and energy even more
         if (prev.isNapping) {
           energyChange = 1.0;
           restChange = 0.8;
+          happinessChange = 0; // Happiness doesn't decay while napping
         }
         
         const newState = {
@@ -1140,7 +1145,7 @@ const ClassroomPets = () => {
     return () => window.clearInterval(id);
   }, [currentPet, playSwim]);
 
-  // Notifications
+  // Notifications - includes play reminder when happiness is low
   useEffect(() => {
     const checkNeeds = setInterval(() => {
       const notifications: string[] = [];
@@ -1148,11 +1153,17 @@ const ClassroomPets = () => {
         if (bunnyState.hunger < 30) notifications.push('🥕 Lola is hungry!');
         if (bunnyState.hydration < 30) notifications.push('💧 Water low!');
         if (bunnyState.cleanliness < 40) notifications.push('💩 Habitat needs cleaning!');
-        if (bunnyState.happiness < 30) notifications.push('😢 Bunny is sad!');
+        // Play reminder with helpful instructions when happiness drops
+        if (bunnyState.happiness < 50 && bunnyState.happiness >= 30) {
+          notifications.push('🎾 Pick a toy & tap Play!');
+        } else if (bunnyState.happiness < 30) {
+          notifications.push('💔 Lola needs play! Select toy → Play');
+        }
         if (bunnyState.rest < 30 && bunnyState.energy < 40) notifications.push('😴 Lola needs rest!');
       } else if (currentPet === 'fish') {
         if (fishState.hunger < 30) notifications.push('🐠 Tula is hungry!');
         if (fishState.tankCleanliness < 40) notifications.push('🧽 Tank needs cleaning!');
+        if (fishState.happiness < 50) notifications.push('🎾 Play with Tula!');
       }
       setGameState(prev => ({ ...prev, notifications }));
     }, 3000);
