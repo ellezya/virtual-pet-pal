@@ -290,11 +290,12 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
           setKids(kidsData || []);
 
           // Load chores
-          const { data: choresData } = await supabase
+          const { data: choresData, error: choresError } = await supabase
             .from('chores')
             .select('*')
             .eq('family_id', familyData.id);
           
+          console.log('[Family] Loaded chores for family', familyData.id, ':', choresData, choresError);
           setChores(choresData || []);
 
           // Load pending completions (not yet approved)
