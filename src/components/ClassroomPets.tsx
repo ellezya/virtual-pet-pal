@@ -1749,22 +1749,20 @@ const ClassroomPets = () => {
           {user && isParent && (
             <button 
               onClick={() => setShowParentDashboard(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-100/80 hover:bg-purple-200/90 text-purple-600 hover:text-purple-700 transition-colors shadow-sm"
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-purple-100/80 hover:bg-purple-200/90 text-purple-600 hover:text-purple-700 transition-colors shadow-sm"
               title="Family Dashboard"
             >
-              <Users size={14} />
-              <span className="text-xs font-medium">Family</span>
+              <Users size={16} />
             </button>
           )}
           
           {user && isTeacher && (
             <button 
               onClick={() => setShowTeacherDashboard(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-100/80 hover:bg-blue-200/90 text-blue-600 hover:text-blue-700 transition-colors shadow-sm"
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-blue-100/80 hover:bg-blue-200/90 text-blue-600 hover:text-blue-700 transition-colors shadow-sm"
               title="Teacher Dashboard"
             >
-              <School size={14} />
-              <span className="text-xs font-medium">Class</span>
+              <School size={16} />
             </button>
           )}
           
