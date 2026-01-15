@@ -32,16 +32,14 @@ const JoinFamily = () => {
     
     setIsLoading(true);
     try {
+      // Use security definer function to lookup by code (doesn't expose all families)
       const { data, error } = await supabase
-        .from('families')
-        .select('id, name')
-        .eq('family_code', code.toUpperCase())
-        .maybeSingle();
+        .rpc('lookup_family_by_code', { p_code: code });
       
       if (error) throw error;
       
-      if (data) {
-        setFamilyInfo(data);
+      if (data && data.length > 0) {
+        setFamilyInfo({ id: data[0].id, name: data[0].name });
       } else {
         setFamilyInfo(null);
         if (code.length >= 6) {
