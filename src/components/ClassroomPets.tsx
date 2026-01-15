@@ -1885,15 +1885,19 @@ const ClassroomPets = () => {
           <div className="absolute inset-0 z-0 overflow-hidden">
             {/* Animated video background for immersive scene */}
             <video
+              key={`habitat-video-${lofiRoomBg}`}
               autoPlay
               loop
               muted
               playsInline
+              preload="auto"
               onLoadedMetadata={(e) => {
                 // HARD MUTE: some browsers can still leak audio from MP4s; force it off.
                 e.currentTarget.muted = true;
                 e.currentTarget.defaultMuted = true;
                 e.currentTarget.volume = 0;
+                // Force play in case autoplay was blocked
+                e.currentTarget.play().catch(() => {});
               }}
               onVolumeChange={(e) => {
                 if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
@@ -1937,14 +1941,18 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'room' && (
           <div className="absolute inset-0 z-0 overflow-hidden">
             <video
+              key={`room-video-${lofiBedroomBg}`}
               autoPlay
               loop
               muted
               playsInline
+              preload="auto"
               onLoadedMetadata={(e) => {
                 e.currentTarget.muted = true;
                 e.currentTarget.defaultMuted = true;
                 e.currentTarget.volume = 0;
+                // Force play in case autoplay was blocked
+                e.currentTarget.play().catch(() => {});
               }}
               onVolumeChange={(e) => {
                 if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
@@ -1995,15 +2003,18 @@ const ClassroomPets = () => {
         {currentPet !== 'fish' && currentScene === 'park' && (
           <div className="absolute inset-0 z-0 overflow-hidden">
             <video
-              key={lofiParkBg}
+              key={`park-video-${lofiParkBg}`}
               autoPlay
               loop
               muted
               playsInline
+              preload="auto"
               onLoadedMetadata={(e) => {
                 e.currentTarget.muted = true;
                 e.currentTarget.defaultMuted = true;
                 e.currentTarget.volume = 0;
+                // Force play in case autoplay was blocked
+                e.currentTarget.play().catch(() => {});
               }}
               onVolumeChange={(e) => {
                 if (!e.currentTarget.muted || e.currentTarget.volume !== 0) {
