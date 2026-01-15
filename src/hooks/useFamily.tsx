@@ -38,6 +38,7 @@ interface ChoreCompletion {
 interface Family {
   id: string;
   name: string;
+  family_code: string;
 }
 
 interface FamilyContextType {
@@ -224,7 +225,7 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
           // Load family data for guest (limited - just enough for kid login)
           const { data: familyData } = await supabase
             .from('families')
-            .select('id, name')
+            .select('id, name, family_code')
             .eq('id', familyParam)
             .single();
           
