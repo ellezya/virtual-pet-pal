@@ -133,7 +133,7 @@ export const ClassroomProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('students')
-        .select('*')
+        .select('id, classroom_id, name, avatar_emoji, student_number, school_points, status, joined_at, created_at')
         .eq('classroom_id', activeClassroom.id)
         .order('student_number', { ascending: true });
 
