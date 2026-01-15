@@ -33,10 +33,43 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
     <!-- Service Worker Registration -->
     <script>
-      if ('serviceWorker' in navigator) {
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+
+        const hostname = window.location.hostname;
+        const isPreviewHost =
+          hostname.startsWith('id-preview--') ||
+          hostname === 'lovableproject.com' ||
+          hostname.endsWith('.lovableproject.com');
+
+        // In preview, service workers commonly cause "stuck on old UI" because they cache bundles.
+        // So we proactively unregister + clear caches once, then skip SW registration entirely.
+        if (isPreviewHost) {
+          window.addEventListener('load', async () => {
+            const flag = '__lalalola_preview_sw_cleared__';
+            if (sessionStorage.getItem(flag) === '1') return;
+            sessionStorage.setItem(flag, '1');
+
+            try {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map((r) => r.unregister()));
+
+              if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map((k) => caches.delete(k)));
+              }
+            } catch (error) {
+              console.log('Preview SW cleanup failed:', error);
+            } finally {
+              // Reload once so the preview immediately pulls the latest files.
+              window.location.reload();
+            }
+          });
+          return;
+        }
+
         window.addEventListener('load', async () => {
           try {
             const registration = await navigator.serviceWorker.register('/sw.js');
@@ -57,7 +90,7 @@
             console.log('SW registration failed:', error);
           }
         });
-      }
+      })();
     </script>
   </body>
 </html>
