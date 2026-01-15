@@ -1712,15 +1712,6 @@ const ClassroomPets = () => {
             className="w-8 h-8 object-cover rounded-full -my-1"
           />
           <h1 className="text-sm font-extrabold text-foreground">LaLaLola</h1>
-          {isTeacher && (
-            <button 
-              onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
-              className={`p-2 rounded-lg transition-colors ${gameState.locked ? 'bg-destructive/20 text-destructive' : 'bg-success/20 text-success'}`}
-              title={gameState.locked ? 'Unlock controls' : 'Lock controls'}
-            >
-              {gameState.locked ? <Lock size={14} /> : <Unlock size={14} />}
-            </button>
-          )}
           <button 
             onClick={toggleAmbient} 
             className={`p-2 rounded-lg transition-colors ${isAmbientPlaying ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
