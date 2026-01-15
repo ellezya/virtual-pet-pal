@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -90,6 +91,7 @@ const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
   
   const [family, setFamily] = useState<Family | null>(null);
   const [kids, setKids] = useState<Kid[]>([]);
@@ -213,8 +215,8 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const refreshFamily = useCallback(async () => {
-    // Check for guest family ID from URL params
-    const urlParams = new URLSearchParams(window.location.search);
+    // Check for guest family ID from URL params (using location.search from react-router)
+    const urlParams = new URLSearchParams(location.search);
     const familyParam = urlParams.get('family');
     
     if (!user) {
@@ -318,7 +320,7 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, location.search]);
 
   useEffect(() => {
     refreshFamily();

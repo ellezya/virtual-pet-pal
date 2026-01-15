@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BookHeart, Users, ClipboardList, Timer, School } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
 import { useFamily } from '@/hooks/useFamily';
 import { useClassroom } from '@/hooks/useClassroom';
@@ -53,6 +53,7 @@ import lofiShellBg from '@/assets/lofi-shell.mp4';
 const ClassroomPets = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { progress, updateProgress, recordCareAction, unlockedToys, checkToyUnlock, recordPlaySession, pendingUnlock, clearPendingUnlock, pendingMilestone, clearPendingMilestone, addBonusTime } = useProgress();
   const { family, kids, isParent, activeKid, logoutKid, pendingCompletions, timeRemaining, isTimeUp, isTimePaused, pauseTime, resumeTime } = useFamily();
   const { isTeacher } = useClassroom();
@@ -116,6 +117,17 @@ const ClassroomPets = () => {
     }
   }, [isTimeUp, activeKid]);
   
+  // Auto-open PIN login when arriving with ?family= param and kids are loaded
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const familyParam = urlParams.get('family');
+    
+    // If there's a family param in URL, kids are loaded, user is not logged in, and no active kid
+    if (familyParam && kids.length > 0 && !user && !activeKid && !showKidLogin) {
+      setShowKidLogin(true);
+    }
+  }, [location.search, kids, user, activeKid, showKidLogin]);
+
   const [currentPet, setCurrentPet] = useState<'bunny' | 'fish'>(() => {
     // Tula (fish) is hidden for now - always default to bunny
     return 'bunny';
