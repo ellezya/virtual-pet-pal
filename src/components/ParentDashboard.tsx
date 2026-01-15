@@ -238,52 +238,74 @@ const ParentDashboard = ({ open, onClose }: ParentDashboardProps) => {
           {/* Kids Tab */}
           <TabsContent value="kids" className="space-y-4">
             <div className="grid gap-4">
-              {kids.map((kid) => (
-                <Card key={kid.id}>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{kid.avatar_emoji}</span>
-                        <div>
-                          <p className="font-semibold">{kid.name}</p>
-                          {kid.age && <p className="text-sm text-muted-foreground">Age {kid.age}</p>}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="text-right hidden sm:block">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Clock className="w-4 h-4" />
-                            {kid.lola_time_from_chores + kid.lola_time_from_school} min
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Award className="w-4 h-4" />
-                            {kid.chores_completed} chores
+              {kids.map((kid) => {
+                // Get chores assigned to this kid specifically OR to all kids (kid_id is null)
+                const kidChores = chores.filter(c => c.kid_id === kid.id || c.kid_id === null);
+                
+                return (
+                  <Card key={kid.id}>
+                    <CardContent className="pt-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">{kid.avatar_emoji}</span>
+                          <div>
+                            <p className="font-semibold">{kid.name}</p>
+                            {kid.age && <p className="text-sm text-muted-foreground">Age {kid.age}</p>}
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setKidToResend(kid)}
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive"
-                          onClick={() => {
-                            if (confirm(`Remove ${kid.name}?`)) {
-                              removeKid(kid.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <div className="text-right hidden sm:block">
+                            <div className="flex items-center gap-1 text-sm">
+                              <Clock className="w-4 h-4" />
+                              {kid.lola_time_from_chores + kid.lola_time_from_school} min
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Award className="w-4 h-4" />
+                              {kid.chores_completed} chores
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setKidToResend(kid)}
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            onClick={() => {
+                              if (confirm(`Remove ${kid.name}?`)) {
+                                removeKid(kid.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      
+                      {/* Show assigned chores for this kid */}
+                      {kidChores.length > 0 && (
+                        <div className="pt-2 border-t">
+                          <p className="text-xs text-muted-foreground mb-2">Assigned Chores:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {kidChores.map(chore => (
+                              <span 
+                                key={chore.id} 
+                                className="text-xs bg-muted px-2 py-1 rounded-full"
+                              >
+                                {chore.description} ({chore.minutes_earned}min)
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {!showAddKid ? (
