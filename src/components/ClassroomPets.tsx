@@ -17,6 +17,7 @@ import TeacherDashboard from '@/components/TeacherDashboard';
 import KidPinLogin from '@/components/KidPinLogin';
 import KidChoresList from '@/components/KidChoresList';
 import MilestoneCelebration from '@/components/MilestoneCelebration';
+import OnboardingPrompt from '@/components/OnboardingPrompt';
 // Pet images
 import bunnyHappy from '@/assets/bunny-happy.png';
 import bunnySad from '@/assets/bunny-sad.png';
@@ -1726,6 +1727,30 @@ const ClassroomPets = () => {
             </div>
           )}
           <SyncIndicator />
+          
+          {/* Role-based dashboard buttons for authenticated users */}
+          {user && isParent && (
+            <button 
+              onClick={() => setShowParentDashboard(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-100/80 hover:bg-purple-200/90 text-purple-600 hover:text-purple-700 transition-colors shadow-sm"
+              title="Family Dashboard"
+            >
+              <Users size={14} />
+              <span className="text-xs font-medium">Family</span>
+            </button>
+          )}
+          
+          {user && isTeacher && (
+            <button 
+              onClick={() => setShowTeacherDashboard(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-100/80 hover:bg-blue-200/90 text-blue-600 hover:text-blue-700 transition-colors shadow-sm"
+              title="Teacher Dashboard"
+            >
+              <School size={14} />
+              <span className="text-xs font-medium">Class</span>
+            </button>
+          )}
+          
           <button 
             onClick={() => navigate('/stats')}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-pink-100/80 hover:bg-pink-200/90 text-pink-600 hover:text-pink-700 transition-colors shadow-sm"
@@ -1759,6 +1784,12 @@ const ClassroomPets = () => {
       <KidChoresList 
         open={showKidChores} 
         onClose={() => setShowKidChores(false)} 
+      />
+      
+      {/* Onboarding Prompt for new users */}
+      <OnboardingPrompt 
+        onOpenParentDashboard={() => setShowParentDashboard(true)}
+        onOpenTeacherDashboard={() => setShowTeacherDashboard(true)}
       />
 
       {/* Pet/Scene Selector - Same size as toy menu */}
