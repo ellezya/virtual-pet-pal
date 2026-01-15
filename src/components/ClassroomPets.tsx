@@ -1781,8 +1781,8 @@ const ClassroomPets = () => {
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100/80 hover:bg-amber-200/90 text-amber-800 hover:text-amber-900 transition-colors shadow-sm"
             title="My Care Journal"
           >
-            <BookHeart size={14} />
-            <span className="text-xs font-medium">Care Notes</span>
+            <BookHeart size={18} />
+            <span className="text-xs font-bold">Care Notes</span>
           </button>
         </div>
       </header>
