@@ -11,10 +11,16 @@ export function getShareOrigin(): string {
 
   const hostname = window.location.hostname;
 
-  // Lovable preview domains look like: id-preview--<uuid>.lovable.app
-  if (hostname.startsWith('id-preview--')) {
-    return DEFAULT_PUBLIC_APP_ORIGIN;
-  }
+  // Preview domains can be either:
+  // - id-preview--<uuid>.lovable.app
+  // - <uuid>.lovableproject.com
+  const isPreviewHost =
+    hostname.startsWith('id-preview--') ||
+    hostname === 'lovableproject.com' ||
+    hostname.endsWith('.lovableproject.com');
+
+  if (isPreviewHost) return DEFAULT_PUBLIC_APP_ORIGIN;
 
   return window.location.origin;
 }
+
