@@ -4,7 +4,7 @@
 // For sharing with real users (texts/emails), we prefer the published domain.
 // If you later connect a custom domain, update DEFAULT_PUBLIC_APP_ORIGIN.
 
-export const DEFAULT_PUBLIC_APP_ORIGIN = "https://buddy-bloom-bazaar.lovable.app";
+export const DEFAULT_PUBLIC_APP_ORIGIN = "https://lalalola.app";
 
 export function getShareOrigin(): string {
   if (typeof window === 'undefined') return DEFAULT_PUBLIC_APP_ORIGIN;
