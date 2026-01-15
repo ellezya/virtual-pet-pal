@@ -1711,7 +1711,7 @@ const ClassroomPets = () => {
             alt="Lola"
             className="w-8 h-8 object-cover rounded-full -my-1"
           />
-          <h1 className="text-sm font-extrabold text-foreground">Lola</h1>
+          <h1 className="text-sm font-extrabold text-foreground">LaLaLola</h1>
           {isTeacher && (
             <button 
               onClick={() => setGameState(prev => ({ ...prev, locked: !prev.locked }))} 
