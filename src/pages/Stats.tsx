@@ -33,8 +33,11 @@ const Stats = () => {
 
   const milestone = getMilestone(progress.currentStreak);
   
+  // Safely access unlockedToys with fallback
+  const unlockedToys = progress.unlockedToys || [];
+  
   // Check if all 6 toys are unlocked
-  const allToysUnlocked = progress.unlockedToys.length >= 6;
+  const allToysUnlocked = unlockedToys.length >= 6;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-4">
@@ -170,7 +173,7 @@ const Stats = () => {
               <p className="font-medium text-foreground">Unlocked Toys</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {progress.unlockedToys.map((toyId) => {
+              {unlockedToys.map((toyId) => {
                 const toyEmojis: Record<string, string> = {
                   hayPile: '🪺',
                   balloon: '🎈',
@@ -189,9 +192,9 @@ const Stats = () => {
                   </div>
                 );
               })}
-              {6 - progress.unlockedToys.length > 0 && (
+              {6 - unlockedToys.length > 0 && (
                 <div className="text-sm text-muted-foreground flex items-center gap-1 ml-2">
-                  +{6 - progress.unlockedToys.length} more to unlock
+                  +{6 - unlockedToys.length} more to unlock
                 </div>
               )}
             </div>
