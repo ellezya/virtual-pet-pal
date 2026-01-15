@@ -1364,6 +1364,17 @@ export type Database = {
         Args: { p_classroom_id: string }
         Returns: string
       }
+      get_kids_for_login: {
+        Args: { p_family_id: string }
+        Returns: {
+          age: number
+          avatar_emoji: string
+          id: string
+          lola_time_from_chores: number
+          lola_time_from_school: number
+          name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1389,6 +1400,13 @@ export type Database = {
       is_school_staff: {
         Args: { p_role?: string; p_school_id: string }
         Returns: boolean
+      }
+      lookup_family_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
       }
       verify_kid_pin: {
         Args: { p_kid_id: string; p_pin: string }

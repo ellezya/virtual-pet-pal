@@ -224,26 +224,37 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
       if (familyParam) {
         setGuestFamilyId(familyParam);
         try {
-          // Load family data for guest (limited - just enough for kid login)
-          const { data: familyData } = await supabase
-            .from('families')
-            .select('id, name, family_code')
-            .eq('id', familyParam)
-            .single();
+          // Use security definer function to get kids for login (only safe fields)
+          const { data: kidsData, error: kidsError } = await supabase
+            .rpc('get_kids_for_login', { p_family_id: familyParam });
           
-          if (familyData) {
-            setFamily(familyData);
+          if (kidsError) throw kidsError;
+          
+          if (kidsData && kidsData.length > 0) {
+            // We have kids, set minimal family info
+            setFamily({ id: familyParam, name: 'Family', family_code: '' });
             
-            // Load kids (limited fields for guest view)
-            const { data: kidsData } = await supabase
-              .from('kids')
-              .select('id, name, age, avatar_emoji, lola_time_from_chores, lola_time_from_school, current_streak, total_sessions, chores_completed, unlocked_toys')
-              .eq('family_id', familyData.id);
-            
-            setKids(kidsData || []);
+            // Map the RPC result to Kid interface (with defaults for fields not returned)
+            setKids(kidsData.map((k: any) => ({
+              id: k.id,
+              name: k.name,
+              age: k.age,
+              avatar_emoji: k.avatar_emoji || '👶',
+              lola_time_from_chores: k.lola_time_from_chores || 0,
+              lola_time_from_school: k.lola_time_from_school || 0,
+              current_streak: 0,
+              total_sessions: 0,
+              chores_completed: 0,
+              unlocked_toys: []
+            })));
+          } else {
+            setFamily(null);
+            setKids([]);
           }
         } catch (error) {
           console.error('Error loading guest family:', error);
+          setFamily(null);
+          setKids([]);
         }
       } else {
         setFamily(null);
