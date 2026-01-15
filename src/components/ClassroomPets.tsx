@@ -121,23 +121,14 @@ const ClassroomPets = () => {
     return 'bunny';
   });
   const [currentScene, setCurrentScene] = useState<'habitat' | 'room' | 'park' | 'reef' | 'castle' | 'shell'>(() => {
-    const savedPet = localStorage.getItem('selectedPet');
     const savedScene = localStorage.getItem('selectedScene');
     
-    // If we have a valid saved scene for this pet, use it
-    if (savedPet === 'fish') {
-      // Fish scenes: reef, castle, shell
-      if (savedScene === 'reef' || savedScene === 'castle' || savedScene === 'shell') {
-        return savedScene;
-      }
-      return 'reef';
-    } else {
-      // Bunny scenes: habitat, room, park - default to 'room' for Lola
-      if (savedScene === 'habitat' || savedScene === 'room' || savedScene === 'park') {
-        return savedScene;
-      }
-      return 'room'; // Default to cozy room for Lola
+    // Since fish is currently hidden, only allow bunny-compatible scenes
+    // Bunny scenes: habitat, room, park - default to 'room' for Lola
+    if (savedScene === 'habitat' || savedScene === 'room' || savedScene === 'park') {
+      return savedScene;
     }
+    return 'room'; // Default to cozy room for Lola
   });
   // Fish scene type for cleaner logic
   type FishScene = 'reef' | 'castle' | 'shell';
