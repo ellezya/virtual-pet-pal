@@ -1855,7 +1855,7 @@ const ClassroomPets = () => {
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'room' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Bedroom"
             >
-              <span className="text-xl">🛏️</span>
+              <span className="text-2xl">🛏️</span>
             </button>
             <button 
               onClick={() => { setCurrentScene('park'); localStorage.setItem('selectedScene', 'park'); }} 
