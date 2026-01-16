@@ -1848,21 +1848,21 @@ const ClassroomPets = () => {
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'habitat' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Sofa"
             >
-              🛋️
+              <span className="text-xl">🛋️</span>
             </button>
             <button 
               onClick={() => { setCurrentScene('room'); localStorage.setItem('selectedScene', 'room'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'room' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Bedroom"
             >
-              <span className="text-lg">🛏️</span>
+              <span className="text-xl">🛏️</span>
             </button>
             <button 
               onClick={() => { setCurrentScene('park'); localStorage.setItem('selectedScene', 'park'); }} 
               className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'park' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Park"
             >
-              🌳
+              <span className="text-xl">🌳</span>
             </button>
           </>
         )}
@@ -1871,24 +1871,24 @@ const ClassroomPets = () => {
           <>
             <button 
               onClick={() => { setCurrentScene('reef'); localStorage.setItem('selectedScene', 'reef'); }} 
-              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'reef' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'reef' ? 'bg-primary text-primary-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Coral Reef"
             >
-              🪸
+              <span className="text-xl">🪸</span>
             </button>
             <button 
               onClick={() => { setCurrentScene('castle'); localStorage.setItem('selectedScene', 'castle'); }} 
-              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'castle' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'castle' ? 'bg-accent text-accent-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Play Castle"
             >
-              🏰
+              <span className="text-xl">🏰</span>
             </button>
             <button 
               onClick={() => { setCurrentScene('shell'); localStorage.setItem('selectedScene', 'shell'); }} 
-              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'shell' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/50 hover:bg-muted hover:scale-105'}`}
+              className={`p-2 rounded-lg font-medium transition-all duration-200 ${currentScene === 'shell' ? 'bg-success text-success-foreground scale-105 shadow-md' : 'bg-muted/80 hover:bg-muted hover:scale-105'}`}
               title="Shell Cave (Rest)"
             >
-              🐚
+              <span className="text-xl">🐚</span>
             </button>
           </>
         )}
