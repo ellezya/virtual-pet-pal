@@ -1682,14 +1682,8 @@ const ClassroomPets = () => {
   };
 
   const getBunnyImage = () => {
-    const alpha = bunnySpriteAlpha;
-
-    if (bunnyState.isNapping) return alpha?.sleeping ?? bunnySleeping;
-    if (bunnyState.action === 'eating') return alpha?.eating ?? bunnyEating;
-    if (bunnyState.action === 'drinking') return alpha?.drinking ?? bunnyDrinking;
-    if (bunnyState.action === 'playing') return alpha?.playing ?? bunnyPlaying;
-    if (bunnyState.mood === 'sad') return alpha?.sad ?? bunnySad;
-    return alpha?.happy ?? bunnyHappy;
+    // Use the processed Lola icon for all bunny states
+    return navLogoSrc;
   };
 
   const getFishImage = () => {

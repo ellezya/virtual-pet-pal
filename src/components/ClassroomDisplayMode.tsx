@@ -26,9 +26,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
-// Import bunny assets
-import bunnyHappy from '@/assets/bunny-happy.png';
-import bunnySleeping from '@/assets/bunny-sleeping.png';
+// Import Lola icon
+import lolaIcon from '@/assets/lola-icon.png';
 
 // Import video backgrounds
 import lofiRoomBg from '@/assets/lofi-room-couch.mp4';
@@ -291,7 +290,7 @@ const ClassroomDisplayMode = ({ onClose }: ClassroomDisplayModeProps) => {
           <div className="relative">
             <div className="w-64 h-80 flex items-center justify-center">
               <img
-                src={session.lola_sleeping ? bunnySleeping : bunnyHappy}
+                src={lolaIcon}
                 alt="Lola"
                 className={`max-w-full max-h-full object-contain drop-shadow-2xl ${
                   session.lola_sleeping ? 'opacity-80' : 'animate-bounce-gentle'
