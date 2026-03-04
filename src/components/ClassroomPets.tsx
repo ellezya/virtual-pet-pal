@@ -1213,7 +1213,10 @@ const ClassroomPets = () => {
       // Fill the food bowl first
       setBowlLevels(prev => ({ ...prev, food: 100 }));
       doAction('eating', 'food-bowl', 4000);
+      // Play eat sound immediately so user gets audio feedback right away
+      playEat();
       setTimeout(() => {
+        // Play again mid-eating for extra crunch
         playEat();
         setBunnyState(prev => ({ 
           ...prev, 
