@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BookHeart, Users, ClipboardList, Timer, School } from 'lucide-react';
+import CarePointsBadge from '@/components/CarePointsBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
