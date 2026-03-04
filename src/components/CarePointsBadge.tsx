@@ -106,7 +106,7 @@ const CarePointsBadge = () => {
               <p className="text-sm font-medium text-foreground">🎁 Toy Unlocks</p>
               <div className="space-y-1.5">
                 {Object.entries(TOY_REQUIREMENTS).map(([toyId, req]) => {
-                  const isUnlocked = unlockedToys.includes(toyId);
+                  const isUnlocked = (unlockedToys || []).includes(toyId);
                   const toy = TOY_NAMES[toyId];
                   if (!toy) return null;
                   return (
