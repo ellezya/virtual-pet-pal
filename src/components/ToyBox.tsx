@@ -81,8 +81,8 @@ const ToyBox: React.FC<ToyBoxProps> = ({ toys, selectedToy, onSelectToy, toyScal
     <>
       <div className="flex gap-1.5 bg-background/60 backdrop-blur-sm rounded-lg p-1.5 border border-border/50">
         {toys.map((toy) => {
-          const isUnlocked = unlockedToys.includes(toy.id);
-          const isSelected = selectedToy.id === toy.id;
+          const isUnlocked = (unlockedToys || []).includes(toy.id);
+          const isSelected = selectedToy?.id === toy.id;
 
           // Add pulsing glow to hay pile when no toy is selected
           const shouldPulse = toy.id === 'hayPile' && isUnlocked && !selectedToy;
