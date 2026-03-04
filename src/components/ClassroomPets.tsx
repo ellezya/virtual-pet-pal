@@ -1734,7 +1734,7 @@ const ClassroomPets = () => {
           >
             {isAmbientPlaying ? <Volume2 size={21} /> : <VolumeX size={21} />}
           </button>
-
+          <CarePointsBadge />
         </div>
 
         <div className="flex items-center gap-2.5">
