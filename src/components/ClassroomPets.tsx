@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { RotateCcw, Lock, Unlock, Volume2, VolumeX, Bug, BookHeart, Users, ClipboardList, Timer, School } from 'lucide-react';
+import CarePointsBadge from '@/components/CarePointsBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProgress } from '@/hooks/useProgress';
@@ -1733,7 +1734,7 @@ const ClassroomPets = () => {
           >
             {isAmbientPlaying ? <Volume2 size={21} /> : <VolumeX size={21} />}
           </button>
-
+          <CarePointsBadge />
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -3531,18 +3532,24 @@ const ClassroomPets = () => {
           
           <div className="space-y-4 py-2">
             <p className="text-muted-foreground">
-              Keep caring for Lola to unlock!
+              Keep caring for Lola to earn 💗 care points and unlock!
             </p>
             
             <div className="space-y-2 text-sm">
               {lockedToyModal && TOY_REQUIREMENTS[lockedToyModal.id] && (
                 <>
                   <p className="font-medium">
-                    Requirement: {TOY_REQUIREMENTS[lockedToyModal.id].value} care actions
+                    Requirement: {TOY_REQUIREMENTS[lockedToyModal.id].value} 💗 care points
                   </p>
                   <p className="text-muted-foreground">
-                    Your progress: {progress.totalCareActions || 0} care actions
+                    Your points: {progress.totalCareActions || 0} 💗
                   </p>
+                  <div className="w-full bg-pink-100 rounded-full h-2">
+                    <div 
+                      className="bg-pink-500 h-2 rounded-full transition-all" 
+                      style={{ width: `${Math.min(100, ((progress.totalCareActions || 0) / TOY_REQUIREMENTS[lockedToyModal.id].value) * 100)}%` }}
+                    />
+                  </div>
                 </>
               )}
             </div>

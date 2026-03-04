@@ -1000,7 +1000,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     // === Start morning breeze & birds ambient (from audio file) ===
     const breezeAudio = new Audio(morningBreezebirds);
     breezeAudio.loop = true;
-    breezeAudio.volume = 0.4;
+    breezeAudio.volume = 0.7;
     breezeAudio.play().catch(() => {
       console.log('[audio] Breeze autoplay blocked, waiting for user gesture');
     });
