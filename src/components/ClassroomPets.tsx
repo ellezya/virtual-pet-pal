@@ -2882,12 +2882,12 @@ const ClassroomPets = () => {
                 alt={currentPet === 'bunny' ? 'Lola the bunny' : 'Tula the tiger fish'}
                 className={`object-contain transition-all duration-700 ease-out ${
                   currentPet === 'fish'
-                    ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 animate-fish-shimmer'
+                    ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 animate-fish-shimmer'
                     : currentScene === 'room'
-                      ? 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
+                      ? 'w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40'
                       : currentScene === 'habitat'
-                        ? 'w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36'
-                        : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'
+                        ? 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44'
+                        : 'w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28'
                 } ${
                   bunnyState.isNapping
                     ? 'scale-75'

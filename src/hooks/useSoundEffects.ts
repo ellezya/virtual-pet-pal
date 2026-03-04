@@ -100,7 +100,7 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
   const [sfxMuted, setSfxMuted] = useState(false);
 
   const musicVolume = 0.45;  // Increased from 0.12 for better balance on mobile
-  const sfxVolume = 0.5;     // Reduced from 0.8 for better balance
+  const sfxVolume = 0.85;    // Turned up for more audible SFX
   const ambientVolume = 0.45; // Increased from 0.35 for better balance on mobile
   
   // SFX should also respect the ambient toggle (so mute button mutes everything) and sfxMuted state
