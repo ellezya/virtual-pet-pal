@@ -240,6 +240,8 @@ const ClassroomPets = () => {
     windIntensity,
     setCurrentPet: setSoundPet,
     setCurrentScene: setSoundScene,
+    use432Hz,
+    toggle432Hz,
   } = useSound();
   const prevHoppingRef = useRef(false);
 
@@ -1733,6 +1735,15 @@ const ClassroomPets = () => {
             type="button"
           >
             {isAmbientPlaying ? <Volume2 size={21} /> : <VolumeX size={21} />}
+          </button>
+          {/* EXPERIMENTAL: 432 Hz toggle */}
+          <button
+            onClick={toggle432Hz}
+            className={`px-1.5 py-1 rounded-full text-[9px] font-bold transition-colors ${use432Hz ? 'bg-accent text-accent-foreground ring-1 ring-accent' : 'bg-muted/60 text-muted-foreground hover:bg-muted'}`}
+            title={use432Hz ? 'Switch back to standard music' : 'Try experimental 432 Hz ambient'}
+            type="button"
+          >
+            432
           </button>
           <CarePointsBadge />
         </div>
