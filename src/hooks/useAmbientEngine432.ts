@@ -139,6 +139,7 @@ export const useAmbientEngine432 = () => {
     lfoInterval: null,
     activeOscillators: [],
     convolver: null,
+    natureAudio: null,
   });
   const sceneRef = useRef<SceneType>('habitat');
 
