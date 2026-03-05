@@ -461,6 +461,22 @@ export const useAmbientEngine432 = () => {
       try { nodesRef.current.convolver.disconnect(); } catch {}
       nodesRef.current.convolver = null;
     }
+
+    // Stop nature audio
+    if (nodesRef.current.natureAudio) {
+      const audio = nodesRef.current.natureAudio;
+      const fadeOut = () => {
+        if (audio.volume > 0.05) {
+          audio.volume = Math.max(0, audio.volume - 0.05);
+          requestAnimationFrame(fadeOut);
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      };
+      fadeOut();
+      nodesRef.current.natureAudio = null;
+    }
   }, []);
 
   const updateScene = useCallback((scene: SceneType) => {
