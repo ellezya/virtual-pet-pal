@@ -240,6 +240,8 @@ const ClassroomPets = () => {
     windIntensity,
     setCurrentPet: setSoundPet,
     setCurrentScene: setSoundScene,
+    use432Hz,
+    toggle432Hz,
   } = useSound();
   const prevHoppingRef = useRef(false);
 
