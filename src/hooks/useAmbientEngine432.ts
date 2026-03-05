@@ -401,6 +401,16 @@ export const useAmbientEngine432 = () => {
       }
     }, 4000 + Math.random() * 2000);
     nodesRef.current.arpeggioInterval = arpeggioInterval;
+
+    // Start nature ambient sounds (birds/wind for park/habitat, crickets for room)
+    const isNightScene = scene === 'room';
+    const natureAudio = new Audio(isNightScene ? cricketsBreeze : morningBreezebirds);
+    natureAudio.loop = true;
+    natureAudio.volume = isNightScene ? 0.35 : 0.6;
+    natureAudio.play().catch(() => {
+      console.log('[432hz] Nature audio autoplay blocked');
+    });
+    nodesRef.current.natureAudio = natureAudio;
   }, [getCtx, createReverb, getRandomChord, playPad, playArpeggioNote]);
 
   const stopEngine = useCallback(() => {
