@@ -79,9 +79,9 @@ const ClassroomPets = () => {
     (async () => {
       try {
         const cleaned = await removeSolidBackgroundToDataUrl(lolaIconRaw, {
-          tolerance: 38,
-          feather: 28,
-          sampleSize: 10,
+          tolerance: 55,
+          feather: 35,
+          sampleSize: 12,
         });
         if (!cancelled) setNavLogoSrc(cleaned);
       } catch {
