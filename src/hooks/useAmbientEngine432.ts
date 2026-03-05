@@ -1,4 +1,6 @@
 import { useRef, useCallback } from 'react';
+import morningBreezebirds from '@/assets/morning-breeze-birds.mp3';
+import cricketsBreeze from '@/assets/crickets-breeze-thunder.mp3';
 
 /**
  * EXPERIMENTAL: Procedural 432 Hz ambient music engine.
@@ -125,6 +127,7 @@ interface Engine432Nodes {
   lfoInterval: ReturnType<typeof setInterval> | null;
   activeOscillators: OscillatorNode[];
   convolver: ConvolverNode | null;
+  natureAudio: HTMLAudioElement | null;
 }
 
 export const useAmbientEngine432 = () => {
@@ -136,6 +139,7 @@ export const useAmbientEngine432 = () => {
     lfoInterval: null,
     activeOscillators: [],
     convolver: null,
+    natureAudio: null,
   });
   const sceneRef = useRef<SceneType>('habitat');
 
@@ -397,6 +401,16 @@ export const useAmbientEngine432 = () => {
       }
     }, 4000 + Math.random() * 2000);
     nodesRef.current.arpeggioInterval = arpeggioInterval;
+
+    // Start nature ambient sounds (birds/wind for park/habitat, crickets for room)
+    const isNightScene = scene === 'room';
+    const natureAudio = new Audio(isNightScene ? cricketsBreeze : morningBreezebirds);
+    natureAudio.loop = true;
+    natureAudio.volume = isNightScene ? 0.35 : 0.6;
+    natureAudio.play().catch(() => {
+      console.log('[432hz] Nature audio autoplay blocked');
+    });
+    nodesRef.current.natureAudio = natureAudio;
   }, [getCtx, createReverb, getRandomChord, playPad, playArpeggioNote]);
 
   const stopEngine = useCallback(() => {
@@ -446,6 +460,22 @@ export const useAmbientEngine432 = () => {
     if (nodesRef.current.convolver) {
       try { nodesRef.current.convolver.disconnect(); } catch {}
       nodesRef.current.convolver = null;
+    }
+
+    // Stop nature audio
+    if (nodesRef.current.natureAudio) {
+      const audio = nodesRef.current.natureAudio;
+      const fadeOut = () => {
+        if (audio.volume > 0.05) {
+          audio.volume = Math.max(0, audio.volume - 0.05);
+          requestAnimationFrame(fadeOut);
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      };
+      fadeOut();
+      nodesRef.current.natureAudio = null;
     }
   }, []);
 
