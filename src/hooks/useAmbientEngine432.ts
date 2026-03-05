@@ -1,4 +1,6 @@
 import { useRef, useCallback } from 'react';
+import morningBreezebirds from '@/assets/morning-breeze-birds.mp3';
+import cricketsBreeze from '@/assets/crickets-breeze-thunder.mp3';
 
 /**
  * EXPERIMENTAL: Procedural 432 Hz ambient music engine.
