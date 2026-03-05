@@ -127,6 +127,7 @@ interface Engine432Nodes {
   lfoInterval: ReturnType<typeof setInterval> | null;
   activeOscillators: OscillatorNode[];
   convolver: ConvolverNode | null;
+  natureAudio: HTMLAudioElement | null;
 }
 
 export const useAmbientEngine432 = () => {
