@@ -170,17 +170,32 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
     }
   }, [getAudioContext]);
 
-  // Soft puff sound for hopping - like a gentle landing
+  // Soft puff/thud sound for hopping - gentle but audible landing
   const playHop = useCallback(() => {
     if (!sfxEnabled) return;
 
     const ctx = getAudioContext();
     const time = ctx.currentTime;
 
-    const bufferSize = ctx.sampleRate * 0.08;
+    // Soft thud tone (low sine bump)
+    const thud = ctx.createOscillator();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(120, time);
+    thud.frequency.exponentialRampToValueAtTime(60, time + 0.15);
+
+    const thudGain = ctx.createGain();
+    thudGain.gain.setValueAtTime(sfxVolume * 0.08, time);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+    thud.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    thud.start(time);
+    thud.stop(time + 0.2);
+
+    // Soft noise puff layered on top
+    const bufferSize = Math.floor(ctx.sampleRate * 0.12);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
-
     for (let i = 0; i < bufferSize; i++) {
       data[i] = (Math.random() * 2 - 1) * 0.3;
     }
@@ -190,19 +205,18 @@ export const useSoundEffects = (currentPet: PetType = 'bunny', currentScene: Sce
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, time);
-    filter.frequency.exponentialRampToValueAtTime(200, time + 0.06);
+    filter.frequency.setValueAtTime(600, time);
+    filter.frequency.exponentialRampToValueAtTime(150, time + 0.1);
 
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(sfxVolume * 0.15, time);
-    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(sfxVolume * 0.06, time);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
 
     noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-
+    filter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
     noise.start(time);
-    noise.stop(time + 0.1);
+    noise.stop(time + 0.15);
   }, [getAudioContext, sfxEnabled]);
 
   // Soft brook water splash sample for Tula swimming
