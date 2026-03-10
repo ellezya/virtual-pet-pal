@@ -105,7 +105,7 @@ export const FamilyProvider = ({ children }: { children: ReactNode }) => {
   // Time tracking state
   const [timeRemaining, setTimeRemaining] = useState(0); // in seconds
   const [isTimePaused, setIsTimePaused] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSaveRef = useRef<number>(0);
   
   // Derived state

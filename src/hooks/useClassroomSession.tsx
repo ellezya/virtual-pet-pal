@@ -40,7 +40,7 @@ export const useClassroomSession = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [loading, setLoading] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Calculate time remaining based on turn start
   const calculateTimeRemaining = useCallback((sess: ClassroomSession) => {

@@ -142,7 +142,7 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
   });
   const prevProgressRef = useRef<Progress | null>(null);
   const sessionStartRef = useRef<number | null>(null);
-  const minuteTrackerRef = useRef<NodeJS.Timeout | null>(null);
+  const minuteTrackerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isGuest = !user;
 
