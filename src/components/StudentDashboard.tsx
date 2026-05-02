@@ -21,7 +21,8 @@ import {
   Clock,
   TrendingUp,
   Award,
-  ShoppingBag
+  ShoppingBag,
+  Smile
 } from 'lucide-react';
 
 interface StudentClassroom {
@@ -177,6 +178,23 @@ const StudentDashboard = ({ open, onClose }: StudentDashboardProps) => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Check-In Button */}
+            <Card
+              className="cursor-pointer border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:border-primary/40 transition-all"
+              onClick={() => navigate('/dashboard/student/checkin')}
+            >
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Smile className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-foreground">Daily Check-In</p>
+                  <p className="text-xs text-muted-foreground">Tell Lola how you're feeling today</p>
+                </div>
+                <span className="text-2xl">🐰</span>
+              </CardContent>
+            </Card>
 
             {/* Main Content Tabs */}
             <Tabs defaultValue="classes" className="space-y-3">

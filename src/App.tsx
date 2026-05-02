@@ -20,6 +20,7 @@ import RoleSelector from "./pages/RoleSelector";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage";
 import ParentDashboardPage from "./pages/ParentDashboardPage";
 import StudentDashboardPage from "./pages/StudentDashboardPage";
+import StudentCheckin from "./pages/StudentCheckin";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import OfflineIndicator from "./components/OfflineIndicator";
 
@@ -48,6 +49,7 @@ const App = () => (
                       <Route path="/dashboard/teacher" element={<TeacherDashboardPage />} />
                       <Route path="/dashboard/parent" element={<ParentDashboardPage />} />
                       <Route path="/dashboard/student" element={<StudentDashboardPage />} />
+                      <Route path="/dashboard/student/checkin" element={<StudentCheckin />} />
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

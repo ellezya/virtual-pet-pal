@@ -20,6 +20,7 @@ import StudentIncidentBadge from '@/components/StudentIncidentBadge';
 import SchoolStoreManager from '@/components/SchoolStoreManager';
 import ClassroomJoinCodeCard from '@/components/ClassroomJoinCodeCard';
 import TeacherBetaWaitlist from '@/components/TeacherBetaWaitlist';
+import ClassMoodOverview from '@/components/ClassMoodOverview';
 import InvitePrincipalDialog from '@/components/InvitePrincipalDialog';
 import LinkToSchoolDialog from '@/components/LinkToSchoolDialog';
 import PrincipalDashboard from '@/components/PrincipalDashboard';
@@ -375,6 +376,11 @@ const TeacherDashboard = ({ onClose }: { onClose: () => void }) => {
                 classroomName={activeClassroom.name}
                 studentCount={students.length}
               />
+            )}
+
+            {/* Class Mood Overview — aggregated, no individual names */}
+            {activeClassroom && (
+              <ClassMoodOverview classroomId={activeClassroom.id} />
             )}
 
             {/* Quick Controls Bar - Mobile-First Teacher Controls */}

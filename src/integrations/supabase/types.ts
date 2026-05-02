@@ -512,6 +512,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          classroom_id: string
+          created_at: string
+          id: string
+          mood_emoji: string
+          mood_label: string
+          student_id: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string
+          id?: string
+          mood_emoji: string
+          mood_label: string
+          student_id: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string
+          id?: string
+          mood_emoji?: string
+          mood_label?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       families: {
         Row: {
           created_at: string | null
