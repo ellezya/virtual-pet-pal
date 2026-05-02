@@ -28,7 +28,7 @@ const Auth = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, loading, navigate]);
 
@@ -67,7 +67,7 @@ const Auth = () => {
     try {
       const { error } = await signIn(email, password);
       if (error) throw error;
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       toast({
         title: "Sign in failed",
@@ -107,7 +107,7 @@ const Auth = () => {
         title: "Account created! 🎉",
         description: "Welcome to Lola! You're all set to play.",
       });
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       toast({
         title: "Sign up failed",
@@ -183,7 +183,7 @@ const Auth = () => {
             </p>
             <Button
               variant="ghost"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="w-full"
             >
               Back to Lola
@@ -335,7 +335,7 @@ const Auth = () => {
           <div className="pt-4 border-t border-border text-center">
             <Button
               variant="ghost"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="text-muted-foreground"
             >
               ← Back to Lola
