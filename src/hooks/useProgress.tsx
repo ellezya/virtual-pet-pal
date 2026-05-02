@@ -152,6 +152,8 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         // Load from Supabase for authenticated users
         setIsSyncing(true);
+        // Reset to defaults immediately so stale guest state doesn't flash
+        setProgress(defaultProgress);
         try {
           const { data, error } = await supabase
             .from('user_progress')
@@ -429,9 +431,14 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
   // Auto-migrate when user signs in
   useEffect(() => {
     if (user) {
-      migrateToAccount();
+      // Clear guest localStorage so new accounts start fresh
+      // Migration only applies if user explicitly triggers it (e.g., from account prompt)
+      localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+      localStorage.removeItem(STORAGE_KEYS.FIRST_PLAY);
+      localStorage.removeItem(STORAGE_KEYS.SESSION_START);
+      localStorage.removeItem(STORAGE_KEYS.CELEBRATED_MILESTONES);
     }
-  }, [user, migrateToAccount]);
+  }, [user]);
 
   // Update streak logic
   useEffect(() => {
