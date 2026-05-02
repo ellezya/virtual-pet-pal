@@ -152,6 +152,8 @@ export const ProgressProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         // Load from Supabase for authenticated users
         setIsSyncing(true);
+        // Reset to defaults immediately so stale guest state doesn't flash
+        setProgress(defaultProgress);
         try {
           const { data, error } = await supabase
             .from('user_progress')
