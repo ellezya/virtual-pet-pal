@@ -16,6 +16,10 @@ import JoinClassroom from "./pages/JoinClassroom";
 import JoinFamily from "./pages/JoinFamily";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import RoleSelector from "./pages/RoleSelector";
+import TeacherDashboardPage from "./pages/TeacherDashboardPage";
+import ParentDashboardPage from "./pages/ParentDashboardPage";
+import StudentDashboardPage from "./pages/StudentDashboardPage";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import OfflineIndicator from "./components/OfflineIndicator";
 
@@ -40,6 +44,10 @@ const App = () => (
                       <Route path="/stats" element={<Stats />} />
                       <Route path="/join" element={<JoinClassroom />} />
                       <Route path="/join-family" element={<JoinFamily />} />
+                      <Route path="/dashboard" element={<RoleSelector />} />
+                      <Route path="/dashboard/teacher" element={<TeacherDashboardPage />} />
+                      <Route path="/dashboard/parent" element={<ParentDashboardPage />} />
+                      <Route path="/dashboard/student" element={<StudentDashboardPage />} />
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
