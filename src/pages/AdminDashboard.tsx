@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, School, Activity, Clock, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
 
-// Admin email - only this user can access the dashboard
-const ADMIN_EMAIL = 'founder@lalalola.app'; // Update this to your actual email
+// TODO(Phase 5): replace email-based check with user_roles DB lookup for platform_admin role
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string;
 
 interface UserStats {
   totalUsers: number;
