@@ -9,11 +9,11 @@ interface TeacherBetaStatus {
   loading: boolean;
 }
 
-// Approved email domain for beta access
-const APPROVED_EMAIL_DOMAIN = '@twincitiesacademy.org';
+// TODO(Phase 4): replace with query to culturezen.platform_config approved_teacher_domains key
+const APPROVED_EMAIL_DOMAIN = `@${import.meta.env.VITE_APPROVED_TEACHER_DOMAIN ?? ''}`;
 
 const isApprovedTeacherEmail = (email: string | null): boolean => {
-  if (!email) return false;
+  if (!email || !import.meta.env.VITE_APPROVED_TEACHER_DOMAIN) return false;
   return email.toLowerCase().trim().endsWith(APPROVED_EMAIL_DOMAIN);
 };
 
