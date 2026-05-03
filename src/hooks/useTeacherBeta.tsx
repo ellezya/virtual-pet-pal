@@ -41,6 +41,7 @@ export const useTeacherBeta = () => {
       // Check profile for email and beta approval
       const { data: profile } = await supabase
         .from('profiles')
+        // DEPRECATED: user_type read here for legacy teacher check — Phase 5 will use user_roles instead
         .select('school_name, teacher_beta_approved, user_type, also_teacher, email')
         .eq('id', user.id)
         .single();
@@ -52,6 +53,7 @@ export const useTeacherBeta = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      // DEPRECATED: user_type used here — Phase 5 replaces with user_roles lookup
       const isTeacher = profile?.user_type === 'teacher' || profile?.also_teacher === true;
       const schoolName = profile?.school_name || null;
       const userEmail = profile?.email || user.email || null;

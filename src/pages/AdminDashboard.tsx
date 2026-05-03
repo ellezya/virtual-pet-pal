@@ -89,6 +89,7 @@ const AdminDashboard = () => {
       // Get total users and breakdown by type
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
+        // DEPRECATED: user_type selected here for legacy admin stats — migrate to user_roles counts
         .select('id, user_type, created_at, email, first_name, last_name, school_name');
 
       if (profilesError) throw profilesError;
@@ -100,6 +101,7 @@ const AdminDashboard = () => {
 
       const userStats: UserStats = {
         totalUsers: profiles?.length || 0,
+        // DEPRECATED: filtering by user_type — Phase 5 will query user_roles table instead
         totalTeachers: profiles?.filter(p => p.user_type === 'teacher').length || 0,
         totalParents: profiles?.filter(p => p.user_type === 'parent').length || 0,
         totalIndividuals: profiles?.filter(p => p.user_type === 'individual').length || 0,

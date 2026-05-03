@@ -26,6 +26,7 @@ export interface CareSettings {
   encouragement_flag_dismissed: boolean;
   first_name: string | null;
   last_name: string | null;
+  /** @deprecated profiles.user_type is being phased out in favour of user_roles. Do not add new reads of this field. */
   user_type: 'individual' | 'parent' | 'teacher' | 'kid' | null;
   also_teacher: boolean;
   also_parent: boolean;
@@ -130,6 +131,7 @@ export const SelfCareProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
+        // DEPRECATED: user_type selected here for legacy display only — read user_roles for authoritative role
         .select('care_items_enabled, reminder_frequency, quiet_hours_enabled, quiet_hours_start, quiet_hours_end, encouragement_flag_dismissed, first_name, last_name, user_type, also_teacher, also_parent, last_end_of_day_shown')
         .eq('id', user.id)
         .maybeSingle();
