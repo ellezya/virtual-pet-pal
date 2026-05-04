@@ -9,12 +9,30 @@ interface TeacherBetaStatus {
   loading: boolean;
 }
 
-// TODO(Phase 4): replace with query to culturezen.platform_config approved_teacher_domains key
-const APPROVED_EMAIL_DOMAIN = `@${import.meta.env.VITE_APPROVED_TEACHER_DOMAIN ?? ''}`;
+const approvedDomainsCache = { domains: null as string[] | null, fetchedAt: 0 };
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
-const isApprovedTeacherEmail = (email: string | null): boolean => {
-  if (!email || !import.meta.env.VITE_APPROVED_TEACHER_DOMAIN) return false;
-  return email.toLowerCase().trim().endsWith(APPROVED_EMAIL_DOMAIN);
+const fetchApprovedDomains = async (): Promise<string[]> => {
+  const now = Date.now();
+  if (approvedDomainsCache.domains && now - approvedDomainsCache.fetchedAt < CACHE_TTL_MS) {
+    return approvedDomainsCache.domains;
+  }
+  const { data } = await supabase
+    .from('platform_config')
+    .select('value')
+    .eq('key', 'approved_teacher_domains')
+    .single();
+  const domains: string[] = Array.isArray(data?.value) ? data.value : [];
+  approvedDomainsCache.domains = domains;
+  approvedDomainsCache.fetchedAt = now;
+  return domains;
+};
+
+const isApprovedTeacherEmail = async (email: string | null): Promise<boolean> => {
+  if (!email) return false;
+  const domains = await fetchApprovedDomains();
+  const lower = email.toLowerCase().trim();
+  return domains.some(domain => lower.endsWith(`@${domain}`));
 };
 
 export const useTeacherBeta = () => {
@@ -58,8 +76,8 @@ export const useTeacherBeta = () => {
       const schoolName = profile?.school_name || null;
       const userEmail = profile?.email || user.email || null;
       const hasBetaAccess = isTeacher && (
-        profile?.teacher_beta_approved === true || 
-        isApprovedTeacherEmail(userEmail)
+        profile?.teacher_beta_approved === true ||
+        await isApprovedTeacherEmail(userEmail)
       );
 
       setStatus({
