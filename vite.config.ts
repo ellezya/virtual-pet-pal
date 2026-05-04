@@ -13,4 +13,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        consumer: "index.html",
+        admin: "index-admin.html",
+      },
+    },
+  },
 });

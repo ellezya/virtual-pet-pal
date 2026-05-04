@@ -1,11 +1,7 @@
-// Centralised origin helpers for share URLs.
-// Phase 6 will split these into CONSUMER_ORIGIN (lalalola.app) and
-// ADMIN_ORIGIN (school.lalalola.app) once the Vite entry point split lands.
-
-export const DEFAULT_PUBLIC_APP_ORIGIN = "https://lalalola.app";
+export const CONSUMER_ORIGIN = import.meta.env.VITE_CONSUMER_ORIGIN ?? "https://lalalola.app";
+export const ADMIN_ORIGIN = import.meta.env.VITE_ADMIN_ORIGIN ?? "https://school.lalalola.app";
 
 export function getShareOrigin(): string {
-  if (typeof window === 'undefined') return DEFAULT_PUBLIC_APP_ORIGIN;
+  if (typeof window === 'undefined') return CONSUMER_ORIGIN;
   return window.location.origin;
 }
-

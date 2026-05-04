@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -21,22 +21,24 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
+    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+
     setRoleChecked(false);
     supabase
       .from('user_roles')
       .select('id')
       .eq('user_id', user.id)
-      .eq('role', requiredRole)
-      .maybeSingle()
+      .in('role', roles)
+      .limit(1)
       .then(({ data }) => {
         if (!cancelled) {
-          setHasRole(!!data);
+          setHasRole(!!data?.length);
           setRoleChecked(true);
         }
       });
 
     return () => { cancelled = true; };
-  }, [user?.id, requiredRole]);
+  }, [user?.id, JSON.stringify(requiredRole)]);
 
   if (loading || !roleChecked) {
     return (

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { ADMIN_ORIGIN, CONSUMER_ORIGIN } from '@/lib/publicOrigin';
 
 interface AuthContextType {
   user: User | null;
@@ -39,7 +40,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const appOrigin = window.location.origin === ADMIN_ORIGIN ? ADMIN_ORIGIN : CONSUMER_ORIGIN;
+    const redirectUrl = `${appOrigin}/`;
     
     const { error } = await supabase.auth.signUp({
       email,
