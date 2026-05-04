@@ -4,8 +4,12 @@ import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Users, BookOpen, Rabbit } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
-const roles = [
+type AppRole = Database['culturezen']['Enums']['app_role'];
+
+const roles: { id: AppRole | null; label: string; description: string; icon: typeof Users; path: string; emoji: string }[] = [
   {
     id: 'parent',
     label: 'Parent / Family',
@@ -23,14 +27,26 @@ const roles = [
     emoji: '🏫',
   },
   {
-    id: 'student',
+    id: null,
     label: 'Student',
     description: 'View your points, store, and classroom info',
     icon: BookOpen,
     path: '/dashboard/student',
     emoji: '🎒',
   },
-] as const;
+];
+
+const persistRole = async (userId: string, role: AppRole) => {
+  const { data: existing } = await supabase
+    .from('user_roles')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('role', role)
+    .maybeSingle();
+  if (!existing) {
+    await supabase.from('user_roles').insert({ user_id: userId, role });
+  }
+};
 
 const RoleSelector = () => {
   const { user, loading } = useAuth();
@@ -62,9 +78,14 @@ const RoleSelector = () => {
         <div className="space-y-3">
           {roles.map((role) => (
             <Card
-              key={role.id}
+              key={role.label}
               className="cursor-pointer border-2 border-border hover:border-primary/50 transition-all hover:shadow-md"
-              onClick={() => navigate(role.path)}
+              onClick={async () => {
+                if (user && role.id) {
+                  await persistRole(user.id, role.id).catch(() => {});
+                }
+                navigate(role.path);
+              }}
             >
               <CardContent className="flex items-center gap-4 p-4">
                 <div className="text-3xl">{role.emoji}</div>

@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, School, Activity, Clock, UserCheck } from 'lucide-react';
 import { format } from 'date-fns';
 
-// TODO(Phase 5): replace email-based check with user_roles DB lookup for platform_admin role
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL as string;
 
 interface UserStats {
   totalUsers: number;
@@ -65,15 +63,15 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Check if user is admin
     const checkAdmin = async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', user.id)
-        .single();
+      const { data } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('role', 'platform_admin')
+        .maybeSingle();
 
-      if (profile?.email === ADMIN_EMAIL || user.email === ADMIN_EMAIL) {
+      if (data) {
         setAuthorized(true);
         fetchData();
       } else {

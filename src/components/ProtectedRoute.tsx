@@ -1,14 +1,44 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: string;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const [roleChecked, setRoleChecked] = useState(!requiredRole);
+  const [hasRole, setHasRole] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!requiredRole || !user) {
+      setRoleChecked(true);
+      return;
+    }
+
+    setRoleChecked(false);
+    supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', requiredRole)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) {
+          setHasRole(!!data);
+          setRoleChecked(true);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [user?.id, requiredRole]);
+
+  if (loading || !roleChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -19,9 +49,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  if (!user) return <Navigate to="/auth" replace />;
+  if (requiredRole && !hasRole) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 };
