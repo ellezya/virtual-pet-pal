@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, Check, Link, QrCode } from 'lucide-react';
+import SpedZenConnectionPanel from '@/components/connections/SpedZenConnectionPanel';
 
 interface StudentLinkCodeDisplayProps {
+  studentId: string;
   studentName: string;
   studentNumber: string;
   linkCode: string;
@@ -12,12 +14,13 @@ interface StudentLinkCodeDisplayProps {
   isLinked: boolean;
 }
 
-const StudentLinkCodeDisplay = ({ 
-  studentName, 
-  studentNumber, 
-  linkCode, 
+const StudentLinkCodeDisplay = ({
+  studentId,
+  studentName,
+  studentNumber,
+  linkCode,
   avatarEmoji,
-  isLinked 
+  isLinked
 }: StudentLinkCodeDisplayProps) => {
   const [copied, setCopied] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -84,6 +87,8 @@ const StudentLinkCodeDisplay = ({
                 </p>
               </>
             )}
+
+            <SpedZenConnectionPanel studentId={studentId} />
           </div>
         </DialogContent>
       </Dialog>

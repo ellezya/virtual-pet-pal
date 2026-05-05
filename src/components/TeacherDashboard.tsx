@@ -683,6 +683,7 @@ Michael Brown`}
                                 
                                 <div className="flex items-center gap-1 sm:gap-2 ml-auto sm:ml-0">
                                   <StudentLinkCodeDisplay
+                                    studentId={student.id}
                                     studentName={student.name}
                                     studentNumber={student.student_number}
                                     linkCode={(student as any).link_code || '------'}

@@ -1434,6 +1434,66 @@ export type Database = {
           },
         ]
       }
+      student_behavioral_summary: {
+        Row: {
+          checkin_count_last_30_days: number | null
+          district_student_id: string | null
+          incident_count_last_30_days: number | null
+          last_checkin_date: string | null
+          last_checkin_mood: string | null
+          last_incident_date: string | null
+          last_incident_type: string | null
+          student_id: string | null
+          total_points_earned: number | null
+        }
+        Insert: {
+          checkin_count_last_30_days?: number | null
+          district_student_id?: string | null
+          incident_count_last_30_days?: number | null
+          last_checkin_date?: string | null
+          last_checkin_mood?: string | null
+          last_incident_date?: string | null
+          last_incident_type?: string | null
+          student_id?: string | null
+          total_points_earned?: number | null
+        }
+        Update: {
+          checkin_count_last_30_days?: number | null
+          district_student_id?: string | null
+          incident_count_last_30_days?: number | null
+          last_checkin_date?: string | null
+          last_checkin_mood?: string | null
+          last_incident_date?: string | null
+          last_incident_type?: string | null
+          student_id?: string | null
+          total_points_earned?: number | null
+        }
+        Relationships: []
+      }
+      student_checkin_history: {
+        Row: {
+          checkin_date: string | null
+          classroom_id: string | null
+          district_student_id: string | null
+          mood_emoji: string | null
+          mood_label: string | null
+        }
+        Insert: {
+          checkin_date?: string | null
+          classroom_id?: string | null
+          district_student_id?: string | null
+          mood_emoji?: string | null
+          mood_label?: string | null
+        }
+        Update: {
+          checkin_date?: string | null
+          classroom_id?: string | null
+          district_student_id?: string | null
+          mood_emoji?: string | null
+          mood_label?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_classroom_code: { Args: never; Returns: string }
