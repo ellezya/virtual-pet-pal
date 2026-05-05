@@ -1154,11 +1154,54 @@ export type Database = {
           },
         ]
       }
+      spedzen_connections: {
+        Row: {
+          culturezen_student_id: string
+          district_student_id: string | null
+          id: string
+          linked_at: string | null
+          linked_by: string | null
+          spedzen_student_id: string
+        }
+        Insert: {
+          culturezen_student_id: string
+          district_student_id?: string | null
+          id?: string
+          linked_at?: string | null
+          linked_by?: string | null
+          spedzen_student_id: string
+        }
+        Update: {
+          culturezen_student_id?: string
+          district_student_id?: string | null
+          id?: string
+          linked_at?: string | null
+          linked_by?: string | null
+          spedzen_student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spedzen_connections_culturezen_student_id_fkey"
+            columns: ["culturezen_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spedzen_connections_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           avatar_emoji: string | null
           classroom_id: string
           created_at: string | null
+          district_student_id: string | null
           email: string | null
           id: string
           joined_at: string | null
@@ -1174,6 +1217,7 @@ export type Database = {
           avatar_emoji?: string | null
           classroom_id: string
           created_at?: string | null
+          district_student_id?: string | null
           email?: string | null
           id?: string
           joined_at?: string | null
@@ -1189,6 +1233,7 @@ export type Database = {
           avatar_emoji?: string | null
           classroom_id?: string
           created_at?: string | null
+          district_student_id?: string | null
           email?: string | null
           id?: string
           joined_at?: string | null
@@ -1419,7 +1464,7 @@ export type Database = {
     Enums: {
       app_role:
         | "guest"
-        | "individual"
+        | "family_individual"
         | "parent"
         | "child"
         | "teacher"
@@ -2533,7 +2578,7 @@ export const Constants = {
     Enums: {
       app_role: [
         "guest",
-        "individual",
+        "family_individual",
         "parent",
         "child",
         "teacher",
