@@ -12,16 +12,7 @@ import RoleSelectorAdmin from "./pages/RoleSelectorAdmin";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage";
 import PrincipalDashboardPage from "./pages/PrincipalDashboardPage";
 import AdminDashboard from "./pages/AdminDashboard";
-
-const AuthorityAdminPage = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="text-center space-y-4">
-      <div className="text-5xl">🏛️</div>
-      <h1 className="text-2xl font-bold">Authority Admin</h1>
-      <p className="text-muted-foreground">Coming soon — district and authority-level oversight.</p>
-    </div>
-  </div>
-);
+import AuthorityAdminPage from "./pages/admin/AuthorityAdminPage";
 
 const queryClient = new QueryClient();
 
