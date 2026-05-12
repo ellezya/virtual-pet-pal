@@ -1,21 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import ClassroomPets from "@/components/ClassroomPets";
 
-const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/dashboard');
-    }
-  }, [user, loading, navigate]);
-
-  if (loading) return null;
-
+// Lola is a destination, not a forced landing. Authenticated users are routed to
+// their dashboard via Auth.tsx → /dashboard → RoleSelector auto-redirect.
+// This page remains accessible as the Lola experience for all users.
+export default function Index() {
   return <ClassroomPets />;
-};
-
-export default Index;
+}
