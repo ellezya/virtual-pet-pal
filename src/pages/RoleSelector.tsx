@@ -2,9 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ADMIN_ORIGIN } from '@/lib/publicOrigin';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['culturezen']['Enums']['app_role'];
+
+// Roles that live on the school/admin app (school.lalalola.app), not here.
+const SCHOOL_ROLES: AppRole[] = [
+  'teacher', 'school_admin', 'staff', 'principal', 'platform_admin', 'authority_admin',
+];
 
 // Smart role-based router. Detects the user's persisted role and navigates
 // directly to the correct dashboard — no manual role picker shown.
@@ -27,14 +33,13 @@ const RoleSelector = () => {
       .then(({ data: rows }) => {
         const has = (r: AppRole) => rows?.some((row) => row.role === r) ?? false;
 
-        if (has('teacher')) {
-          navigate('/dashboard/teacher', { replace: true });
-        } else if (has('principal')) {
-          navigate('/dashboard/principal', { replace: true });
-        } else if (has('parent') || has('individual')) {
+        if (SCHOOL_ROLES.some((r) => has(r))) {
+          // School-side roles don't exist on the consumer app — send to admin app.
+          window.location.href = `${ADMIN_ORIGIN}/dashboard`;
+        } else if (has('parent') || has('family_individual')) {
           navigate('/dashboard/parent', { replace: true });
         } else {
-          // Default: student (role not persisted for students)
+          // Default: student/child/guest (student role is not persisted)
           navigate('/dashboard/student', { replace: true });
         }
       });
